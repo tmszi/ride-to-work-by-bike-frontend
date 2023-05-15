@@ -104,7 +104,8 @@ jobs:
 
         - name: Get Docker image version
           run: |
-            .github/workflows/get_docker_image_tag_number.sh
+            .github/workflows/get_docker_image_tag_number.sh \
+            ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_REPO_NAME }}
 
         - name: Build and push Docker image
           uses: docker/build-push-action@v2
