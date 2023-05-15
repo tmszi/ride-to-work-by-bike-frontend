@@ -13,7 +13,7 @@ on:
 
 jobs:
   build-and-test:
-    name: ${{ matrix.name }}
+    name: ${{ matrix.node-version }}
 
     concurrency:
       group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}-${{
@@ -52,7 +52,7 @@ jobs:
           firefox --version
           npx cypress run --component --browser $(which firefox)
 
-      - name: Run component tests with Google Chome web browser web browser
+      - name: Run component tests with Google Chrome web browser
         run: |
           google-chrome-stable --version
           npx cypress run --component --browser $(which google-chrome-stable)
@@ -71,7 +71,7 @@ jobs:
           firefox --version
           npx cypress run --e2e --browser $(which firefox)
 
-      - name: Run e2e/unit tests with Google Chome web browser web browser
+      - name: Run e2e/unit tests with Google Chrome web browser
         run: |
           google-chrome-stable --version
           npx cypress run --e2e --browser $(which google-chrome-stable)
@@ -81,8 +81,9 @@ jobs:
           microsoft-edge --version
           npx cypress run --e2e --browser $(which microsoft-edge)
 
-  push_docker_img:
-      runs-on: ubuntu-
+  push-docker-img:
+      runs-on: ubuntu-22.04
+
       needs: [build-and-test]
 
       steps:
