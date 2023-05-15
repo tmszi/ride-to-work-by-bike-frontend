@@ -113,4 +113,4 @@ jobs:
             context: ./
             file: ./docker/Dockerfile
             push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO_NAME }}:${DOCKERHUB_IMAGE_VERSION}
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}

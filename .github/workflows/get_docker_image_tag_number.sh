@@ -9,7 +9,7 @@ sudo apt-get install -y --no-install-recommends --no-install-suggests \
 
 BASE_URL=https://registry.hub.docker.com/v2/repositories
 
-export DOCKERHUB_IMAGE_VERSION=$(wget -q \
+DOCKERHUB_IMAGE_VERSION=$(wget -q \
 "${BASE_URL}/${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO_NAME}/tags" -O - \
 | python3 -c \
 """
@@ -21,3 +21,5 @@ else:
     print(int(results['results'][0]['name']) + 1)
 """
 )
+
+echo "DOCKERHUB_IMAGE_VERSION=$DOCKERHUB_IMAGE_VERSION" >> $GITHUB_ENV
