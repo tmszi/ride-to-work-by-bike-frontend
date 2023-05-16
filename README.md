@@ -79,6 +79,16 @@ npx quasar build
 
 Copy content of the `dist/spa/*` dir into webserver Apache/NGINX dir.
 
+### Deployed app
+
+App is automatically deployed into k8 repository.
+
+Open web app URL https://rtwbb-test.dopracenakole.net/ with your default browser.
+
+```bash
+test@test:~$ xdg-open https://rtwbb-test.dopracenakole.net
+```
+
 ### Customize the configuration
 
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
