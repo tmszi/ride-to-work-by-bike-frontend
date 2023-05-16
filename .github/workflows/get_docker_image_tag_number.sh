@@ -22,7 +22,7 @@ year = datetime.datetime.now().year
 if not results['results']:
    print(f'{year}.0')
 else:
-    tag_number = int(results['results'][0]['name']) + 1
+    tag_number = int(results['results'][0]['name'].split('.')[1]) + 1
     print(f'{year}.{tag_number}')
 """
 )
