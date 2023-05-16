@@ -86,6 +86,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [build-and-test]
 
+    outputs:
+      dockerhub_image_version: ${{ steps.set_output.outputs.dockerhub_image_version }}
+
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
@@ -115,6 +118,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}
 
+      - id: set_output
+        run: |
+          echo "dockerhub_image_version=${{ env.DOCKERHUB_IMAGE_VERSION }}" >> "$GITHUB_OUTPUT"
+
   bump-k8-ride-to-work-by-bike-frontend-app-docker-image-version:
     runs-on: ubuntu-22.04
     needs: [push-docker-img]
@@ -127,9 +134,15 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           path: k8s
 
-      - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          sed -i -e '2s/.*/#@ image = "${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}"/' \
-            ./manifests/ytt/ride-to-work-by-bike-frontend.yaml
-          git commit -am "manifests/ytt: bump ride-to-work-by-bike-frontend-test build image to version ${{ env.DOCKERHUB_IMAGE_VERSION }}"
+      - env:
+          DOCKERHUB_IMAGE_VERSION: ${{ needs.push-docker-img.outputs.dockerhub_image_version }}
+
+        run: |
+          cd ./k8s
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          echo "DOCKERHUB_IMAGE_VERSION: ${DOCKERHUB_IMAGE_VERSION}"
+          file ./manifests/ytt/ride-to-work-by-bike-frontend-test.yaml
+          sed -i -e "2s/.*/#@ image = \"${{ secrets.DOCKERHUB_USERNAME }}\/${{ secrets.DOCKERHUB_REPO_NAME }}:${DOCKERHUB_IMAGE_VERSION}\"/" ./manifests/ytt/ride-to-work-by-bike-frontend-test.yaml
+          git commit -am "manifests/ytt: bump ride-to-work-by-bike-frontend-test app build image to version ${DOCKERHUB_IMAGE_VERSION}"
+          git push
