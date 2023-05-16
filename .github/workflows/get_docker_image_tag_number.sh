@@ -13,13 +13,18 @@ DOCKERHUB_IMAGE_VERSION=$(wget -q \
 "${BASE_URL}/${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO_NAME}/tags" -O - \
 | python3 -c \
 """
-import sys, json
+import datetime
+import json
+import sys
+
 results = json.load(sys.stdin)
+year = datetime.datetime.now().year
 if not results['results']:
-   print(0)
+   print(f'{year}.0')
 else:
-    print(int(results['results'][0]['name']) + 1)
+    tag_number = int(results['results'][0]['name']) + 1
+    print(f'{year}.{tag_number}')
 """
 )
 
-echo "DOCKERHUB_IMAGE_VERSION=$DOCKERHUB_IMAGE_VERSION" >> $GITHUB_ENV
+echo "DOCKERHUB_IMAGE_VERSION=$DOCKERHUB_IMAGE_VERSION" >> "$GITHUB_ENV"
