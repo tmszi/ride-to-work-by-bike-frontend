@@ -2,7 +2,22 @@
 
 A Ride to work by bike web app is based on the [Quasar framework](https://quasar.dev/) ([Vue.js version 3](https://vuejs.org/), [TypeScript](https://www.typescriptlang.org/), [TOML](https://toml.io)).
 
+Tested with Node version
+
+```bash
+root@63a1a367d282:/ride-to-work-by-bike$ node --version
+v18.16.0
+```
+
 ## Install the dependencies
+
+Quasar framework CLI
+
+```bash
+yarn global add @quasar/cli npx
+```
+
+App dependencies
 
 ```bash
 yarn
@@ -86,7 +101,33 @@ App is automatically deployed into k8 repository.
 Open web app URL https://rtwbb-test.dopracenakole.net/ with your default browser.
 
 ```bash
+# Open default web browser with URL https://rtwbb-test.dopracenakole.net/ from emulator terminal
 test@test:~$ xdg-open https://rtwbb-test.dopracenakole.net
+```
+
+### Develoment app with build Docker image/container
+
+```bash
+APP_DIR=ride-to-work-by-bike
+
+# Build Docker image
+docker buildx build -f ./docker/dev/Dockerfile .
+
+# Run Docker app container
+docker run -it --rm -e "PS1=\u@\h:\w$ " -p 9000:9000 -v $(pwd):/$APP_DIR --name ride-to-work-by-bike <YOUR_BUILDED_DOCKER_IMAGE_ID>
+
+# Or if you want override some Docker app container ENV variables (-e flag)
+docker run -it --rm -e "PS1=\u@\h:\w$ " -e "PRIMARY_COLOR=red" -p 9000:9000 -v $(pwd):/$APP_DIR --name ride-to-work-by-bike <YOUR_BUILDED_DOCKER_IMAGE_ID>
+
+# Install app dependencies under Docker app container from emulator terminal
+root@abe3e4f9c401:/ride-to-work-by-bike$ ./docker/dev/install.sh
+
+# Run quasar app dev server from emulator terminal
+root@abe3e4f9c401:/ride-to-work-by-bike$ npx quasar dev
+
+# Check web app from your host OS via web browser
+# Open default web browser with URL http://localhost:9000 from host OS emulator terminal
+test@test:~$ xdg-open http://localhost:9000
 ```
 
 ### Customize the configuration
