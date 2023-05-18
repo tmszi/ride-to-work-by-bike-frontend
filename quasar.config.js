@@ -11,6 +11,9 @@
 const { configure } = require('quasar/wrappers');
 
 const { getAppConfig } = require('./src/utils/get_app_conf');
+const {
+  getDeployedAppVersion,
+} = require('./src/utils/get_deployed_app_version');
 
 module.exports = configure(function (ctx) {
   return {
@@ -57,6 +60,9 @@ module.exports = configure(function (ctx) {
 
       env: {
         RIDE_TO_WORK_BY_BIKE_CONFIG: JSON.stringify(getAppConfig(process)),
+        RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION: JSON.stringify(
+          getDeployedAppVersion()
+        ),
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
