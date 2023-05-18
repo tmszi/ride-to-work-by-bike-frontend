@@ -109,6 +109,7 @@ jobs:
         run: |
           .github/workflows/get_docker_image_tag_number.sh \
           ${{ secrets.DOCKERHUB_REPO_OWNER }} ${{ secrets.DOCKERHUB_REPO_NAME }}
+          echo "version = ${{ env.DOCKERHUB_IMAGE_VERSION }}" > deployed_app_version.toml
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
