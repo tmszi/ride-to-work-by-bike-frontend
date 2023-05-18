@@ -1,5 +1,16 @@
 <template>
   <q-card :style="{ width: rideToWorkByBikeConfig.width }" data-cy="q-card">
+    <!-- Deployed app version -->
+    <q-card-section
+      v-if="rideToWorkByBikeDeployedAppVersion.version"
+      class="bg-primary text-white"
+    >
+      Deployed app Docker image version:
+      <span class="text-bold">{{
+        rideToWorkByBikeDeployedAppVersion.version
+      }}</span>
+    </q-card-section>
+
     <q-card-section class="bg-primary text-white" data-cy="q-card-section">
       <!-- Title -->
       <div class="text-h6" data-cy="q-card-section-title">
@@ -64,6 +75,10 @@ const rideToWorkByBikeConfig: object = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG
 );
 
+const rideToWorkByBikeDeployedAppVersion: object = JSON.parse(
+  process.env.RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION
+);
+
 setCssVar('primary', rideToWorkByBikeConfig.primaryColor);
 
 export default defineComponent({
@@ -81,6 +96,7 @@ export default defineComponent({
     }
     return {
       rideToWorkByBikeConfig,
+      rideToWorkByBikeDeployedAppVersion,
       logger,
       getString,
     };
