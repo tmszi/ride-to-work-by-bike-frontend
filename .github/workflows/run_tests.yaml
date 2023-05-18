@@ -143,6 +143,6 @@ jobs:
           git config --global user.email "github-actions@github.com"
           echo "DOCKERHUB_IMAGE_VERSION: ${DOCKERHUB_IMAGE_VERSION}"
           file ./manifests/ytt/ride-to-work-by-bike-frontend-test.yaml
-          sed -i -e "2s/.*/#@ image = \"${{ secrets.DOCKERHUB_USERNAME }}\/${{ secrets.DOCKERHUB_REPO_NAME }}:${DOCKERHUB_IMAGE_VERSION}\"/" ./manifests/ytt/ride-to-work-by-bike-frontend-test.yaml
+          sed -i -e "2s/.*/#@ image = \"${{ secrets.DOCKERHUB_REPO_OWNER }}\/${{ secrets.DOCKERHUB_REPO_NAME }}:${DOCKERHUB_IMAGE_VERSION}\"/" ./manifests/ytt/ride-to-work-by-bike-frontend-test.yaml
           git commit -am "manifests/ytt: bump ride-to-work-by-bike-frontend-test app build image to version ${DOCKERHUB_IMAGE_VERSION}"
           git push
