@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DOCKERHUB_USERNAME=$1
+DOCKERHUB_REPO_OWNER=$1
 DOCKERHUB_REPO_NAME=$2
 
 sudo apt-get update -y
@@ -10,7 +10,7 @@ sudo apt-get install -y --no-install-recommends --no-install-suggests \
 BASE_URL=https://registry.hub.docker.com/v2/repositories
 
 DOCKERHUB_IMAGE_VERSION=$(wget -q \
-"${BASE_URL}/${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO_NAME}/tags" -O - \
+"${BASE_URL}/${DOCKERHUB_REPO_OWNER}/${DOCKERHUB_REPO_NAME}/tags" -O - \
 | python3 -c \
 """
 import datetime

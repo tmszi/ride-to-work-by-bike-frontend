@@ -108,7 +108,7 @@ jobs:
       - name: Get Docker image version
         run: |
           .github/workflows/get_docker_image_tag_number.sh \
-          ${{ secrets.DOCKERHUB_USERNAME }} ${{ secrets.DOCKERHUB_REPO_NAME }}
+          ${{ secrets.DOCKERHUB_REPO_OWNER }} ${{ secrets.DOCKERHUB_REPO_NAME }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -116,7 +116,7 @@ jobs:
           context: ./
           file: ./docker/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}
+          tags: ${{ secrets.DOCKERHUB_REPO_OWNER }}/${{ secrets.DOCKERHUB_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}
 
       - id: set_output
         run: |
