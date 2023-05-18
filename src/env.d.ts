@@ -4,6 +4,7 @@ declare namespace NodeJS {
     NODE_ENV: string;
     VUE_ROUTER_MODE: 'hash' | 'history' | 'abstract' | undefined;
     VUE_ROUTER_BASE: string | undefined;
-    QUIZ_CONFIG: string;
+    RIDE_TO_WORK_BY_BIKE_CONFIG: string;
+    RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION: string;
   }
 }
