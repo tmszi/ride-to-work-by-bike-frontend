@@ -109,6 +109,9 @@ jobs:
         run: |
           .github/workflows/get_docker_image_tag_number.sh \
           ${{ secrets.DOCKERHUB_REPO_OWNER }} ${{ secrets.DOCKERHUB_REPO_NAME }}
+
+      - name: Create deployed_app_version.toml file with deployed app Docker image version
+        run: |
           echo "version = ${{ env.DOCKERHUB_IMAGE_VERSION }}" > deployed_app_version.toml
 
       - name: Build and push Docker image
