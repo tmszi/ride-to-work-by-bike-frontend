@@ -34,9 +34,9 @@ by SHELL/ENV vars (defined here `./src/utils/get_app_conf.js`).
 When you add some app new global var inside config file `ride_to_work_by_bike_config.toml` you must
 add correspoding SHELL/ENV var here `./src/utils/get_app_conf.js`.
 
-And before merge your PR (deploy to k8) you must add new/changed correspoding SHELL/ENV var
+And before create your PR (deploy to k8) you must add new/changed correspoding SHELL/ENV var here
 [ride-to-work-by-bike-frontend-test.yaml](https://github.com/auto-mat/k8s/blob/master/manifests/config-maps/ride-to-work-by-bike-frontend-test.yaml#)
-and [ride-to-work-by-bike-frontend.lib.yaml](https://github.com/auto-mat/k8s/blob/master/manifests/ytt/lib/ride-to-work-by-bike-frontend.lib.yaml).
+and here [ride-to-work-by-bike-frontend.lib.yaml](https://github.com/auto-mat/k8s/blob/master/manifests/ytt/lib/ride-to-work-by-bike-frontend.lib.yaml).
 
 Start dev server with
 
