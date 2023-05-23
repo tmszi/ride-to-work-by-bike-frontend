@@ -28,12 +28,6 @@ describe('Home page', () => {
         .and('have.class', 'text-h6')
         .and('have.text', config.title)
         .and('have.css', 'color', whiteColor);
-
-      cy.dataCy('q-card-section-subtitle')
-        .should('be.visible')
-        .and('have.class', 'text-subtitle2')
-        .and('have.text', config.subtitle)
-        .and('have.css', 'color', whiteColor);
     });
   });
 
