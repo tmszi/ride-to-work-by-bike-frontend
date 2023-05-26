@@ -1,2 +1,20 @@
 totalQuestions = "Total questions"
 lang = "Language"
+
+[drawerMenu]
+home = "Home"
+routes = "Routes"
+results = "Results"
+community = "Community"
+discounts = "Discounts"
+coordinator = "Coordinator"
+profile = "Profile"
+inviteFriends = "Invite friends"
+donate = "Donate"
+
+[index]
+title = "Home"
+days = "days"
+hours = "hours"
+minutes = "minutes"
+seconds = "seconds"

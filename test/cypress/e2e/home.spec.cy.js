@@ -1,12 +1,13 @@
 import { whiteColor, hexToRgb } from '../../../test/cypress/utils/';
 
 describe('Home page', () => {
-  it('render <q-card>', () => {
+  it('render <q-drawer>', () => {
     cy.visit(Cypress.config('baseUrl'));
     cy.task('getAppConfig', process).then((config) => {
-      cy.dataCy('q-card')
+      cy.dataCy('q-drawer')
         .should('be.visible')
-        .and('have.css', 'width', config.width);
+        .and('have.css', 'background-color', config.colorGrayLight);
+        .and('have.css', 'width', '360px');
     });
   });
 

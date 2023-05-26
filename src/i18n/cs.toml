@@ -1,0 +1,17 @@
+[drawerMenu]
+home = "Domov"
+routes = "Cesty"
+results = "Výsledky"
+community = "Komunita"
+discounts = "Slevy a výhry"
+coordinator = "Firemní koordinátor*ka"
+profile = "Profil"
+inviteFriends = "Pozvat přátele"
+donate = "Darujte"
+
+[index]
+title = "Domov"
+days = "dní"
+hours = "hodin"
+minutes = "minut"
+seconds = "sekund"
