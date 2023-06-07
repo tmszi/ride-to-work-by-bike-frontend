@@ -2,7 +2,7 @@
 import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
-  name: 'UserSelect',
+  name: 'VueUserSelect',
   setup() {
     const user = ref({ label: 'User 1', value: '1' });
 

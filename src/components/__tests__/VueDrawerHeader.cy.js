@@ -1,8 +1,8 @@
-import DrawerHeader from '../DrawerHeader.vue';
+import VueDrawerHeader from '../VueDrawerHeader.vue';
 
-describe('<DrawerHeader>', () => {
+describe('<VueDrawerHeader>', () => {
   beforeEach(() => {
-    cy.mount(DrawerHeader, {});
+    cy.mount(VueDrawerHeader, {});
   });
 
   it('renders logo', () => {

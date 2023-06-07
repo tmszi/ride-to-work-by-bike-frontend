@@ -4,7 +4,7 @@ import { useDateFormat } from '@vueuse/core';
 import { Countdown } from 'components/types';
 
 export default defineComponent({
-  name: 'EventCountdown',
+  name: 'VueEventCountdown',
   props: {
     releaseDate: {
       type: String,

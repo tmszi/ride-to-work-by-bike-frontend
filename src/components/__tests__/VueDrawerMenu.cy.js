@@ -1,8 +1,8 @@
-import DrawerMenu from '../DrawerMenu.vue';
+import VueDrawerMenu from '../VueDrawerMenu.vue';
 
-describe('DrawerMenu', () => {
+describe('VueDrawerMenu', () => {
   beforeEach(() => {
-    cy.mount(DrawerMenu, {});
+    cy.mount(VueDrawerMenu, {});
   });
 
   it('should render the list with the correct number of items', () => {

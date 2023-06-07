@@ -5,7 +5,7 @@ import VueCardEvent from 'components/VueCardEvent.vue';
 import { CardEvent } from 'components/types';
 
 export default defineComponent({
-  name: 'CardListEvent',
+  name: 'VueCardListEvent',
   props: {
     heading: {
       type: String,

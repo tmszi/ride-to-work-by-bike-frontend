@@ -1,10 +1,10 @@
-import EventCountdown from '../EventCountdown.vue';
+import VueEventCountdown from '../VueEventCountdown.vue';
 
 describe('Event Countdown', () => {
   const releaseDate = '2023-10-01T12:00:00';
 
   beforeEach(() => {
-    cy.mount(EventCountdown, {
+    cy.mount(VueEventCountdown, {
       props: {
         releaseDate,
       },
