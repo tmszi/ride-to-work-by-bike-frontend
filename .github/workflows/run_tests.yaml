@@ -94,6 +94,12 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [build-and-test]
 
+    concurrency:
+      group:
+        ${{ github.workflow }}-${{ github.event_name == 'push' && github.head_ref || github.sha }}-${{
+        matrix.name }}
+      cancel-in-progress: true
+
     outputs:
       dockerhub_image_version: ${{ steps.set_output.outputs.dockerhub_image_version }}
 
@@ -137,6 +143,12 @@ jobs:
   bump-k8-ride-to-work-by-bike-frontend-app-docker-image-version:
     runs-on: ubuntu-22.04
     needs: [push-docker-img]
+
+    concurrency:
+      group:
+        ${{ github.workflow }}-${{ github.event_name == 'push' && github.head_ref || github.sha }}-${{
+        matrix.name }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout k8 repository
