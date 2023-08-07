@@ -50,6 +50,7 @@ jobs:
           browser: firefox
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          run: npx cypress run --component
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
@@ -59,6 +60,7 @@ jobs:
           browser: chrome
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          run: npx cypress run --component
 
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
@@ -68,6 +70,7 @@ jobs:
           browser: edge
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          run: npx cypress run --component
 
       - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
@@ -76,6 +79,7 @@ jobs:
           browser: firefox
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          run: npx cypress run --e2e
 
       - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
@@ -84,6 +88,7 @@ jobs:
           browser: chrome
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          run: npx cypress run --e2e
 
       - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
@@ -92,6 +97,7 @@ jobs:
           browser: edge
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          run: npx cypress run --e2e
 
       - name: Build app
         run: npx quasar build
