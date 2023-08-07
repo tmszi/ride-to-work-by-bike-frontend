@@ -121,12 +121,22 @@ jobs:
       - name: Build app
         run: npx quasar build
 
-      - name: Archive runned cypress tests result
+      - name: Archive runned cypress tests screenshots result
         uses: actions/upload-artifact@v3
-        if: ${{ always() }}
+        if: ${{ failure() }}
         with:
-          name: cypress-tests-result
-          path: test/*
+          name: cypress-tests-screenshots
+          path: test/cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Archive runned cypress tests videos result
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: cypress-tests-videos
+          path: test/cypress/videos
+          if-no-files-found: ignore
           retention-days: 3
 
   push-docker-img:
