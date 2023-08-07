@@ -56,6 +56,7 @@ jobs:
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
           command: npx cypress run --component --browser firefox
+          headed: true
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
