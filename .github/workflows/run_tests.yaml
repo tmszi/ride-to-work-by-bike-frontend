@@ -59,7 +59,7 @@ jobs:
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         env:
-          # DEBUG: "cypress:*"
+          DEBUG: "cypress:*"
           CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
@@ -72,7 +72,7 @@ jobs:
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         env:
-          # DEBUG: "cypress:*"
+          DEBUG: "cypress:*"
           CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
@@ -85,7 +85,7 @@ jobs:
       - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         env:
-          # DEBUG: "cypress:*"
+          DEBUG: "cypress:*"
           CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
@@ -97,7 +97,7 @@ jobs:
       - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         env:
-          # DEBUG: "cypress:*"
+          DEBUG: "cypress:*"
           CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
@@ -109,7 +109,7 @@ jobs:
       - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         env:
-          # DEBUG: "cypress:*"
+          DEBUG: "cypress:*"
           CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
