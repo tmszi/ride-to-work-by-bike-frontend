@@ -43,7 +43,7 @@ jobs:
       - run: node -v
 
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v3
         with:
           start: npx quasar dev
           component: true
@@ -52,7 +52,7 @@ jobs:
           wait-on: $dev_server_url
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v3
         with:
           install: false
           component: true
@@ -61,7 +61,7 @@ jobs:
           wait-on: $dev_server_url
 
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v3
         with:
           install: false
           component: true
@@ -70,7 +70,7 @@ jobs:
           wait-on: $dev_server_url
 
       - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v3
         with:
           install: false
           browser: firefox
@@ -78,7 +78,7 @@ jobs:
           wait-on: $dev_server_url
 
       - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v3
         with:
           install: false
           browser: chrome
@@ -86,7 +86,7 @@ jobs:
           wait-on: $dev_server_url
 
       - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v3
         with:
           install: false
           browser: edge
