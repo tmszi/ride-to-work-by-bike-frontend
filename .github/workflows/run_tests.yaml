@@ -44,6 +44,8 @@ jobs:
 
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
+        env:
+          DEBUG: '@cypress/github-action'
         with:
           start: npx quasar dev
           component: true
