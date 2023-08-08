@@ -47,10 +47,10 @@ jobs:
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         env:
-          DEBUG: "cypress:*"
+          # DEBUG: "cypress:*"
           # CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
-          start: npx quasar dev
+          # start: npx quasar dev
           # component: true
           browser: firefox
           # wait-on-timeout: ${{ env.timeout }}
