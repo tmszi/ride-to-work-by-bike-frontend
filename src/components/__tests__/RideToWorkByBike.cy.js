@@ -1,5 +1,5 @@
 import RideToWorkByBike from '../RideToWorkByBike.vue';
-// import { whiteColor, hexToRgb } from '../../../test/cypress/utils/';
+import { whiteColor, hexToRgb } from '../../../test/cypress/utils/';
 
 describe('<RideToWorkByBike>', () => {
   it('render <q-card>', () => {
@@ -16,7 +16,7 @@ describe('<RideToWorkByBike>', () => {
       });
   });
 
-  /* it('render <q-card-section>', () => {
+  it('render <q-card-section>', () => {
     cy.mount(RideToWorkByBike, {});
     let config;
     cy.window()
@@ -85,5 +85,5 @@ describe('<RideToWorkByBike>', () => {
       failureThreshold: 0.5, // threshold for entire image
       failureThresholdType: 'percent', // percent of image or number of pixels)
     });
-  });*/
+  });
 });
