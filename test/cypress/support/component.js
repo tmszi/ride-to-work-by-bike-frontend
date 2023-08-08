@@ -56,7 +56,7 @@ import { mount } from 'cypress/vue';
 import VueLogger from 'vuejs3-logger';
 
 import { options as loggerOptions } from '../../../src/boot/logger'
-// import { i18n as i18nApp }  from '../../../src/boot/i18n'
+import { i18n as i18nApp }  from '../../../src/boot/i18n'
 
 Cypress.Commands.add('mount', (component, options = {}) => {
   // Setup options object
@@ -66,7 +66,7 @@ Cypress.Commands.add('mount', (component, options = {}) => {
   // Add i18n plugin
   options.global.plugins.push({
     install(app) {
-      // app.use(i18nApp);
+      app.use(i18nApp);
       app.use(VueLogger, loggerOptions);
     },
   });
