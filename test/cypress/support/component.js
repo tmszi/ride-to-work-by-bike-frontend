@@ -28,7 +28,7 @@ import 'quasar/src/css/index.sass';
 import 'quasar/dist/icon-set/material-icons.umd.prod';
 import '@quasar/extras/material-icons/material-icons.css';
 
-import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-e2e-cypress';
+// import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-e2e-cypress';
 import { Dialog } from 'quasar';
 
 // Since Cypress v10 we cannot import `config` directly from VTU as Cypress bundles its own version of it
@@ -50,7 +50,7 @@ config.global.mocks = {
 // We do want transitions to show when doing visual testing :)
 config.global.stubs = {};
 
-installQuasarPlugin({ plugins: { Dialog } });
+// installQuasarPlugin({ plugins: { Dialog } });
 
 import { mount } from 'cypress/vue';
 import VueLogger from 'vuejs3-logger';
