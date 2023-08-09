@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Cypress componenets/e2e tests
+    name: Cypress components/e2e tests
 
     concurrency:
       group:
@@ -32,7 +32,7 @@ jobs:
     env:
       timeout: 120
       dev_server_url: "http://localhost:9000"
-      browser_connect_timeout: 180000
+      # browser_connect_timeout: 180000
 
     steps:
       - name: Checkout Git code
@@ -44,14 +44,49 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: node -v
 
+      - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
+        uses: cypress-io/github-action@v5
+        # env:
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        with:
+          start: npx quasar dev
+          install: false
+          browser: firefox
+          wait-on-timeout: ${{ env.timeout }}
+          wait-on: ${{ env.dev_server_url }}
+          command: npx cypress run --e2e --browser firefox
+
+      - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
+        uses: cypress-io/github-action@v5
+        # env:
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        with:
+          install: false
+          browser: chrome
+          wait-on-timeout: ${{ env.timeout }}
+          wait-on: ${{ env.dev_server_url }}
+          command: npx cypress run --e2e --browser chrome
+
+      - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
+        uses: cypress-io/github-action@v5
+        # env:
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        with:
+          install: false
+          browser: edge
+          wait-on-timeout: ${{ env.timeout }}
+          wait-on: ${{ env.dev_server_url }}
+          command: npx cypress run --e2e --browser edge
+
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
         # env:
-          # DEBUG: "cypress:*"
-          # CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
-          start: npx quasar dev
-          # component: true
           browser: firefox
           # wait-on-timeout: ${{ env.timeout }}
           # wait-on: ${{ env.dev_server_url }}
@@ -59,12 +94,11 @@ jobs:
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
-        env:
-          DEBUG: "cypress:*"
-          CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        # env:
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
-          component: true
           browser: chrome
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
@@ -77,47 +111,10 @@ jobs:
           CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
-          component: true
           browser: edge
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
           command: npx cypress run --component --browser edge
-
-      - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
-        env:
-          DEBUG: "cypress:*"
-          CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
-        with:
-          install: false
-          browser: firefox
-          wait-on-timeout: ${{ env.timeout }}
-          wait-on: ${{ env.dev_server_url }}
-          command: npx cypress run --e2e --browser firefox
-
-      - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
-        env:
-          DEBUG: "cypress:*"
-          CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
-        with:
-          install: false
-          browser: chrome
-          wait-on-timeout: ${{ env.timeout }}
-          wait-on: ${{ env.dev_server_url }}
-          command: npx cypress run --e2e --browser chrome
-
-      - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
-        env:
-          DEBUG: "cypress:*"
-          CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
-        with:
-          install: false
-          browser: edge
-          wait-on-timeout: ${{ env.timeout }}
-          wait-on: ${{ env.dev_server_url }}
-          command: npx cypress run --e2e --browser edge
 
       - name: Build app
         run: npx quasar build
