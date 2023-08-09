@@ -106,9 +106,9 @@ jobs:
 
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v5
-        env:
-          DEBUG: "cypress:*"
-          CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        # env:
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
           browser: edge
