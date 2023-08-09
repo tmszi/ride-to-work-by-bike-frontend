@@ -81,7 +81,7 @@ module.exports = configure(function (ctx) {
       // polyfillModulePreload: true,
       // distDir
 
-      extendViteConf (viteConf) { optimizeDeps: { force: true }},
+      // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
 
       vitePlugins: [['@originjs/vite-plugin-content', {}]],
