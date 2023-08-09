@@ -25,13 +25,13 @@ jobs:
       max-parallel: 1
       matrix:
         node: [18.x]
-        os: [windows-latest] # [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     timeout-minutes: 35
 
     env:
       timeout: 120
-      dev_server_url: "http://localhost:9000"
+      dev_server_url: 'http://localhost:9000'
       # browser_connect_timeout: 180000
 
     steps:
