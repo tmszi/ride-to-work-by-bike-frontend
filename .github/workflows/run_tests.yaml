@@ -140,16 +140,18 @@ jobs:
     name: SonarCloud scan analysis
 
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
-      with:
-        # Disabling shallow clone is recommended for improving relevancy of reporting
-        fetch-depth: 0
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Checkout Git code
+        uses: actions/checkout@v3
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   push-docker-img:
     if: github.event.pull_request.merged == true || github.event.push.ref == 'refs/heads/main'
