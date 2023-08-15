@@ -34,7 +34,7 @@ jobs:
       # browser_connect_timeout: 180000
 
     steps:
-      - name: Checkout Git code
+      - name: Checkout app repository code
         uses: actions/checkout@v3
 
       - name: Setup Node
@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Git code
+      - name: Checkout app repository code
         uses: actions/checkout@v3
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
@@ -162,7 +162,7 @@ jobs:
       dockerhub_image_version: ${{ steps.set_output.outputs.dockerhub_image_version }}
 
     steps:
-      - name: checkout repo
+      - name: Checkout app repository code
         uses: actions/checkout@v3
 
       - name: Set up QEMU
