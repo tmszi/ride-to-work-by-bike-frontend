@@ -33,7 +33,7 @@ import { Dialog } from 'quasar';
 
 // Since Cypress v10 we cannot import `config` directly from VTU as Cypress bundles its own version of it
 // See https://github.com/cypress-io/cypress/issues/22611
-import { VueTestUtils } from 'cypress/vue';
+import { mount, VueTestUtils} from 'cypress/vue';
 const { config } = VueTestUtils;
 
 // Example to import i18n from boot and use as plugin
@@ -52,7 +52,6 @@ config.global.stubs = {};
 
 installQuasarPlugin({ plugins: { Dialog } });
 
-import { mount } from 'cypress/vue';
 import VueLogger from 'vuejs3-logger';
 
 import { options as loggerOptions } from '../../../src/boot/logger'
