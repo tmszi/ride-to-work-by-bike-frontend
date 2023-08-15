@@ -136,6 +136,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
   push-docker-img:
     if: github.event.pull_request.merged == true || github.event.push.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
