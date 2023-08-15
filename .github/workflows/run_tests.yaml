@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  test-and-build:
     name: Cypress components/e2e tests
 
     concurrency:
