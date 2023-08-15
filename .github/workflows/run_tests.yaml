@@ -137,6 +137,8 @@ jobs:
           retention-days: 3
 
   sonarcloud:
+    name: SonarCloud scan analysis
+
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
