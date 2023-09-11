@@ -136,10 +136,16 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+  # dump-github-context:
+  #   name: Dump GitHub context
+
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Dump GitHub context
+  #       env:
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
+  #       run: echo "$GITHUB_CONTEXT"
 
   sonarcloud:
     name: SonarCloud scan analysis
