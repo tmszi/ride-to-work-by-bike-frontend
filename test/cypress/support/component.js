@@ -16,7 +16,7 @@
 import './commands';
 import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command';
 
-addMatchImageSnapshotCommand()
+addMatchImageSnapshotCommand();
 
 // Change this if you have a different entrypoint for the main scss.
 import 'src/css/app.scss';
@@ -33,7 +33,7 @@ import { Dialog } from 'quasar';
 
 // Since Cypress v10 we cannot import `config` directly from VTU as Cypress bundles its own version of it
 // See https://github.com/cypress-io/cypress/issues/22611
-import { mount, VueTestUtils} from 'cypress/vue';
+import { mount, VueTestUtils } from 'cypress/vue';
 const { config } = VueTestUtils;
 
 // Example to import i18n from boot and use as plugin
@@ -54,8 +54,8 @@ installQuasarPlugin({ plugins: { Dialog } });
 
 import VueLogger from 'vuejs3-logger';
 
-import { options as loggerOptions } from '../../../src/boot/logger'
-import { i18n as i18nApp }  from '../../../src/boot/i18n'
+import { options as loggerOptions } from '../../../src/boot/logger';
+import { i18n as i18nApp } from '../../../src/boot/i18n';
 
 Cypress.Commands.add('mount', (component, options = {}) => {
   // Setup options object

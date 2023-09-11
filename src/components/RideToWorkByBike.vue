@@ -57,6 +57,7 @@
     <!-- Image -->
     <q-img
       :src="`/${rideToWorkByBikeConfig.image}`"
+      alt="test"
       width="100%"
       fit="contain"
       spinner-color="primary"
@@ -69,9 +70,11 @@
 import { setCssVar } from 'quasar';
 import { defineComponent, inject } from 'vue';
 
+import { ConfigGlobal } from './types';
+
 import { getString } from '../utils';
 
-const rideToWorkByBikeConfig: object = JSON.parse(
+const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG
 );
 
@@ -80,6 +83,7 @@ const rideToWorkByBikeDeployedAppVersion: object = JSON.parse(
 );
 
 setCssVar('primary', rideToWorkByBikeConfig.primaryColor);
+setCssVar('gray-light', rideToWorkByBikeConfig.colorGrayLight);
 
 export default defineComponent({
   name: 'RideToWorkByBike',

@@ -1,6 +1,9 @@
 # Quiz
+# Define Colors
 primaryColor = "#000000"
+colorGrayLight = "#F3F7FF"
 image = "image.png"
 width = "850px"
 title = "Title"
 subtitle = "Subtitle"
+borderRadiusCard = "20px"

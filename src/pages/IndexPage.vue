@@ -1,15 +1,167 @@
 <template>
-  <q-page class="row items-center justify-evenly">
-    <ride-to-work-by-bike></ride-to-work-by-bike>
+  <q-page data-cy="q-main">
+    <div class="q-px-lg">
+      <h1
+        class="text-h5 q-mt-none q-pt-lg text-weight-bold"
+        data-cy="index-title"
+      >
+        {{ $t('index.title') }}
+      </h1>
+      <event-countdown
+        :release-date="releaseDate"
+        data-cy="event-countdown"
+      ></event-countdown>
+      <list-card-challenge
+        :cards="cards"
+        class="q-pt-xl q-pb-xl"
+        data-cy="list-challenge"
+      ></list-card-challenge>
+      <banner-image
+        :banner="banner"
+        class="q-pt-xl q-pb-xl"
+        data-cy="banner-image"
+      ></banner-image>
+    </div>
+    <heading-background
+      :title="headingBgTitle"
+      class="q-pt-xl"
+      data-cy="heading-background"
+    ></heading-background>
+    <div class="bg-gray-light q-px-lg">
+      <list-card-event
+        :cards="cardsEvent"
+        class="q-pt-xl"
+        data-cy="list-event"
+      ></list-card-event>
+    </div>
   </q-page>
 </template>
 
 <script lang="ts">
-import RideToWorkByBike from 'components/RideToWorkByBike.vue';
+// import libraries
 import { defineComponent } from 'vue';
+
+// import components
+import EventCountdown from 'components/EventCountdown.vue';
+import ListCardChallenge from 'components/ListCardChallenge.vue';
+import BannerImage from 'components/BannerImage.vue';
+import HeadingBackground from 'src/components/HeadingBackground.vue';
+import ListCardEvent from 'src/components/ListCardEvent.vue';
+
+// import types
+import { CardChallenge as CardChallengeType, CardEvent as CardEventType } from 'components/types';
+import { BannerImage as BannerImageType } from 'components/types';
 
 export default defineComponent({
   name: 'IndexPage',
-  components: { RideToWorkByBike },
+  components: {
+    EventCountdown,
+    ListCardChallenge,
+    BannerImage,
+    HeadingBackground,
+    ListCardEvent,
+  },
+  setup() {
+    const releaseDate = '2023-10-01T12:00:00';
+
+    const cards: CardChallengeType[] = [
+      {
+        title: 'Týmová pravidelnost',
+        url: '#',
+        image: {
+          src: 'https://picsum.photos/id/70/500/540',
+          alt: 'road lined with trees',
+        },
+        dates: '1. říj.–31. říj. 2022',
+        company: false,
+      },
+      {
+        title: 'Vaše pravidelnost',
+        url: '#',
+        image: {
+          src: 'https://picsum.photos/id/70/500/530',
+          alt: 'road lined with trees',
+        },
+        dates: '1. říj.–31. říj. 2022',
+        company: false,
+      },
+      {
+        title: 'Vaše zelené kilometry',
+        url: '#',
+        image: {
+          src: 'https://picsum.photos/id/70/500/550',
+          alt: 'road lined with trees',
+        },
+        dates: '1. říj.–31. říj. 2022',
+        company: true,
+      },
+      {
+        title: 'Zelené kilometry týmu',
+        url: '#',
+        image: {
+          src: 'https://picsum.photos/id/70/500/520',
+          alt: 'road lined with trees',
+        },
+        dates: '1. říj.–31. říj. 2022',
+        company: true,
+      },
+      {
+        title: 'Zelené kilometry pobočky',
+        url: '#',
+        image: {
+          src: 'https://picsum.photos/id/70/500/540',
+          alt: 'road lined with trees',
+        },
+        dates: '1. říj.–31. říj. 2022',
+        company: false,
+      },
+    ];
+
+    const banner: BannerImageType = {
+      title: 'Vyplňte náš dotazník a vyhrajte jednu z našich skvělých cen!',
+      perex:
+        'Pomůžete nám rozhodnout, čemu příště věnovat více času a co by naopak mělo zůstat stejné.',
+      image: {
+        src: 'https://picsum.photos/id/70/600/200',
+        alt: 'road lined with trees',
+      },
+    };
+
+    const headingBgTitle =
+      'Zapojte se do komunity Do práce na kole ve svém městě';
+
+    const cardsEvent: CardEventType[] = [
+      {
+        title: 'Opening Ceremony Bike to Work 2022',
+        thumbnail: {
+          src: 'https://picsum.photos/id/70/340/200',
+          alt: 'road lined with trees',
+        },
+        image: {
+          src: 'https://picsum.photos/id/70/380/380',
+          alt: 'road lined with trees',
+        },
+        dates: new Date('2023-10-01T12:00:00'),
+        location: 'Prague',
+        content: `We want to reward you for your support and activity this year with a closing party with prizes and the promised raffle!
+          You can look forward to the announcement of the results in the regularity category and green kilometres for individuals and teams.
+          Other attractive prizes will be drawn by raffle only from the individuals and teams that will have at least one representative at the closing ceremony.
+          We will also announce the traditional Brno cycling employer of the year.
+          <br />
+          The main prize will be a City Bike HERKA from our partner Cyklospeciality.
+          <br />
+          We are looking forward to seeing you!`,
+        links: ['meet.google.com/anr-pvfs-opf', 'meet.google.com/anr-pvfs-opf'],
+      },
+    ];
+
+    return {
+      releaseDate,
+      cards,
+      banner,
+      headingBgTitle,
+      cardsEvent,
+    };
+  },
 });
 </script>
