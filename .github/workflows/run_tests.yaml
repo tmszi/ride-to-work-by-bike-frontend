@@ -147,18 +147,6 @@ jobs:
   #         GITHUB_CONTEXT: ${{ toJson(github) }}
   #       run: echo "$GITHUB_CONTEXT"
 
-  dump-github-event-push-ref:
-    name: Dump GitHub event push ref
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Dump GitHub event push ref
-        env:
-          GITHUB_EVT_PUSH_REF: ${{ github.event.push.ref }}
-          GITHUB_EVT_REF: ${{ github.event.ref }}
-        run: echo "$GITHUB_EVT_PUSH_REF | $GITHUB_EVT_REF"
-
   sonarcloud:
     name: SonarCloud scan analysis
 
