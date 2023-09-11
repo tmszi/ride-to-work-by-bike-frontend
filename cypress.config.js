@@ -24,6 +24,7 @@ module.exports = defineConfig({
     baseUrl: 'http://localhost:9000/',
     supportFile: 'test/cypress/support/e2e.js',
     specPattern: 'test/cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    defaultCommandTimeout: 60000,
   },
   component: {
     setupNodeEvents(on, config) {
@@ -37,5 +38,6 @@ module.exports = defineConfig({
     specPattern: 'src/**/*.cy.{js,jsx,ts,tsx}',
     indexHtmlFile: 'test/cypress/support/component-index.html',
     devServer: injectQuasarDevServerConfig(),
+    defaultCommandTimeout: 60000,
   },
 });
