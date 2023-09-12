@@ -16,8 +16,7 @@ jobs:
 
     concurrency:
       group:
-        ${{ github.workflow }}-${{ github.event_name == 'push' && github.head_ref || github.sha }}-${{
-        matrix.name }}-${{ matrix.os }}
+        ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.name }}-${{ matrix.os }}
       cancel-in-progress: true
 
     runs-on: ${{ matrix.os }}
