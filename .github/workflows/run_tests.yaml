@@ -43,7 +43,7 @@ jobs:
       - run: node -v
 
       - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v6
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
@@ -55,7 +55,7 @@ jobs:
           command: npx cypress run --e2e --browser firefox
 
       - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v6
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
@@ -67,7 +67,7 @@ jobs:
           command: npx cypress run --e2e --browser chrome
 
       - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v6
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
@@ -79,7 +79,7 @@ jobs:
           command: npx cypress run --e2e --browser edge
 
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v6
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
@@ -91,7 +91,7 @@ jobs:
           command: npx cypress run --e2e --browser firefox
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v6
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
@@ -103,7 +103,7 @@ jobs:
           command: npx cypress run --component --browser chrome
 
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v6
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
