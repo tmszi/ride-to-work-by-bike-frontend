@@ -11,6 +11,7 @@ coordinator = "Firemný koordinátor"
 profile = "Profil"
 inviteFriends = "Pozvať priateľov"
 donate = "Darujte"
+more = "Viac"
 
 [index]
 title = "Domovská stránka"
@@ -52,7 +53,7 @@ hours = "hodin"
 minutes = "minút"
 seconds = "sekund"
 
-[index.cardList]
+[index.cardListChallenge]
 title = "Budúce výzvy"
 
 [index.cardChallenge]
@@ -63,8 +64,61 @@ dates = "Obdobie výzvy:"
 title = "Fill in our questionnaire and win one of our great prizes!"
 perex = "You can help us decide what to spend more time on next time and what should stay the same."
 
+[index.bannerRoutes]
+title = "Máte zapísané všetky cesty za posledný týždeň | Za posledný týždeň vám zostáva zapísať {n} výlet | Za posledný týždeň vám zostáva zapísať {n} cesty | Za posledný týždeň vám zostáva zapísať {n} ciest"
+addRoutes = "Zapíšte trasy"
+
 [index.cardEvent]
 addToCalendar = "Pridať do kalendára"
 
 [index.headingBackground]
 imageAltText = "obrázok na pozadí zobrazujúci mestskú komunitu"
+
+[index.cardListOffer]
+title = "Špeciálne ponuky"
+button = "Všetkých {count} zliav"
+
+[index.cardOffer]
+unlimitedExpirationDate = "Neobmedzené obdobie platnosti"
+offerCode = "Kód kupónu"
+
+[index.cardListPost]
+title = "Novinky"
+button = "Navštívte blog"
+
+[index.progressSlider]
+title = "Vaše výsledky"
+button = "Všetky výsledky"
+
+[index.cardProgressSlider]
+timeline = "dokončených dní"
+toDate = "Doteraz"
+
+[index.cardProgress]
+share = "Zdieľať"
+
+[index.cardListProgress]
+title = "Vaše výsledky"
+button = "Všetky výsledky"
+
+[index.newsletterFeature]
+title = "Prihláste sa na odber nášho newslettera, aby vám nič neuniklo"
+description = "Newsletter vám bude zaslaný na e-mailovú adresu jana.anonymni[at]dopracenakole.cz."
+aboutChallenges = "O budúcich výzvach"
+aboutEvents = "O sprievodných podujatiach (cyklojazdy, raňajky...), akciách na tričká a zľavách"
+aboutMobility = "O udržateľnej mobilite"
+following = "Už sledujete"
+follow = "Začať sledovať"
+
+[index.newsletterSwitch]
+title = "Zostaňte informovaní o všetkom, čo sa týka dochádzania do práce na bicykli"
+description = "Nebudeme vás spamovať, vždy vám budeme posielať len relevantné informácie. Momentálne sledujeme informácie o budúcich výzvach a o sprievodných podujatiach (cyklojazdy, raňajky, ...) a špeciálne ponuky."
+groupTitle = "Aké ďalšie informácie by ste chceli dostávať?"
+message = "Svoje preferencie môžete kedykoľvek spravovať vo svojom profile."
+
+[index.cardListFollow]
+title = "Sledujte nás na Facebooku"
+
+[index.footer]
+copyrightOpenSource = "Táto aplikácia je open source softvér."
+copyrightAuthor = "Výzvu Do práce na kole organizuje <a href='https://auto-mat.cz' target='_blank'>Auto*Mat, z.s.</a>"

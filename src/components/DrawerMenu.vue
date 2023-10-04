@@ -1,60 +1,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+// mocks
+import { menuBottom, menuTop } from 'src/mocks/layout';
+
 export default defineComponent({
   name: 'DrawerMenu',
   setup() {
-    const menuTop = [
-      {
-        url: '/',
-        icon: 'home',
-        name: 'home',
-      },
-      {
-        url: '/cesty',
-        icon: 'route',
-        name: 'routes',
-      },
-      {
-        url: '/vysledky',
-        icon: 'emoji_events',
-        name: 'results',
-      },
-      {
-        url: '/komunita',
-        icon: 'people',
-        name: 'community',
-      },
-      {
-        url: '/slevy',
-        icon: 'verified',
-        name: 'discounts',
-      },
-      {
-        url: '/firemni-koordinator',
-        icon: 'business',
-        name: 'coordinator',
-      },
-      {
-        url: '/profil',
-        icon: 'account_circle',
-        name: 'profile',
-      },
-    ];
-
-    const menuBottom = [
-      {
-        url: '/',
-        icon: 'email',
-        name: 'inviteFriends',
-      },
-      {
-        url: '/cesty',
-        icon: 'volunteer_activism',
-        name: 'donate',
-      },
-    ];
-
     return {
       menuTop,
       menuBottom,
@@ -69,30 +21,38 @@ export default defineComponent({
     <q-item
       v-for="item in menuTop"
       :key="item.name"
-      class="flex items-center gap-8"
+      :to="item.url"
+      active-class="menu-active-item"
+      class="flex items-center"
       clickable
     >
-      <q-icon :name="item.icon" size="xs"></q-icon>
+      <!-- Link icon -->
+      <q-icon :name="item.icon" size="xs" color="blue-grey-4" class="q-mr-sm" />
+      <!-- Link text -->
       {{ $t(`drawerMenu.${item.name}`) }}
     </q-item>
 
-    <hr />
+    <q-separator color="blue-grey-2 q-my-sm" />
 
     <!-- Menu: Bottom items -->
     <q-item
       v-for="item in menuBottom"
       :key="item.name"
-      class="flex items-center gap-8"
+      :to="item.url"
+      class="flex items-center"
       clickable
     >
-      <q-icon :name="item.icon" size="xs"></q-icon>
+      <!-- Link icon -->
+      <q-icon :name="item.icon" size="xs" color="blue-grey-4" class="q-mr-sm" />
+      <!-- Link text -->
       {{ $t(`drawerMenu.${item.name}`) }}
     </q-item>
   </q-list>
 </template>
 
-<style scoped>
-.gap-8 {
-  gap: 8px;
+<style scoped lang="scss">
+.menu-active-item,
+.menu-active-item .q-icon {
+  color: $blue-grey-10 !important;
 }
 </style>

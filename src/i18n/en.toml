@@ -11,6 +11,7 @@ coordinator = "Coordinator"
 profile = "Profile"
 inviteFriends = "Invite friends"
 donate = "Donate"
+more = "More"
 
 [index]
 title = "Home"
@@ -52,7 +53,7 @@ hours = "hours"
 minutes = "minutes"
 seconds = "seconds"
 
-[index.cardList]
+[index.cardListChallenge]
 title = "Future challenges"
 
 [index.cardChallenge]
@@ -63,8 +64,61 @@ dates = "Challenge period:"
 title = "Fill in our questionnaire and win one of our great prizes!"
 perex = "You can help us decide what to spend more time on next time and what should stay the same."
 
+[index.bannerRoutes]
+title = "You have {n} route left to log in the last week. | You have {n} routes left to log in the last week."
+addRoutes = "Log routes"
+
 [index.cardEvent]
 addToCalendar = "Add to calendar"
 
 [index.headingBackground]
 imageAltText = "background image depicting urban community"
+
+[index.cardListOffer]
+title = "Special offers"
+button = "All {count} offers"
+
+[index.cardOffer]
+unlimitedExpirationDate = "Unlimited validity"
+offerCode = "Voucher code"
+
+[index.cardListPost]
+title = "News"
+button = "Visit blog"
+
+[index.progressSlider]
+title = "Your results"
+button = "All results"
+
+[index.cardProgressSlider]
+timeline = "days completed"
+toDate = "To date"
+
+[index.cardProgress]
+share = "Share"
+
+[index.cardListProgress]
+title = "Your results"
+button = "All results"
+
+[index.newsletterFeature]
+title = "Subscribe to our newsletter so you don't miss anything"
+description = "The newsletter will be sent to your email jana.anonymni[at]dopracenakole.cz."
+aboutChallenges = "About future challenges"
+aboutEvents = "About accompanying events (bike rides, breakfasts...), T-shirt events and discounts"
+aboutMobility = "About sustainable mobility"
+following = "Following"
+follow = "Follow"
+
+[index.newsletterSwitch]
+title = "Stay informed about everything around Ride to Work by Bike"
+description = "We will not spam you, we will always send you only relevant information. Currently, you follow information about future challenges and accompanying events (bike rides, breakfasts, ...) and special offers."
+groupTitle = "What other information would you like to receive?"
+message = "You can manage your preferences at any time in your profile."
+
+[index.cardListFollow]
+title = "Follow us on Facebook"
+
+[index.footer]
+copyrightOpenSource = "This app is free software."
+copyrightAuthor = "The Bike to Work Challenge is organized by <a href='https://auto-mat.cz' target='_blank'>Auto*Mat, n.g.o.</a>"

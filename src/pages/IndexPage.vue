@@ -1,30 +1,57 @@
 <template>
-  <q-page data-cy="q-main">
-    <div class="q-px-lg">
+  <q-page class="overflow-hidden" data-cy="q-main">
+    <div class="q-px-lg bg-white">
       <h1
         class="text-h5 q-mt-none q-pt-lg text-weight-bold"
         data-cy="index-title"
       >
         {{ $t('index.title') }}
       </h1>
-      <event-countdown
-        :release-date="releaseDate"
-        data-cy="event-countdown"
-      ></event-countdown>
+      <event-countdown :release-date="releaseDate" data-cy="event-countdown" />
       <list-card-challenge
-        :cards="cards"
+        :cards="cardsChallenge"
         class="q-pt-xl q-pb-xl"
         data-cy="list-challenge"
-      ></list-card-challenge>
+      />
       <banner-image
-        :banner="banner"
+        :banner="bannerImageData"
         class="q-pt-xl q-pb-xl"
         data-cy="banner-image"
-      ></banner-image>
+      />
+      <banner-app
+        :banner="bannerAppData"
+        class="q-mt-xl"
+        data-cy="banner-app"
+      />
+      <banner-routes
+        :routes-count="14"
+        class="q-mt-xl q-mb-xl"
+        data-cy="banner-routes"
+      />
+      <slider-progress
+        :title="$t('index.progressSlider.title')"
+        :cards="cardsProgressSlider"
+        :stats="progressStats"
+        class="q-pt-xl q-mb-md"
+        :button="{ title: $t('index.progressSlider.button'), url: '/blog' }"
+      >
+      </slider-progress>
+      <list-card-progress
+        :title="$t('index.cardListProgress.title')"
+        :cards="cardsProgress"
+        :stats="progressStats"
+        class="q-pt-xl q-pb-xl"
+        data-cy="list-progress"
+      ></list-card-progress>
+      <list-badge-achievement
+        :items="badgeList"
+        class="q-pt-xl q-pb-xl"
+        data-cy="list-badges"
+      ></list-badge-achievement>
     </div>
     <heading-background
       :title="headingBgTitle"
-      class="q-pt-xl"
+      class="bg-white q-pt-xl"
       data-cy="heading-background"
     ></heading-background>
     <div class="bg-gray-light q-px-lg">
@@ -33,12 +60,32 @@
         class="q-pt-xl"
         data-cy="list-event"
       ></list-card-event>
+      <list-card-offer
+        :title="$t('index.cardListOffer.title')"
+        :cards="cardsOffer"
+        class="q-pt-xl"
+        data-cy="list-offer"
+      >
+      </list-card-offer>
+      <list-card-post
+        :title="$t('index.cardListPost.title')"
+        :cards="cardsPost"
+        :button="{
+          title: $t('index.cardListPost.button'),
+          url: '/blog',
+        }"
+        class="q-pt-xl"
+        data-cy="list-post"
+      >
+      </list-card-post>
+      <newsletter-feature class="q-pt-xl" data-cy="newsletter-feature" />
+      <list-card-follow :cards="cardsFollow" class="q-pt-xl" />
     </div>
   </q-page>
 </template>
 
 <script lang="ts">
-// import libraries
+// libraries
 import { defineComponent } from 'vue';
 
 // import components
@@ -47,121 +94,59 @@ import ListCardChallenge from 'components/ListCardChallenge.vue';
 import BannerImage from 'components/BannerImage.vue';
 import HeadingBackground from 'src/components/HeadingBackground.vue';
 import ListCardEvent from 'src/components/ListCardEvent.vue';
+import ListBadgeAchievement from 'src/components/ListBadgeAchievement.vue';
+import BannerApp from 'src/components/BannerApp.vue';
+import BannerRoutes from 'src/components/BannerRoutes.vue';
+import ListCardFollow from 'src/components/ListCardFollow.vue';
+import ListCardOffer from 'src/components/ListCardOffer.vue';
+import ListCardPost from 'src/components/ListCardPost.vue';
+import ListCardProgress from 'src/components/ListCardProgress.vue';
+import NewsletterFeature from 'src/components/NewsletterFeature.vue';
+import SliderProgress from 'src/components/SliderProgress.vue';
 
-// import types
-import { CardChallenge as CardChallengeType, CardEvent as CardEventType } from 'components/types';
-import { BannerImage as BannerImageType } from 'components/types';
+// mocks
+import * as homepage from '../mocks/homepage';
 
 export default defineComponent({
   name: 'IndexPage',
   components: {
-    EventCountdown,
-    ListCardChallenge,
+    BannerApp,
     BannerImage,
+    BannerRoutes,
+    EventCountdown,
     HeadingBackground,
+    ListBadgeAchievement,
+    ListCardChallenge,
     ListCardEvent,
+    ListCardFollow,
+    ListCardOffer,
+    ListCardProgress,
+    SliderProgress,
+    ListCardPost,
+    NewsletterFeature,
   },
   setup() {
-    const releaseDate = '2023-10-01T12:00:00';
-
-    const cards: CardChallengeType[] = [
-      {
-        title: 'Týmová pravidelnost',
-        url: '#',
-        image: {
-          src: 'https://picsum.photos/id/70/500/540',
-          alt: 'road lined with trees',
-        },
-        dates: '1. říj.–31. říj. 2022',
-        company: false,
-      },
-      {
-        title: 'Vaše pravidelnost',
-        url: '#',
-        image: {
-          src: 'https://picsum.photos/id/70/500/530',
-          alt: 'road lined with trees',
-        },
-        dates: '1. říj.–31. říj. 2022',
-        company: false,
-      },
-      {
-        title: 'Vaše zelené kilometry',
-        url: '#',
-        image: {
-          src: 'https://picsum.photos/id/70/500/550',
-          alt: 'road lined with trees',
-        },
-        dates: '1. říj.–31. říj. 2022',
-        company: true,
-      },
-      {
-        title: 'Zelené kilometry týmu',
-        url: '#',
-        image: {
-          src: 'https://picsum.photos/id/70/500/520',
-          alt: 'road lined with trees',
-        },
-        dates: '1. říj.–31. říj. 2022',
-        company: true,
-      },
-      {
-        title: 'Zelené kilometry pobočky',
-        url: '#',
-        image: {
-          src: 'https://picsum.photos/id/70/500/540',
-          alt: 'road lined with trees',
-        },
-        dates: '1. říj.–31. říj. 2022',
-        company: false,
-      },
-    ];
-
-    const banner: BannerImageType = {
-      title: 'Vyplňte náš dotazník a vyhrajte jednu z našich skvělých cen!',
-      perex:
-        'Pomůžete nám rozhodnout, čemu příště věnovat více času a co by naopak mělo zůstat stejné.',
-      image: {
-        src: 'https://picsum.photos/id/70/600/200',
-        alt: 'road lined with trees',
-      },
-    };
-
-    const headingBgTitle =
-      'Zapojte se do komunity Do práce na kole ve svém městě';
-
-    const cardsEvent: CardEventType[] = [
-      {
-        title: 'Opening Ceremony Bike to Work 2022',
-        thumbnail: {
-          src: 'https://picsum.photos/id/70/340/200',
-          alt: 'road lined with trees',
-        },
-        image: {
-          src: 'https://picsum.photos/id/70/380/380',
-          alt: 'road lined with trees',
-        },
-        dates: new Date('2023-10-01T12:00:00'),
-        location: 'Prague',
-        content: `We want to reward you for your support and activity this year with a closing party with prizes and the promised raffle!
-          You can look forward to the announcement of the results in the regularity category and green kilometres for individuals and teams.
-          Other attractive prizes will be drawn by raffle only from the individuals and teams that will have at least one representative at the closing ceremony.
-          We will also announce the traditional Brno cycling employer of the year.
-          <br />
-          The main prize will be a City Bike HERKA from our partner Cyklospeciality.
-          <br />
-          We are looking forward to seeing you!`,
-        links: ['meet.google.com/anr-pvfs-opf', 'meet.google.com/anr-pvfs-opf'],
-      },
-    ];
-
     return {
-      releaseDate,
-      cards,
-      banner,
-      headingBgTitle,
-      cardsEvent,
+      releaseDate: homepage.releaseDate,
+      cardsChallenge: homepage.cardsChallenge,
+      badgeList: homepage.badgeList,
+      bannerImageData: homepage.bannerImage,
+      bannerAppData: homepage.bannerApp,
+      headingBgTitle: homepage.headingBgTitle,
+      cardsEvent: homepage.cardsEvent,
+      cardsOffer: homepage.cardsOffer,
+      cardsPost: homepage.cardsPost,
+      cardsFollow: homepage.cardsFollow,
+      cardsProgressSlider: homepage.cardsProgressSlider,
+      progressStats: homepage.progressStats,
+      cardsProgress: homepage.cardsProgress,
     };
   },
 });
 </script>
+
+<style scoped lang="scss">
+.bg-gray-lighter {
+  background-color: var(--q-gray-lighter);
+}
+</style>

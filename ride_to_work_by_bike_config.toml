@@ -2,8 +2,15 @@
 # Define Colors
 primaryColor = "#000000"
 colorGrayLight = "#F3F7FF"
+colorGrayMiddle = "#DCE1ED"
 image = "image.png"
 width = "850px"
 title = "Title"
 subtitle = "Subtitle"
 borderRadiusCard = "20px"
+
+# External URLs
+facebookUrl = "https://www.facebook.com/spolekautomat"
+instagramUrl = "https://www.instagram.com/spolekautomat"
+twitterUrl = "https://twitter.com/spolekautomat"
+youtubeUrl = "https://www.youtube.com/@spolekautomat"

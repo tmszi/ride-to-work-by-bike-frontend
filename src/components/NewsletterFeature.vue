@@ -1,0 +1,72 @@
+<script lang="ts">
+// libraries
+import { defineComponent } from 'vue';
+
+// mocks
+import { newsletterItems } from 'src/mocks/homepage';
+
+// components
+import NewsletterItem from 'components/NewsletterItem.vue';
+
+export default defineComponent({
+  name: 'NewsletterFeature',
+  components: {
+    NewsletterItem,
+  },
+  setup() {
+    return {
+      newsletterItems,
+    };
+  },
+});
+</script>
+
+<template>
+  <div
+    data-cy="newsletter-feature"
+    class="row q-col-gutter-lg items-center justify-between"
+  >
+    <!-- Section image -->
+    <div class="gt-sm col-md-3 col-lg-2" data-cy="newsletter-col-image">
+      <div class="q-px-lg">
+        <!-- Image -->
+        <q-img
+          src="~assets/svg/newsletter-envelope.svg"
+          class="newsletter-feature-image"
+          data-cy="newsletter-feature-image"
+        />
+      </div>
+    </div>
+
+    <!-- Section content -->
+    <div class="col-12 col-md-9 col-lg-10" data-cy="newsletter-col-content">
+      <!-- Title -->
+      <h2 class="q-mb-md q-mt-none text-h6" data-cy="newsletter-feature-title">
+        {{ $t('index.newsletterFeature.title') }}
+      </h2>
+      <!-- Description -->
+      <p
+        class="q-my-md"
+        v-html="$t('index.newsletterFeature.description')"
+        data-cy="newsletter-feature-description"
+      ></p>
+      <div v-for="(item, index) in newsletterItems" :key="item.title">
+        <!-- Item - subscription variant -->
+        <newsletter-item :item="item" data-cy="newsletter-feature-item" />
+        <!-- Separator -->
+        <q-separator
+          v-if="index < newsletterItems.length - 1"
+          class="q-my-md"
+          data-cy="newsletter-feature-separator"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style lang="scss">
+.newsletter-feature-image {
+  max-width: 140px;
+  margin: 0 auto;
+}
+</style>

@@ -37,30 +37,6 @@ describe('Home page', () => {
       cy.dataCy('q-drawer').should('be.visible');
     });
 
-    it('allows user to change profile to "User 3" and back to "User 1"', () => {
-      cy.dataCy('user-select').should('be.visible').click();
-
-      cy.get('.q-item__label')
-        .should('be.visible')
-        .should('have.length', 3)
-        .should('contain.text', 'User')
-        .last()
-        .click();
-
-      cy.dataCy('user-select-input').should('contain', 'User 3');
-
-      cy.dataCy('user-select-input').click();
-
-      cy.get('.q-item__label')
-        .should('be.visible')
-        .should('have.length', 3)
-        .should('contain.text', 'User')
-        .first()
-        .click();
-
-      cy.dataCy('user-select-input').should('contain', 'User 1');
-    });
-
     it('allows user to display help dialog and read all FAQ items', () => {
       cy.dataCy('link-help').last().should('be.visible').click();
 
@@ -200,6 +176,106 @@ describe('Home page', () => {
             .should('have.class', 'text-negative');
         });
     });
+
+    it('allows user to display event modal', () => {
+      cy.dataCy('dialog-card-event').should('not.exist');
+
+      cy.dataCy('list-event')
+        .should('be.visible')
+        .find('.card-link')
+        .should('be.visible')
+        .click();
+
+      cy.dataCy('dialog-card-event').should('be.visible');
+    });
+
+    it('allows user to display offer modal', () => {
+      cy.dataCy('dialog-offer').should('not.exist');
+
+      cy.dataCy('list-card-offer-item').first().should('be.visible').click();
+
+      cy.dataCy('dialog-offer').should('be.visible');
+    });
+
+    it('allows user to see all news items', () => {
+      cy.dataCy('list-post').should('be.visible');
+
+      cy.dataCy('list-post')
+        .find('.swiper-slide:nth-child(1)')
+        .should('be.visible');
+      cy.dataCy('list-post')
+        .find('.swiper-slide:nth-child(2)')
+        .should('be.visible');
+      cy.dataCy('list-post')
+        .find('.swiper-slide:nth-child(3)')
+        .should('be.visible');
+      cy.dataCy('list-post')
+        .find('.swiper-slide:nth-child(4)')
+        .should('be.visible');
+
+      cy.dataCy('list-post')
+        .find('.swiper-slide')
+        .then(($el) => {
+          $el.each(() => {
+            cy.dataCy('list-post')
+              .find('swiper-container')
+              .shadow()
+              .find('.swiper-button-next')
+              .click({ force: true });
+          });
+
+          cy.dataCy('list-post')
+            .find('.swiper-slide:last-child')
+            .should('be.visible');
+        });
+    });
+
+    it('allows user to switch language', () => {
+      let i18n;
+      cy.window().should('have.property', 'i18n');
+      cy.window()
+        .then((win) => {
+          i18n = win.i18n;
+        })
+        .then(() => {
+          cy.dataCy('index-title')
+            .should('be.visible')
+            .should('contain', i18n.global.t('index.title'));
+
+          const locales = i18n.global.availableLocales;
+          locales.forEach((locale) => {
+            let initialActiveLocale = i18n.global.locale;
+
+            if (locale === initialActiveLocale) {
+              return;
+            }
+
+            cy.dataCy('switcher-' + locale)
+              .should('exist')
+              .should('be.visible')
+              .find('.q-btn')
+              .click();
+
+            cy.dataCy('switcher-' + initialActiveLocale)
+              .find('.q-btn')
+              .should('not.have', 'font-weight', '400');
+
+            cy.dataCy('switcher-' + locale)
+              .find('.q-btn')
+              .should('have.css', 'font-weight', '700');
+
+            cy.dataCy('index-title')
+              .should('be.visible')
+              .should('contain', i18n.global.messages[locale].index.title);
+          });
+        });
+    });
+
+    it('allows user to scroll to top using the footer button', () => {
+      cy.dataCy('footer-top-button').first().should('be.visible').click();
+
+      cy.window().its('scrollY').should('equal', 0);
+    });
   });
 
   context('mobile', () => {
@@ -236,56 +312,26 @@ describe('Home page', () => {
         });
     });
 
-    it('allows user to show and hide left panel on mobile', () => {
-      cy.dataCy('q-drawer').should('not.be.visible');
+    it('allows user to show and hide bottom panel on mobile', () => {
+      cy.dataCy('footer-panel-menu').should('be.visible');
 
-      cy.dataCy('drawer-open-button').click();
-
-      cy.dataCy('q-drawer')
+      cy.dataCy('footer-panel-menu')
         .should('be.visible')
-        .and('have.css', 'width', '320px');
+        .find('.q-item')
+        .should('have.length', 5);
 
-      // TODO: test closing the drawer; test opening the drawer with a swipe
-      // cy.get('body')
-      //   .trigger('pointerdown', { button: 0, clientX: 325, clientY: 100, force: true })
-      //   .trigger('pointerup', { button: 0, clientX: 325, clientY: 100, force: true });
+      cy.dataCy('footer-panel-menu-hamburger').click();
 
-      // cy.dataCy('q-drawer')
-      //   .should('not.be.visible');
-    });
+      cy.dataCy('footer-panel-menu-dialog').should('be.visible');
 
-    it('allows user to change profile to "User 3" and back to "User 1"', () => {
-      cy.dataCy('drawer-open-button').should('be.visible').click();
-
-      cy.dataCy('user-select').should('be.visible').click();
-
-      cy.get('.q-item__label')
+      cy.dataCy('footer-panel-menu-dialog')
         .should('be.visible')
-        .should('have.length', 3)
-        .should('contain.text', 'User')
-        .last()
-        .click();
-
-      cy.dataCy('user-select-input').should('contain', 'User 3');
-
-      cy.dataCy('user-select-input').click();
-
-      cy.get('.q-item__label')
-        .should('be.visible')
-        .should('have.length', 3)
-        .should('contain.text', 'User')
-        .first()
-        .click();
-
-      cy.dataCy('user-select-input').should('contain', 'User 1');
+        .find('.q-item')
+        .should('have.length', 5);
     });
 
     it('allows user to display help dialog and read all FAQ items', () => {
-      cy.dataCy('drawer-open-button').should('be.visible').click();
-
-      cy.dataCy('link-help').last().should('be.visible').click();
-
-      cy.dataCy('dialog-header').should('be.visible');
+      cy.dataCy('link-help').first().should('be.visible').click();
 
       cy.dataCy('list-faq-list')
         .find('.q-card')
@@ -315,9 +361,7 @@ describe('Home page', () => {
           i18n = win.i18n;
         })
         .then(() => {
-          cy.dataCy('drawer-open-button').should('be.visible').click();
-
-          cy.dataCy('link-help').last().should('be.visible').click();
+          cy.dataCy('link-help').first().should('be.visible').click();
 
           cy.dataCy('dialog-header').should('be.visible');
 
@@ -326,6 +370,8 @@ describe('Home page', () => {
           cy.dataCy('button-contact').should('be.visible').click();
 
           cy.dataCy('dialog-header').find('h3').should('be.visible');
+
+          cy.dataCy('dialog-content').scrollTo(0, 0);
 
           cy.dataCy('contact-form-subject-input')
             .should('be.visible')
@@ -353,9 +399,7 @@ describe('Home page', () => {
           i18n = win.i18n;
         })
         .then(() => {
-          cy.dataCy('drawer-open-button').should('be.visible').click();
-
-          cy.dataCy('link-help').last().should('be.visible').click();
+          cy.dataCy('link-help').first().should('be.visible').click();
 
           cy.dataCy('dialog-header').should('be.visible');
 
@@ -373,14 +417,8 @@ describe('Home page', () => {
 
           cy.dataCy('contact-form-subject')
             .find('.q-field__messages')
-            .then(($message) => {
-              cy.wrap($message)
-                .should('be.visible')
-                .should(
-                  'contain',
-                  i18n.global.t('index.contact.subjectRequired')
-                );
-            });
+            .should('be.visible')
+            .should('contain', i18n.global.t('index.contact.subjectRequired'));
 
           cy.dataCy('contact-form-subject')
             .find('.q-field__control')
@@ -433,9 +471,91 @@ describe('Home page', () => {
             .should('have.class', 'text-negative');
         });
     });
+
+    it('allows user to display event modal', () => {
+      cy.dataCy('dialog-card-event').should('not.exist');
+
+      cy.dataCy('list-event')
+        .should('be.visible')
+        .find('.card-link')
+        .should('be.visible')
+        .click();
+
+      cy.dataCy('dialog-card-event').should('be.visible');
+    });
+
+    it('allows user to display offer modal', () => {
+      cy.dataCy('dialog-offer').should('not.exist');
+
+      cy.dataCy('list-card-offer-item').first().should('be.visible').click();
+
+      cy.dataCy('dialog-offer').should('be.visible');
+    });
+
+    it('allows user to switch language', () => {
+      let i18n;
+      cy.window().should('have.property', 'i18n');
+      cy.window()
+        .then((win) => {
+          i18n = win.i18n;
+        })
+        .then(() => {
+          cy.dataCy('index-title')
+            .should('be.visible')
+            .should('contain', i18n.global.t('index.title'));
+
+          const locales = i18n.global.availableLocales;
+          locales.forEach((locale) => {
+            let initialActiveLocale = i18n.global.locale;
+
+            if (locale === initialActiveLocale) {
+              return;
+            }
+
+            cy.dataCy('switcher-' + locale)
+              .should('exist')
+              .should('be.visible')
+              .find('.q-btn')
+              .click();
+
+            cy.dataCy('switcher-' + initialActiveLocale)
+              .find('.q-btn')
+              .should('not.have', 'font-weight', '400');
+
+            cy.dataCy('switcher-' + locale)
+              .find('.q-btn')
+              .should('have.css', 'font-weight', '700');
+
+            cy.dataCy('index-title')
+              .should('be.visible')
+              .should('contain', i18n.global.messages[locale].index.title);
+          });
+        });
+    });
+
+    it('allows user to scroll to top using the footer button', () => {
+      cy.dataCy('footer-top-button').last().should('be.visible').click();
+
+      cy.window().its('scrollY').should('equal', 0);
+    });
+
+    it('allows user to access menu in bottom panel', () => {
+      cy.dataCy('footer-panel').should('be.visible');
+
+      cy.dataCy('footer-panel-menu').should('be.visible');
+
+      cy.dataCy('footer-panel-menu-hamburger').should('be.visible').click();
+
+      cy.dataCy('footer-panel-menu-dialog')
+        .should('be.visible')
+        .find('.q-item')
+        .should('have.length', 5);
+    });
   });
 
-  // TODO: test contacting through help
+  // TODO: test links
+
+  // TODO: test switching language
 
   // TODO: test rewatching application guide
 

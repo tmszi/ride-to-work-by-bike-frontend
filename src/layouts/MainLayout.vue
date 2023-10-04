@@ -1,16 +1,18 @@
 <script lang="ts">
-// import libraries
+// libraries
 import { setCssVar } from 'quasar';
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 import { i18n } from 'src/boot/i18n';
 
 // import components
 import DrawerHeader from 'components/DrawerHeader.vue';
 import UserSelect from 'components/UserSelect.vue';
 import DrawerMenu from 'components/DrawerMenu.vue';
+import TheFooter from 'components/TheFooter.vue';
+import MobileBottomPanel from 'src/components/MobileBottomPanel.vue';
 
 // import types
-import { ConfigGlobal, User } from 'components/types';
+import { ConfigGlobal } from 'components/types';
 
 if (window.Cypress) {
   window.i18n = i18n;
@@ -25,38 +27,12 @@ setCssVar('info', rideToWorkByBikeConfig.colorGrayLight);
 export default defineComponent({
   name: 'MainLayout',
 
-  components: { DrawerHeader, UserSelect, DrawerMenu },
-
-  setup() {
-    const leftDrawerOpen = ref(false);
-
-    const users: User[] = [
-      {
-        label: 'User 1',
-        value: '1',
-        image: 'https://picsum.photos/id/40/300/300',
-      },
-      {
-        label: 'User 2',
-        value: '2',
-        image: 'https://picsum.photos/id/64/300/300',
-      },
-      {
-        label: 'User 3',
-        value: '3',
-        image: 'https://picsum.photos/id/91/300/300',
-      },
-    ];
-
-    const toggleLeftDrawer = () => {
-      leftDrawerOpen.value = !leftDrawerOpen.value;
-    };
-
-    return {
-      leftDrawerOpen,
-      users,
-      toggleLeftDrawer,
-    };
+  components: {
+    DrawerHeader,
+    UserSelect,
+    DrawerMenu,
+    TheFooter,
+    MobileBottomPanel,
   },
 });
 </script>
@@ -68,10 +44,9 @@ export default defineComponent({
       <q-toolbar>
         <!-- Logo + Buttons (help, notification) -->
         <drawer-header
-          v-model="leftDrawerOpen"
-          data-cy="drawer-header-mobile"
           :show-logo="false"
           :show-drawer-open-button="true"
+          data-cy="drawer-header-mobile"
         >
         </drawer-header>
       </q-toolbar>
@@ -80,34 +55,55 @@ export default defineComponent({
     <!-- Left-side drawer (desktop) -->
     <q-drawer
       show-if-above
-      v-model="leftDrawerOpen"
       side="left"
       :width="320"
-      class="bg-info q-py-lg q-px-lg"
+      class="gt-sm bg-info q-py-lg q-px-lg pb-footer"
       data-cy="q-drawer"
     >
       <!-- Logo + Buttons (help, notification) -->
-      <drawer-header
-        data-cy="drawer-header"
-        :mobile="false"
-      ></drawer-header>
+      <drawer-header :mobile="false" data-cy="drawer-header"></drawer-header>
       <!-- User options dropdown -->
-      <user-select
-        :options="users"
-        class="q-pt-lg"
-        data-cy="user-select"
-      ></user-select>
+      <user-select class="q-pt-lg" data-cy="user-select"></user-select>
       <!-- Navigation menu -->
       <drawer-menu class="q-pt-lg" data-cy="drawer-menu"></drawer-menu>
     </q-drawer>
 
-    <!-- Page content -->
-    <q-page-container>
+    <q-page-container class="bg-info pb-footer">
       <router-view />
     </q-page-container>
-
-    <q-footer>
-      <!-- Footer content -->
+    <q-footer class="position-static md-position-absolute bg-transparent">
+      <!-- footer content -->
+      <mobile-bottom-panel></mobile-bottom-panel>
+      <the-footer />
     </q-footer>
   </q-layout>
 </template>
+
+<style lang="scss">
+.md-absolute-bottom {
+  @media (min-width: $breakpoint-md-min) {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
+.position-static {
+  position: static;
+}
+
+.md-position-absolute {
+  @media (min-width: $breakpoint-md-min) {
+    position: absolute;
+  }
+}
+
+.pb-footer {
+  padding-bottom: 420px !important;
+
+  @media (min-width: $breakpoint-md-min) {
+    padding-bottom: 320px !important;
+  }
+}
+</style>

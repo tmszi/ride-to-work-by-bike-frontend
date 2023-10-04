@@ -1,0 +1,79 @@
+<script lang="ts">
+// libraries
+import { defineComponent } from 'vue';
+import { date } from 'quasar';
+
+// types
+import { CardPost as CardPostType, ConfigGlobal } from 'components/types';
+
+// config
+const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
+  process.env.RIDE_TO_WORK_BY_BIKE_CONFIG
+);
+
+const { formatDate } = date;
+
+export default defineComponent({
+  name: 'CardPost',
+  props: {
+    card: {
+      type: Object as () => CardPostType,
+      required: true,
+    },
+  },
+  setup(props) {
+    const formattedDate = formatDate(props.card.date, 'D. MMM. YYYY');
+    const borderRadius = rideToWorkByBikeConfig.borderRadiusCard;
+
+    return {
+      formattedDate,
+      borderRadius,
+    };
+  },
+});
+</script>
+
+<template>
+  <!-- Link to news post -->
+  <router-link :to="card.url">
+    <!-- Card -->
+    <q-card
+      flat
+      bordered
+      class="bg-white cursor-pointer q-hoverable"
+      :style="{ 'border-radius': borderRadius }"
+      data-cy="card-post"
+    >
+      <!-- Image -->
+      <q-img :src="card.image" ratio="1.25" data-cy="card-post-image" alt="" />
+      <!-- Content -->
+      <q-card-section>
+        <!-- Date -->
+        <div
+          class="card-post-date text-caption text-blue-grey-5"
+          data-cy="card-post-date"
+        >
+          {{ formattedDate }}
+        </div>
+        <!-- Title -->
+        <div
+          class="card-post-title text-body text-grey-10"
+          data-cy="card-post-title"
+        >
+          {{ card.title }}
+        </div>
+      </q-card-section>
+    </q-card>
+  </router-link>
+</template>
+
+<style lang="scss" scoped>
+a {
+  text-decoration: none;
+}
+a:hover {
+  .card-post-title {
+    text-decoration: underline;
+  }
+}
+</style>

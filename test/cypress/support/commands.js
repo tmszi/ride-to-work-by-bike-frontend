@@ -37,3 +37,46 @@ Cypress.on('uncaught:exception', (err) => {
     return false;
   }
 });
+
+Cypress.Commands.add(
+  'testLanguageStringsInContext',
+  (translationStrings, translationContext, i18n) => {
+    const translationKeyList = translationStrings.map(
+      (item) => `${translationContext}.${item}`
+    );
+
+    translationKeyList.forEach((translationKey) => {
+      const defaultEnglishString = i18n.global.t(translationKey, 'en');
+
+      const locales = i18n.global.availableLocales;
+      locales
+        .filter((locale) => locale !== 'en')
+        .forEach((locale) => {
+          i18n.global.locale = locale;
+          const translatedString = i18n.global.t(translationKey);
+
+          cy.wrap(translatedString)
+            .should('be.a', 'string')
+            .should('have.length.at.least', 1)
+            .and('not.equal', defaultEnglishString);
+        });
+    });
+  }
+);
+
+Cypress.Commands.add(
+  'testElementPercentageWidth',
+  ($element, expectedPercentage) => {
+    $element.then(($el) => {
+      const actualWidth = $el.outerWidth();
+      const parentWidth = $el.parent().outerWidth();
+      const calculatedPercentage = (actualWidth / parentWidth) * 100;
+
+      expect(calculatedPercentage).to.be.closeTo(Number(expectedPercentage), 2);
+    });
+  }
+);
+
+Cypress.Commands.add('testImageHeight', ($img) => {
+  cy.wrap($img[0]).should('have.prop', 'naturalHeight').should('be.gt', 0);
+});

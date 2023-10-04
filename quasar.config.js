@@ -32,14 +32,14 @@ module.exports = configure(function (ctx) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['logger', 'i18n'],
+    boot: ['logger', 'i18n', 'swiper'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ['app.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
-      // 'ionicons-v4',
+      'ionicons-v4',
       'mdi-v5',
       'fontawesome-v6',
       // 'eva-icons',
@@ -82,7 +82,13 @@ module.exports = configure(function (ctx) {
       // distDir
 
       // extendViteConf (viteConf) {},
-      // viteVuePluginOptions: {},
+      viteVuePluginOptions: {
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => ['swiper-slide', 'swiper-container'].includes(tag),
+          }
+        }
+      },
 
       vitePlugins: [['@originjs/vite-plugin-content', {}]],
     },
