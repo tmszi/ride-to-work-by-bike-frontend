@@ -1,4 +1,4 @@
-qq# Ride to work by bike frontend (ride-to-work-by-bike)
+# Ride to work by bike frontend (ride-to-work-by-bike)
 
 A Ride to work by bike web app is based on the [Quasar framework](https://quasar.dev/)
 ([Vue.js version 3](https://vuejs.org/), [TypeScript](https://www.typescriptlang.org/),
@@ -6,19 +6,15 @@ A Ride to work by bike web app is based on the [Quasar framework](https://quasar
 
 Tested with Node.js [LTS Hydrogen](https://nodejs.org/en/download/releases) version.
 
-Installing and activating Node Version Manager `nvm`:
+Installing and activating [Node Version Manager]() `nvm`:
 
 Installing `nvm`:
 
 ```bash
-export NVM_DIR="$HOME/.nvm" && (
-  git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
-  cd "$NVM_DIR"
-  git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
-) && \. "$NVM_DIR/nvm.sh"
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 ```
 
-Activating `nvm`:
+Activating `nvm` (add these lines to your `~/.bashrc`, `~/.profile`, or `~/.zshrc` file):
 
 ```bash
 export NVM_DIR="$HOME/.nvm"
