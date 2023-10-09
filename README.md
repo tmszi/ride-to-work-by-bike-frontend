@@ -6,7 +6,7 @@ A Ride to work by bike web app is based on the [Quasar framework](https://quasar
 
 Tested with Node.js [LTS Hydrogen](https://nodejs.org/en/download/releases) version.
 
-Installing and activating [Node Version Manager]() `nvm`:
+Installing and activating [Node Version Manager](https://github.com/nvm-sh/nvm/blob/master/README.md#installing-and-updating) `nvm`:
 
 Installing `nvm`:
 
@@ -17,9 +17,8 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 Activating `nvm` (add these lines to your `~/.bashrc`, `~/.profile`, or `~/.zshrc` file):
 
 ```bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 ```
 
 Using `nvm`:
