@@ -201,14 +201,15 @@ describe('<CardOffer>', () => {
               .should('be.visible')
               .then(($img) => {
                 cy.testImageHeight($img);
-                expect($img.attr('src')).to.equal(card.image);
+                expect($img.attr('src')).to.equal(card.image.src);
               });
 
-            cy.dataCy('dialog-body').find('img').matchImageSnapshot({
-              failureThreshold: 0.5,
-              failureThresholdType: 'percent',
-            });
-          });
+            cy.matchImageSnapshotWithHiddenScrollbars(
+              'dialog-body',
+              0.5,
+              'percent',
+            );
+         });
       });
     });
 

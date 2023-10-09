@@ -78,11 +78,11 @@ export const cardsEvent: CardEvent[] = [
   {
     title: 'Opening Ceremony Bike to Work 2022',
     thumbnail: {
-      src: 'https://picsum.photos/340/200',
+      src: 'https://picsum.photos/id/70/340/200',
       alt: '',
     },
     image: {
-      src: 'https://picsum.photos/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: '',
     },
     dates: new Date('2023-10-01T12:00:00'),
@@ -97,37 +97,37 @@ export const cardsPost: CardPost[] = [
   {
     title: 'Jak na cyklistiku v zimě? Co všechno se můžeme učit od Finů?',
     date: new Date(2023, 8, 1),
-    image: 'https://picsum.photos/id/100/380/380',
+    image: 'https://picsum.photos/id/70/380/380',
     url: '/blog/1',
   },
   {
     title: 'Jak na cyklistiku v zimě? Co všechno se můžeme učit od Finů?',
     date: new Date(2023, 8, 1),
-    image: 'https://picsum.photos/id/100/380/380',
+    image: 'https://picsum.photos/id/70/380/380',
     url: '/blog/1',
   },
   {
     title: 'Jak na cyklistiku v zimě? Co všechno se můžeme učit od Finů?',
     date: new Date(2023, 8, 1),
-    image: 'https://picsum.photos/id/100/380/380',
+    image: 'https://picsum.photos/id/70/380/380',
     url: '/blog/1',
   },
   {
     title: 'Jak na cyklistiku v zimě? Co všechno se můžeme učit od Finů?',
     date: new Date(2023, 8, 1),
-    image: 'https://picsum.photos/id/100/380/380',
+    image: 'https://picsum.photos/id/70/380/380',
     url: '/blog/1',
   },
   {
     title: 'Jak na cyklistiku v zimě? Co všechno se můžeme učit od Finů?',
     date: new Date(2023, 8, 1),
-    image: 'https://picsum.photos/id/100/380/380',
+    image: 'https://picsum.photos/id/70/380/380',
     url: '/blog/1',
   },
   {
     title: 'Jak na cyklistiku v zimě? Co všechno se můžeme učit od Finů?',
     date: new Date(2023, 8, 1),
-    image: 'https://picsum.photos/id/100/380/380',
+    image: 'https://picsum.photos/id/70/380/380',
     url: '/blog/1',
   },
 ];
@@ -160,7 +160,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -178,7 +178,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -196,7 +196,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -214,7 +214,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -232,7 +232,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -250,7 +250,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -268,7 +268,7 @@ export const cardsOffer: CardOffer[] = [
     expirationDate: 'Some time later on',
     issuer: 'Automat',
     image: {
-      src: 'https://picsum.photos/id/200/380/380',
+      src: 'https://picsum.photos/id/70/380/380',
       alt: 'road lined with trees',
     },
     code: '65972834',
@@ -288,7 +288,7 @@ export const cardsFollow: CardFollow[] = [
     title: 'Do práce na kole – Brno',
     handle: '@DPNKBrno',
     image: {
-      src: 'https://picsum.photos/id/76/300/300',
+      src: 'https://picsum.photos/id/70/300/300',
       alt: 'road lined with trees',
     },
     url: '#',
@@ -297,7 +297,7 @@ export const cardsFollow: CardFollow[] = [
     title: 'Do práce na kole – Brno',
     handle: '@DPNKBrno',
     image: {
-      src: 'https://picsum.photos/id/76/300/300',
+      src: 'https://picsum.photos/id/70/300/300',
       alt: 'road lined with trees',
     },
     url: '#',
@@ -436,31 +436,31 @@ export const newsletterItems: NewsletterItem[] = [
 
 export const badgeList: ItemBadge[] = [
   {
-    image: 'https://picsum.photos/id/40/100/100',
+    image: 'https://picsum.photos/id/70/100/100',
     title: 'Jarní jezdec',
     description: 'Alespoň 1 jízda na kole na jaře',
     variant: 'light',
   },
   {
-    image: 'https://picsum.photos/id/40/100/100',
+    image: 'https://picsum.photos/id/70/100/100',
     title: 'Podzimní jezdec',
     description: 'Alespoň 1 jízda na kole na podzim',
     variant: 'dark',
   },
   {
-    image: 'https://picsum.photos/id/40/100/100',
+    image: 'https://picsum.photos/id/70/100/100',
     title: 'Zimní jezdec',
     description: 'Alespoň 1 jízda na kole v zimě',
     variant: 'light',
   },
   {
-    image: 'https://picsum.photos/id/40/100/100',
+    image: 'https://picsum.photos/id/70/100/100',
     title: 'Omezovač emisí',
     description: 'Žádné ježdění autem po dobu alespoň 1 měsíce',
     variant: 'light',
   },
   {
-    image: 'https://picsum.photos/id/40/100/100',
+    image: 'https://picsum.photos/id/70/100/100',
     title: 'Společenský tvor',
     description: 'Alespoň 1 komunitní událost přidána do kalendáře',
     variant: 'light',

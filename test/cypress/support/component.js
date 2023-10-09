@@ -56,11 +56,15 @@ import VueLogger from 'vuejs3-logger';
 
 import { options as loggerOptions } from '../../../src/boot/logger';
 import { i18n as i18nApp } from '../../../src/boot/i18n';
+import { register } from 'swiper/element/bundle';
 
 Cypress.Commands.add('mount', (component, options = {}) => {
   // Setup options object
   options.global = options.global || {};
   options.global.plugins = options.global.plugins || [];
+
+  // Register Swiper third party lib component
+  register();
 
   // Add i18n plugin
   options.global.plugins.push({
