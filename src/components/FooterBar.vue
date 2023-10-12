@@ -19,7 +19,7 @@ const rideToWorkByBikeDeployedAppVersion: object = JSON.parse(
 );
 
 export default defineComponent({
-  name: 'TheFooter',
+  name: 'FooterBar',
   components: {
     LanguageSwitcher,
   },
@@ -170,7 +170,12 @@ export default defineComponent({
                       :key="link.icon"
                       :title="link.title"
                     >
-                      <a :href="link.url" class="text-white" target="_blank">
+                      <a
+                        :href="link.url"
+                        class="flex column justify-center text-white"
+                        target="_blank"
+                        style="text-decoration: none"
+                      >
                         <q-icon :name="link.icon" size="18px" />
                       </a>
                     </q-btn>
