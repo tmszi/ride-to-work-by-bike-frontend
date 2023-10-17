@@ -1,4 +1,28 @@
 <script lang="ts">
+/**
+ * CardFollow Component
+ *
+ * The `CardFollow` component displays a card with social media details.
+ *
+ * @description
+ * This component presents links to organization's social media accounts.
+ * Border radius can be controlled by `config` parameter.
+ *
+ * Note: This component is commonly used within the `ListCardFollow`
+ * component.
+ *
+ * @props
+ * - `card` (Object, required): The card object containing details related to
+ *   the follow action. It should be of type `CardFollow`.
+ *
+ * @example
+ * <card-follow
+ *   :card="followDetails"
+ * />
+ *
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A105629&mode=dev)
+ */
+
 // libraires
 import { defineComponent } from 'vue';
 
@@ -46,7 +70,12 @@ export default defineComponent({
       <q-item-section avatar data-cy="card-follow-avatar">
         <!-- Image -->
         <q-avatar size="96px" class="mt--64">
-          <q-img :src="card.image.src" data-cy="card-follow-image" :alt="card.image.alt" ratio="1" />
+          <q-img
+            :src="card.image.src"
+            data-cy="card-follow-image"
+            :alt="card.image.alt"
+            ratio="1"
+          />
         </q-avatar>
       </q-item-section>
 

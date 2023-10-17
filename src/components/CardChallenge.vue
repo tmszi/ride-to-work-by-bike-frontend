@@ -1,13 +1,39 @@
 <script lang="ts">
+/**
+ * CardChallenge Component
+ *
+ * The `CardChallenge` component displays a challenge card with relevant details.
+ *
+ * @description
+ * This component presents information about a challenge within the biking
+ * initiative. The card may contain an image, title, and other details.
+ * Border radius can be controlled by `config` parameter.
+ *
+ * Note: This component is commonly used within the `ListCardChallenge`
+ * component.
+ *
+ * @props
+ * - `card` (Object, required): The card object with details for display. It should be of
+ *   type `CardChallengeType`.
+ *
+ * @example
+ * <card-challenge
+ *   :card="challengeDetails"
+ * />
+ *
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A105617&mode=dev)
+ */
+
+// libraries
 import { defineComponent } from 'vue';
 
-// import types
+// types
 import {
   CardChallenge as CardChallengeType,
   ConfigGlobal,
 } from 'components/types';
 
-// import config
+// config
 const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG
 );
@@ -17,6 +43,7 @@ export default defineComponent({
   props: {
     card: {
       type: Object as () => CardChallengeType,
+      required: true,
     },
   },
   setup() {

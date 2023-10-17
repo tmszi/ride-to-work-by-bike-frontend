@@ -1,14 +1,44 @@
 <script lang="ts">
+/**
+ * CardEvent Component
+ *
+ * The `CardEvent` component presents event-related details in a card format.
+ *
+ * @description
+ * This component is used to display event details, such as date and time. It
+ * also integrates with a modal dialog for displaying additional event details.
+ * Border radius can be controlled by `config` parameter.
+ *
+ * Note: This component is commonly used within the `ListCardEvent`
+ * component.
+ *
+ * @props
+ * - `card` (Object): The card object containing event details. It should be of
+ *   type `CardEventType`.
+ *
+ * @components
+ * - `DialogCard`: Used to display detailed information about the offer in a
+ *   modal dialog.
+ *
+ * @example
+ * <card-event
+ *   :card="eventDetails"
+ * />
+ *
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A105625&mode=dev)
+ */
+
+// libraries
 import { defineComponent, ref } from 'vue';
 import { date, Screen } from 'quasar';
 
 // components
 import DialogCard from 'components/DialogCard.vue';
 
-// import types
+// types
 import { CardEvent as CardEventType, ConfigGlobal } from 'components/types';
 
-// import config
+// config
 const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG
 );
@@ -23,6 +53,7 @@ export default defineComponent({
   props: {
     card: {
       type: Object as () => CardEventType,
+      required: true,
     },
   },
   setup(props) {

@@ -1,4 +1,34 @@
 <script lang="ts">
+/**
+ * CardOffer Component
+ *
+ * The `CardOffer` component displays a card with details about an offer.
+ *
+ * @description
+ * This component presents special offers or promotions in a card
+ * format. When clicked, it triggers a modal dialog with more detailed
+ * information about the offer.
+ * Border radius can be controlled by `config` parameter.
+ *
+ * Note: This component is commonly used within the `ListCardOffer`
+ * component.
+ *
+ * @props
+ * - `card` (Object, required): The card object containing offer details. It
+ *   should be of type `CardOfferType`.
+ *
+ * @components
+ * - `DialogCard`: Used to display detailed information about the offer in a
+ *   modal dialog.
+ *
+ * @example
+ * <card-offer
+ *   :card="offerDetails"
+ * />
+ *
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A105637&mode=dev)
+ */
+
 // libraries
 import { defineComponent, ref } from 'vue';
 

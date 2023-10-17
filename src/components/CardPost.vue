@@ -1,4 +1,28 @@
 <script lang="ts">
+/**
+ * CardPost Component
+ *
+ * The `CardPost` component displays a post in a card form.
+ *
+ * @description
+ * This component presents information such as post content, author, date, and
+ * other relevant details. Border radius can be controlled by `config`
+ * parameter.
+ *
+ * Note: This component is commonly used within the `ListCardPost`
+ * component.
+ *
+ * @props
+ * - `card` (Object, required): An object containing details related to the post.
+ *
+ * @example
+ * <card-post
+ *   :card="postDetails"
+ * />
+ *
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A105647&mode=dev)
+ */
+
 // libraries
 import { defineComponent } from 'vue';
 import { date } from 'quasar';

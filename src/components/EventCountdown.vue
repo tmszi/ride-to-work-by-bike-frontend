@@ -1,4 +1,26 @@
 <script lang="ts">
+/**
+ * EventCountdown Component
+ *
+ * The `EventCountdown` component provides a countdown mechanism that
+ * displays the remaining time until a specified event or release date.
+ *
+ * @description
+ * This component calculates the time difference between the current date
+ * and a given release date, displaying the days, hours, minutes, and seconds
+ * remaining. It also provides a mechanism for formatting the release date
+ * based on the user's locale.
+ *
+ * @props
+ * - `releaseDate` (String, required): The target date for the countdown.
+ *   This date is expected to be in a specific format.
+ *
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=6021%3A22974&mode=dev)
+ *
+ * @example
+ * <event-countdown :releaseDate="targetDate" />
+ */
+
 import { setCssVar, date } from 'quasar';
 import { defineComponent, ref, watchEffect, onBeforeUnmount } from 'vue';
 // import { useI18n } from 'vue-i18n'
@@ -151,6 +173,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .text-64 {
   font-size: 64px;
+
   @media (min-width: $breakpoint-lg-min) {
     font-size: 48px;
   }
