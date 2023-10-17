@@ -32,7 +32,6 @@ describe('<UserSelect>', () => {
           cy.testImageHeight($img);
           expect($img.attr('src')).to.equal(user.image.src);
         });
-
       cy.dataCy('avatar')
         .find('.q-img')
         .should('be.visible')
@@ -42,13 +41,8 @@ describe('<UserSelect>', () => {
     });
 
     it('shows dropdown on click', () => {
-      cy.dataCy('user-select-input')
-        .click()
-        .then(() => {
-          cy.get('.q-item__label')
-            .should('be.visible')
-            .should('have.length', 6);
-        });
+      cy.dataCy('user-select-input').click();
+      cy.get('.q-item__label').should('be.visible').should('have.length', 6);
     });
   });
 
@@ -78,7 +72,6 @@ describe('<UserSelect>', () => {
           cy.testImageHeight($img);
           expect($img.attr('src')).to.equal(user.image.src);
         });
-
       cy.dataCy('avatar')
         .find('.q-img')
         .should('be.visible')
@@ -88,13 +81,8 @@ describe('<UserSelect>', () => {
     });
 
     it('shows dropdown on click', () => {
-      cy.dataCy('user-select-input')
-        .click()
-        .then(() => {
-          cy.get('.q-item__label')
-            .should('be.visible')
-            .should('have.length', 6);
-        });
+      cy.dataCy('user-select-input').click();
+      cy.get('.q-item__label').should('be.visible').should('have.length', 6);
     });
   });
 });
