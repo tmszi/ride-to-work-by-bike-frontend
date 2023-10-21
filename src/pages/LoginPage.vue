@@ -46,14 +46,14 @@ export default defineComponent({
 </script>
 
 <template>
-  <q-page padding>
+  <q-page padding class="bg-primary">
     <div class="q-px-lg">
       <!-- Page header -->
       <div class="flex items-center justify-between q-py-lg">
         <!-- RTWBB logo -->
         <img
           class="logo"
-          src="~assets/svg/logo.svg"
+          src="~assets/svg/logo-white.svg"
           :alt="$t('index.logoAltText')"
           :title="$t('header.siteTitle')"
           data-cy="logo"
@@ -64,6 +64,11 @@ export default defineComponent({
           <!-- Language switcher -->
           <language-switcher variant="light" />
         </div>
+      </div>
+      <div class="q-py-lg">
+        <h1 class="text-h5 text-bold text-white" data-cy="login-page-title">
+          {{ $t('login.title') }}
+        </h1>
       </div>
     </div>
   </q-page>
