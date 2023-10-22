@@ -129,9 +129,9 @@ yarn test:component:open:win:%WEB_BROWSER%
 :: E2e tests
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-:: Start web dev server in another emulator terminal
+:: Start web dev server in another Command Prompt
 yarn dev
-:: Inside another emulator terminal run tests
+:: Inside another Command Prompt run tests
 set WEB_BROWSER="firefox" :: other web browsers options are "electron", "chrome", "edge"
 :: Run e2e tests
 yarn test:e2e:win:%WEB_BROWSER%
