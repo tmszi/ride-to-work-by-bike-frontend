@@ -49,6 +49,9 @@
         class="q-pt-xl q-pb-xl"
         data-cy="list-badges"
       ></list-badge-achievement>
+      <section-columns :columns="3" class="q-col-gutter-lg q-pt-xl q-pb-xl">
+        <card-stats v-for="card in cardsStats" :key="card.title" :card="card" />
+      </section-columns>
     </div>
     <heading-background
       :title="headingBgTitle"
@@ -104,6 +107,8 @@ import ListCardPost from 'src/components/ListCardPost.vue';
 import ListCardProgress from 'src/components/ListCardProgress.vue';
 import NewsletterFeature from 'src/components/NewsletterFeature.vue';
 import SliderProgress from 'src/components/SliderProgress.vue';
+import SectionColumns from 'src/components/SectionColumns.vue';
+import CardStats from 'src/components/CardStats.vue';
 
 // mocks
 import * as homepage from '../mocks/homepage';
@@ -125,6 +130,8 @@ export default defineComponent({
     SliderProgress,
     ListCardPost,
     NewsletterFeature,
+    SectionColumns,
+    CardStats,
   },
   setup() {
     return {
@@ -141,6 +148,7 @@ export default defineComponent({
       cardsProgressSlider: homepage.cardsProgressSlider,
       progressStats: homepage.progressStats,
       cardsProgress: homepage.cardsProgress,
+      cardsStats: homepage.cardsStats,
     };
   },
 });
