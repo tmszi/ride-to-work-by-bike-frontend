@@ -16,6 +16,16 @@ inviteFriends = "Invite friends"
 donate = "Donate"
 more = "More"
 
+[time]
+day = "day | days"
+hour = "hour | hours"
+minute = "minute | minutes"
+second = "second | seconds"
+dayShort = "d"
+hourShort = "h"
+minuteShort = "m"
+secondShort = "s"
+
 [index]
 title = "Home"
 logoAltText = "Logo Ride to Work by Bike"
@@ -55,6 +65,9 @@ days = "days"
 hours = "hours"
 minutes = "minutes"
 seconds = "seconds"
+
+[index.countdownChallenge]
+title = "Challenge ends in | Challenge ends in"
 
 [index.cardListChallenge]
 title = "Future challenges"

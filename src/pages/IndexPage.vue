@@ -52,6 +52,7 @@
       <section-columns :columns="3" class="q-col-gutter-lg q-pt-xl q-pb-xl">
         <card-stats v-for="card in cardsStats" :key="card.title" :card="card" />
       </section-columns>
+      <countdown-challenge date-end="2023-10-24" />
     </div>
     <heading-background
       :title="headingBgTitle"
@@ -93,22 +94,23 @@
 import { defineComponent } from 'vue';
 
 // import components
-import EventCountdown from 'components/EventCountdown.vue';
-import ListCardChallenge from 'components/ListCardChallenge.vue';
+import BannerApp from 'components/BannerApp.vue';
 import BannerImage from 'components/BannerImage.vue';
-import HeadingBackground from 'src/components/HeadingBackground.vue';
+import BannerRoutes from 'components/BannerRoutes.vue';
+import CardStats from 'src/components/CardStats.vue';
+import CountdownChallenge from 'components/CountdownChallenge.vue';
+import EventCountdown from 'components/EventCountdown.vue';
+import HeadingBackground from 'components/HeadingBackground.vue';
+import ListBadgeAchievement from 'components/ListBadgeAchievement.vue';
+import ListCardChallenge from 'components/ListCardChallenge.vue';
 import ListCardEvent from 'src/components/ListCardEvent.vue';
-import ListBadgeAchievement from 'src/components/ListBadgeAchievement.vue';
-import BannerApp from 'src/components/BannerApp.vue';
-import BannerRoutes from 'src/components/BannerRoutes.vue';
 import ListCardFollow from 'src/components/ListCardFollow.vue';
 import ListCardOffer from 'src/components/ListCardOffer.vue';
 import ListCardPost from 'src/components/ListCardPost.vue';
 import ListCardProgress from 'src/components/ListCardProgress.vue';
 import NewsletterFeature from 'src/components/NewsletterFeature.vue';
-import SliderProgress from 'src/components/SliderProgress.vue';
 import SectionColumns from 'src/components/SectionColumns.vue';
-import CardStats from 'src/components/CardStats.vue';
+import SliderProgress from 'src/components/SliderProgress.vue';
 
 // mocks
 import * as homepage from '../mocks/homepage';
@@ -119,6 +121,7 @@ export default defineComponent({
     BannerApp,
     BannerImage,
     BannerRoutes,
+    CountdownChallenge,
     EventCountdown,
     HeadingBackground,
     ListBadgeAchievement,
