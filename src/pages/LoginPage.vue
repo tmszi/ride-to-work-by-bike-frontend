@@ -29,31 +29,43 @@ import { ConfigGlobal } from 'components/types';
 // components
 import HelpButton from 'components/HelpButton.vue';
 import LanguageSwitcher from 'components/LanguageSwitcher.vue';
+import FormLogin from 'components/FormLogin.vue';
 
 // config
 const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG
 );
 setCssVar('primary', rideToWorkByBikeConfig.colorPrimary);
+setCssVar('secondary', rideToWorkByBikeConfig.colorSecondary);
 
 export default defineComponent({
   name: 'LoginPage',
   components: {
     HelpButton,
     LanguageSwitcher,
+    FormLogin,
   },
+  setup() {
+    const onSubmit = () => {
+      // noop
+    }
+
+    return {
+      onSubmit,
+    };
+  }
 });
 </script>
 
 <template>
-  <q-page padding class="bg-primary">
+  <q-page padding class="bg-secondary">
     <div class="q-px-lg">
       <!-- Page header -->
       <div class="flex items-center justify-between q-py-lg">
         <!-- RTWBB logo -->
         <img
           class="logo"
-          src="~assets/svg/logo-white.svg"
+          src="~assets/svg/logo.svg"
           :alt="$t('index.logoAltText')"
           :title="$t('header.siteTitle')"
           data-cy="logo"
@@ -65,10 +77,17 @@ export default defineComponent({
           <language-switcher variant="light" />
         </div>
       </div>
+      <!-- Title -->
       <div class="q-py-lg">
-        <h1 class="text-h5 text-bold text-white" data-cy="login-page-title">
+        <h1 class="text-h5 text-bold" data-cy="login-page-title">
           {{ $t('login.title') }}
         </h1>
+      </div>
+      <div class="row">
+        <div class="col-12 col-lg-4">
+          <!-- Form -->
+          <form-login @formSubmit="onSubmit" />
+        </div>
       </div>
     </div>
   </q-page>

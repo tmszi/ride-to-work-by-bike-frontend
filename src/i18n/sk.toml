@@ -144,3 +144,10 @@ deployedAppVersion = "Nasadená verzia aplikácie"
 
 [login]
 title = "Prihlásenie"
+
+[login.form]
+email = "E-mail"
+password = "Heslo"
+emailReqired = "Vyplňte prosím svoj e-mail"
+passwordRequired = "Vyplňte prosím heslo"
+forgottenPassword = "Zabudli ste heslo?"
