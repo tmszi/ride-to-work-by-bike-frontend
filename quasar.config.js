@@ -15,6 +15,7 @@ const {
   getDeployedAppVersion,
 } = require('./src/utils/get_deployed_app_version');
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = configure(function (ctx) {
   return {
     eslint: {
@@ -61,7 +62,7 @@ module.exports = configure(function (ctx) {
       env: {
         RIDE_TO_WORK_BY_BIKE_CONFIG: JSON.stringify(getAppConfig(process)),
         RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION: JSON.stringify(
-          getDeployedAppVersion()
+          getDeployedAppVersion(),
         ),
       },
 

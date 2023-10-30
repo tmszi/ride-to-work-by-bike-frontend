@@ -6,6 +6,7 @@ describe('Home page', () => {
     });
 
     it('renders all components', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let i18n;
       cy.window().should('have.property', 'i18n');
       cy.window()
@@ -63,6 +64,7 @@ describe('Home page', () => {
     });
 
     it('allows user to display and submit contact form', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let i18n;
       cy.window().should('have.property', 'i18n');
       cy.window()
@@ -358,6 +360,7 @@ describe('Home page', () => {
     });
 
     it('allows user to display and submit contact form', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let i18n;
       cy.window().should('have.property', 'i18n');
       cy.window()
@@ -538,9 +541,7 @@ describe('Home page', () => {
     });
 
     it('allows user to scroll to top using the footer button', () => {
-      cy.dataCy('footer-top-button-mobile')
-        .should('be.visible')
-        .click();
+      cy.dataCy('footer-top-button-mobile').should('be.visible').click();
       /**
        * Second click helps to overcome a ResizeObserver loop completed
        * with undelivered notifications error
