@@ -4,6 +4,7 @@ import BannerRoutes from '../BannerRoutes.vue';
 import { i18n } from '../../boot/i18n';
 
 const { getPaletteColor } = colors;
+const grey1 = getPaletteColor('grey-1');
 
 const routesCount = 3;
 
@@ -37,7 +38,7 @@ describe('<BannerRoutes>', () => {
       cy.dataCy('banner-routes-title')
         .should('have.css', 'font-size', '14px')
         .should('have.css', 'font-weight', '700')
-        .should('have.color', '#000000');
+        .should('have.color', '#000');
     });
 
     it('renders button', () => {
@@ -73,7 +74,7 @@ describe('<BannerRoutes>', () => {
       cy.window().then(() => {
         cy.dataCy('banner-routes-card')
           .should('be.visible')
-          .should('have.backgroundColor', getPaletteColor('grey-1'));
+          .should('have.backgroundColor', grey1);
       });
     });
 
@@ -121,7 +122,7 @@ describe('<BannerRoutes>', () => {
       cy.dataCy('banner-routes-title')
         .should('have.css', 'font-size', '20px')
         .should('have.css', 'font-weight', '700')
-        .should('have.color', '#000000');
+        .should('have.color', '#000');
     });
 
     it('renders button', () => {
@@ -157,7 +158,7 @@ describe('<BannerRoutes>', () => {
       cy.window().then(() => {
         cy.dataCy('banner-routes-card')
           .should('be.visible')
-          .should('have.backgroundColor', getPaletteColor('grey-1'));
+          .should('have.backgroundColor', grey1);
       });
     });
 
@@ -197,7 +198,7 @@ describe('<BannerRoutes>', () => {
         cy.dataCy('banner-routes-title')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '700')
-          .should('have.color', '#000000')
+          .should('have.color', '#000')
           .should('contain', routesCount);
       });
     });
@@ -235,7 +236,7 @@ describe('<BannerRoutes>', () => {
       cy.window().then(() => {
         cy.dataCy('banner-routes-card')
           .should('be.visible')
-          .should('have.backgroundColor', getPaletteColor('grey-1'));
+          .should('have.backgroundColor', grey1);
       });
     });
 

@@ -1,6 +1,12 @@
+import { colors } from 'quasar';
+
 import BadgeAchievement from '../BadgeAchievement.vue';
 import { i18n } from '../../boot/i18n';
 import { badgeList } from '../../mocks/homepage';
+
+const { getPaletteColor } = colors;
+const grey9 = getPaletteColor('grey-9');
+const blueGrey7 = getPaletteColor('blue-grey-7');
 
 const badge = badgeList[0];
 const badgeDark = badgeList[1];
@@ -26,7 +32,7 @@ describe('<BadgeAchievement>', () => {
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '700')
           .should('have.css', 'text-align', 'center')
-          .should('have.color', '#424242') // bg-grey-9
+          .should('have.color', grey9)
           .should('contain', badge.title)
           .then(($title) => {
             expect($title.text()).to.equal(badge.title);
@@ -58,7 +64,7 @@ describe('<BadgeAchievement>', () => {
           .should('have.css', 'font-size', '12px')
           .should('have.css', 'font-weight', '400')
           .should('have.css', 'text-align', 'center')
-          .should('have.color', '#424242') // bg-grey-9
+          .should('have.color', grey9)
           .should('contain', badge.description)
           .then(($description) => {
             expect($description.text()).to.equal(badge.description);
@@ -78,7 +84,7 @@ describe('<BadgeAchievement>', () => {
     });
 
     it('has dark background', () => {
-      cy.dataCy('badge-card').should('have.backgroundColor', '#546e7a'); // bg-blue-grey-7
+      cy.dataCy('badge-card').should('have.backgroundColor', blueGrey7);
     });
 
     it('renders title', () => {
@@ -87,7 +93,7 @@ describe('<BadgeAchievement>', () => {
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '700')
           .should('have.css', 'text-align', 'center')
-          .should('have.color', '#fff') // bg-grey-9
+          .should('have.color', '#fff')
           .should('contain', badgeDark.title)
           .then(($title) => {
             expect($title.text()).to.equal(badgeDark.title);
@@ -101,7 +107,7 @@ describe('<BadgeAchievement>', () => {
           .should('have.css', 'font-size', '12px')
           .should('have.css', 'font-weight', '400')
           .should('have.css', 'text-align', 'center')
-          .should('have.color', '#fff') // bg-grey-9
+          .should('have.color', '#fff')
           .should('contain', badgeDark.description)
           .then(($description) => {
             expect($description.text()).to.equal(badgeDark.description);

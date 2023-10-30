@@ -1,5 +1,11 @@
+import { colors } from 'quasar';
+
 import CardFollow from '../CardFollow.vue';
 import { i18n } from '../../boot/i18n';
+
+const { getPaletteColor } = colors;
+const grey10 = getPaletteColor('grey-10');
+const blueGrey7 = getPaletteColor('blue-grey-7');
 
 // mocks
 import { cardsFollow } from 'src/mocks/homepage';
@@ -22,7 +28,7 @@ describe('<CardFollow>', () => {
 
     it('has white background', () => {
       cy.window().then(() => {
-        cy.dataCy('card-follow').should('have.backgroundColor', '#ffffff'); // blue-grey-2
+        cy.dataCy('card-follow').should('have.backgroundColor', '#fff');
       });
     });
 
@@ -69,7 +75,7 @@ describe('<CardFollow>', () => {
         cy.dataCy('card-follow-title')
           .should('have.css', 'font-size', '16px')
           .should('have.css', 'font-weight', '500')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should('contain', card.title)
           .then(($title) => {
             expect($title.text()).to.equal(card.title);
@@ -82,7 +88,7 @@ describe('<CardFollow>', () => {
         cy.dataCy('card-follow-handle')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '400')
-          .should('have.color', '#546e7a') // blue-grey-7
+          .should('have.color', blueGrey7)
           .should('contain', card.handle)
           .then(($title) => {
             expect($title.text()).to.equal(card.handle);

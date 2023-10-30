@@ -1,5 +1,11 @@
+import { colors } from 'quasar';
+
 import NewsletterItem from '../NewsletterItem.vue';
 import { i18n } from '../../boot/i18n';
+
+const { getPaletteColor } = colors;
+const grey10 = getPaletteColor('grey-10');
+const blueGrey6 = getPaletteColor('blue-grey-6');
 
 const icon = 'people';
 const title = i18n.global.t('index.newsletterFeature.aboutEvents');
@@ -45,7 +51,7 @@ describe('<NewsletterItem>', () => {
         cy.dataCy('newsletter-item-title')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '400')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should('contain', title)
           .then(($title) => {
             expect($title.text()).to.equal(title);
@@ -59,7 +65,7 @@ describe('<NewsletterItem>', () => {
           .should('be.visible')
           .should('have.css', 'width', '32px')
           .should('have.css', 'height', '32px')
-          .should('have.color', '#607d8b')
+          .should('have.color', blueGrey6)
           .should('contain', icon);
       });
     });
@@ -72,7 +78,7 @@ describe('<NewsletterItem>', () => {
           .should('have.css', 'font-weight', '500')
           .should('have.css', 'text-transform', 'uppercase')
           .should('have.css', 'border-radius', '28px')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should(
             'contain',
             i18n.global.t('index.newsletterFeature.following'),
@@ -83,7 +89,7 @@ describe('<NewsletterItem>', () => {
           .should('be.visible')
           .should('have.css', 'width', '18px')
           .should('have.css', 'height', '18px')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should('contain', 'check');
       });
     });
@@ -109,7 +115,7 @@ describe('<NewsletterItem>', () => {
         cy.dataCy('newsletter-item-title')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '400')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should('contain', title)
           .then(($title) => {
             expect($title.text()).to.equal(title);
@@ -123,7 +129,7 @@ describe('<NewsletterItem>', () => {
           .should('be.visible')
           .should('have.css', 'width', '32px')
           .should('have.css', 'height', '32px')
-          .should('have.color', '#607d8b')
+          .should('have.color', blueGrey6)
           .should('contain', icon);
       });
     });
@@ -136,7 +142,7 @@ describe('<NewsletterItem>', () => {
           .should('have.css', 'font-weight', '500')
           .should('have.css', 'text-transform', 'uppercase')
           .should('have.css', 'border-radius', '28px')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should(
             'contain',
             i18n.global.t('index.newsletterFeature.following'),
@@ -147,7 +153,7 @@ describe('<NewsletterItem>', () => {
           .should('be.visible')
           .should('have.css', 'width', '18px')
           .should('have.css', 'height', '18px')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should('contain', 'check');
       });
 
@@ -195,7 +201,7 @@ describe('<NewsletterItem>', () => {
         cy.dataCy('newsletter-item-title')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '700')
-          .should('have.color', '#212121')
+          .should('have.color', grey10)
           .should('contain', title)
           .then(($title) => {
             expect($title.text()).to.equal(title);
@@ -210,8 +216,8 @@ describe('<NewsletterItem>', () => {
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '500')
           .should('have.css', 'text-transform', 'uppercase')
-          .should('have.color', '#ffffff')
-          .should('have.backgroundColor', '#212121')
+          .should('have.color', '#fff')
+          .should('have.backgroundColor', grey10)
           .should('contain', i18n.global.t('index.newsletterFeature.follow'));
 
         cy.dataCy('newsletter-item-button')

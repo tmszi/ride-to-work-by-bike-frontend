@@ -1,5 +1,12 @@
+import { colors } from 'quasar';
+
 import CardEvent from '../CardEvent.vue';
 import { i18n } from '../../boot/i18n';
+
+const { getPaletteColor } = colors;
+const blueGrey2 = getPaletteColor('blue-grey-2');
+const blueGrey3 = getPaletteColor('blue-grey-3');
+const blueGrey7 = getPaletteColor('blue-grey-7');
 
 const title = 'Opening Ceremony Bike to Work 2022';
 const thumbnail = {
@@ -76,7 +83,7 @@ describe('<CardEvent>', () => {
       cy.window().then(() => {
         cy.dataCy('card')
           .should('be.visible')
-          .should('have.backgroundColor', '#ffffff');
+          .should('have.backgroundColor', '#fff');
       });
     });
 
@@ -92,7 +99,7 @@ describe('<CardEvent>', () => {
         cy.dataCy('card-dates')
           .find('i')
           .should('be.visible')
-          .should('have.color', '#cfd8dc')
+          .should('have.color', blueGrey2)
           .should('contain', 'event');
       });
     });
@@ -107,7 +114,7 @@ describe('<CardEvent>', () => {
         cy.dataCy('card-location')
           .find('i')
           .should('be.visible')
-          .should('have.color', '#cfd8dc')
+          .should('have.color', blueGrey2)
           .should('contain', 'place');
       });
     });
@@ -121,7 +128,7 @@ describe('<CardEvent>', () => {
         cy.dataCy('calendar-button')
           .find('i')
           .should('be.visible')
-          .should('have.color', '#000000');
+          .should('have.color', '#000');
       });
     });
 
@@ -156,7 +163,7 @@ describe('<CardEvent>', () => {
           .should('be.visible')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '400')
-          .should('have.color', '#546e7a')
+          .should('have.color', blueGrey7)
           .each(($el, index) => {
             if (index === 0) {
               cy.wrap($el)
@@ -168,7 +175,7 @@ describe('<CardEvent>', () => {
               if ($icon.length) {
                 cy.wrap($icon)
                   .should('be.visible')
-                  .should('have.color', '#b0bec5')
+                  .should('have.color', blueGrey3)
                   .should('have.css', 'width', '18px')
                   .should('have.css', 'height', '18px');
               }
@@ -180,7 +187,7 @@ describe('<CardEvent>', () => {
               if ($icon.length) {
                 cy.wrap($icon)
                   .should('be.visible')
-                  .should('have.color', '#b0bec5')
+                  .should('have.color', blueGrey3)
                   .should('have.css', 'width', '18px')
                   .should('have.css', 'height', '18px');
               }
