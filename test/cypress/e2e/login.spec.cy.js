@@ -71,6 +71,7 @@ describe('Login page', () => {
         .should('be.visible')
         .type('P7LlQ@example.com');
       cy.dataCy('contact-form-submit').should('be.visible').click();
+      // TODO: test successful submission
     });
 
     it('validates contact form if there are errors', () => {
