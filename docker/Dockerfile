@@ -3,7 +3,8 @@ FROM alpine:3.18
 LABEL authors="Auto*Mat, z. s. auto-mat@auto-mat.cz"
 LABEL maintainer="Auto*Mat, z. s. auto-mat@auto-mat.cz"
 
-ENV APP_PATH=/tmp/nginx/ride-to-work-by-bike-app
+ENV APP_PATH=/tmp/nginx/ride-to-work-by-bike-app \
+    LOCAL_BIN=/usr/local/bin
 RUN apk add --update --no-cache nginx nodejs-current yarn
 
 # Create the directories we will need
@@ -18,7 +19,7 @@ WORKDIR $APP_PATH
 COPY . .
 
 # Install Quasar framework and build app
-RUN yarn global add @quasar/cli; yarn; cp ./docker/run.sh /usr/local/bin/; \
-    chmod +x /usr/local/bin/run.sh;
+RUN yarn global add @quasar/cli npx; yarn; cp ./docker/run.sh "$LOCAL_BIN/"; \
+    chmod +x "$LOCAL_BIN/run.sh";
 
 ENTRYPOINT ["run.sh"]
