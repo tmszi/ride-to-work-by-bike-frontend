@@ -16,6 +16,8 @@ const getAppConfig = (process) => {
     config['colorGrayMiddle'] = process.env.COLOR_GRAY_MIDDLE;
   } else if (process.env.COLOR_WHITE) {
     config['colorWhite'] = process.env.COLOR_WHITE;
+  } else if (process.env.COLOR_WHITE_OPACITY) {
+    config['colorWhiteOpacity'] = process.env.COLOR_WHITE_OPACITY;
   } else if (process.env.COLOR_BLACK) {
     config['colorBlack'] = process.env.COLOR_BLACK;
   } else if (process.env.IMAGE) {
@@ -28,6 +30,8 @@ const getAppConfig = (process) => {
     config['subtitle'] = process.env.SUBTITLE;
   } else if (process.env.BORDER_RADIUS_CARD) {
     config['borderRadiusCard'] = process.env.BORDER_RADIUS_CARD;
+  } else if (process.env.BORDER_RADIUS_CARD_SMALL) {
+    config['borderRadiusCardSmall'] = process.env.BORDER_RADIUS_CARD_SMALL;
   } else if (process.env.FACEBOOK_URL) {
     config['facebookUrl'] = process.env.FACEBOOK_URL;
   } else if (process.env.INSTAGRAM_URL) {
