@@ -1,5 +1,9 @@
+import { colors } from 'quasar';
 import CountdownChallenge from '../CountdownChallenge.vue';
 import { i18n } from '../../boot/i18n';
+
+const { getPaletteColor } = colors;
+const black = getPaletteColor('black');
 
 const rideToWorkByBikeConfig = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
@@ -39,20 +43,20 @@ describe('<CountdownChallenge>', () => {
           .should('have.css', 'font-weight', '700')
           .should('have.css', 'margin-top', '16px')
           .should('have.css', 'margin-bottom', '16px')
-          .should('have.color', '#000');
+          .should('have.color', black);
       });
     });
 
     it('renders wrapper with padding', () => {
       cy.dataCy('countdown-challenge')
         .should('have.css', 'padding', '24px')
-        .should('have.backgroundColor', `${colorInfo}`);
+        .should('have.backgroundColor', colorInfo);
     });
 
     it('renders gray background', () => {
       cy.dataCy('countdown-challenge')
         .should('have.class', 'bg-info')
-        .should('have.backgroundColor', `${colorInfo}`);
+        .should('have.backgroundColor', colorInfo);
     });
 
     it('counts down correctly', () => {
@@ -101,19 +105,19 @@ describe('<CountdownChallenge>', () => {
           .should('have.css', 'font-weight', '700')
           .should('have.css', 'margin-top', '16px')
           .should('have.css', 'margin-bottom', '16px')
-          .should('have.color', '#000');
+          .should('have.color', black);
       });
 
       it('renders wrapper with padding', () => {
         cy.dataCy('countdown-challenge')
           .should('have.css', 'padding', '24px')
-          .should('have.backgroundColor', `${colorInfo}`);
+          .should('have.backgroundColor', colorInfo);
       });
 
       it('renders gray background', () => {
         cy.dataCy('countdown-challenge')
           .should('have.class', 'bg-info')
-          .should('have.backgroundColor', `${colorInfo}`);
+          .should('have.backgroundColor', colorInfo);
       });
     });
   });

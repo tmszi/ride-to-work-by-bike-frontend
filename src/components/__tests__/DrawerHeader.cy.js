@@ -4,6 +4,8 @@ import DrawerHeader from '../DrawerHeader.vue';
 import { i18n } from '../../boot/i18n';
 
 const { getPaletteColor } = colors;
+const black = getPaletteColor('black');
+const white = getPaletteColor('white');
 const grey10 = getPaletteColor('grey-10');
 
 describe('<DrawerHeader>', () => {
@@ -73,7 +75,7 @@ describe('<DrawerHeader>', () => {
   it('renders help icon', () => {
     cy.dataCy('icon-help')
       .should('contain', 'question_mark')
-      .should('have.color', '#fff');
+      .should('have.color', white);
     cy.dataCy('icon-help')
       .invoke('height')
       .should('be.gt', 12)
@@ -88,7 +90,7 @@ describe('<DrawerHeader>', () => {
     cy.window().then(() => {
       cy.dataCy('icon-notification')
         .should('be.visible')
-        .should('have.color', '#000')
+        .should('have.color', black)
         .should('have.css', 'width', '24px')
         .should('contain.text', 'notifications');
     });

@@ -4,6 +4,8 @@ import BannerRoutes from '../BannerRoutes.vue';
 import { i18n } from '../../boot/i18n';
 
 const { getPaletteColor } = colors;
+const black = getPaletteColor('black');
+const white = getPaletteColor('white');
 const grey1 = getPaletteColor('grey-1');
 
 const routesCount = 3;
@@ -38,7 +40,7 @@ describe('<BannerRoutes>', () => {
       cy.dataCy('banner-routes-title')
         .should('have.css', 'font-size', '14px')
         .should('have.css', 'font-weight', '700')
-        .should('have.color', '#000');
+        .should('have.color', black);
     });
 
     it('renders button', () => {
@@ -47,7 +49,7 @@ describe('<BannerRoutes>', () => {
         .should('have.css', 'font-size', '14px')
         .should('have.css', 'font-weight', '500')
         .should('have.css', 'text-transform', 'uppercase')
-        .should('have.color', '#fff')
+        .should('have.color', white)
         .should('have.css', 'border-radius', '28px')
         .should('have.css', 'padding-top', '16px')
         .should('have.css', 'padding-left', '16px')
@@ -59,7 +61,7 @@ describe('<BannerRoutes>', () => {
     it('renders button icon with correct spacing', () => {
       cy.dataCy('banner-routes-button-icon')
         .should('be.visible')
-        .should('have.color', '#fff')
+        .should('have.color', white)
         .should('have.css', 'margin-right', '8px')
         .should('contain', 'add');
       cy.dataCy('banner-routes-button-icon')
@@ -122,7 +124,7 @@ describe('<BannerRoutes>', () => {
       cy.dataCy('banner-routes-title')
         .should('have.css', 'font-size', '20px')
         .should('have.css', 'font-weight', '700')
-        .should('have.color', '#000');
+        .should('have.color', black);
     });
 
     it('renders button', () => {
@@ -131,7 +133,7 @@ describe('<BannerRoutes>', () => {
         .should('have.css', 'font-size', '14px')
         .should('have.css', 'font-weight', '500')
         .should('have.css', 'text-transform', 'uppercase')
-        .should('have.color', '#fff')
+        .should('have.color', white)
         .should('have.css', 'border-radius', '28px')
         .should('have.css', 'padding-top', '16px')
         .should('have.css', 'padding-left', '16px')
@@ -143,7 +145,7 @@ describe('<BannerRoutes>', () => {
     it('renders button icon with correct spacing', () => {
       cy.dataCy('banner-routes-button-icon')
         .should('be.visible')
-        .should('have.color', '#fff')
+        .should('have.color', white)
         .should('have.css', 'margin-right', '8px')
         .should('contain', 'add');
       cy.dataCy('banner-routes-button-icon')
@@ -198,7 +200,7 @@ describe('<BannerRoutes>', () => {
         cy.dataCy('banner-routes-title')
           .should('have.css', 'font-size', '14px')
           .should('have.css', 'font-weight', '700')
-          .should('have.color', '#000')
+          .should('have.color', black)
           .should('contain', routesCount);
       });
     });
@@ -209,7 +211,7 @@ describe('<BannerRoutes>', () => {
         .should('have.css', 'font-size', '14px')
         .should('have.css', 'font-weight', '500')
         .should('have.css', 'text-transform', 'uppercase')
-        .should('have.color', '#fff')
+        .should('have.color', white)
         .should('have.css', 'border-radius', '28px')
         .should('have.css', 'padding-top', '16px')
         .should('have.css', 'padding-left', '16px')
@@ -221,7 +223,7 @@ describe('<BannerRoutes>', () => {
     it('renders button icon with correct spacing', () => {
       cy.dataCy('banner-routes-button-icon')
         .should('be.visible')
-        .should('have.color', '#fff')
+        .should('have.color', white)
         .should('have.css', 'margin-right', '8px')
         .should('contain', 'add');
       cy.dataCy('banner-routes-button-icon')
