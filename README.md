@@ -177,27 +177,27 @@ docker buildx build --build-arg="UID=$(id -u)" -f ./docker/dev/Dockerfile .
 xhost local:$(id -u)
 
 docker run -it --rm \
---env "PS1=\u@\h:\w$ " \
---env "DISPLAY=$DISPLAY" \
---publish 9000:9000 \
---volume $(pwd):$APP_DIR \
+--env="PS1=\u@\h:\w$ " \
+--env="DISPLAY=$DISPLAY" \
+--publish=9000:9000 \
+--volume=$(pwd):$APP_DIR \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 --device="/dev/dri/card0:/dev/dri/card0" \
---name $APP_NAME \
+--name=$APP_NAME \
 <YOUR_BUILDED_DOCKER_IMAGE_ID>
 
 # Or if you want override some Docker app container ENV variables (-e flag)
 xhost local:$(id -u)
 
 docker run -it --rm  \
---env "PS1=\u@\h:\w$ " \
---env "PRIMARY_COLOR=red" \
---env "DISPLAY=$DISPLAY" \
---publish 9000:9000 \
---volume $(pwd):$APP_DIR
+--env="PS1=\u@\h:\w$ " \
+--env="PRIMARY_COLOR=red" \
+--env="DISPLAY=$DISPLAY" \
+--publish=9000:9000 \
+--volume=$(pwd):$APP_DIR
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 --device="/dev/dri/card0:/dev/dri/card0" \
---name $APP_NAME
+--name=$APP_NAME
 <YOUR_BUILDED_DOCKER_IMAGE_ID>
 
 # Install app JS dependencies
