@@ -30,3 +30,6 @@ https://typicode.github.io/husky/getting-started.html#manual
 ```
 
 https://github.com/lint-staged/lint-staged#configuration
+
+
+Uninstall pre-commit Git hooks with command `yarn husky uninstall`.
