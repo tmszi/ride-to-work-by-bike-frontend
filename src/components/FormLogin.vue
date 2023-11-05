@@ -27,6 +27,14 @@ import { defineComponent, ref, reactive } from 'vue';
 import LoginButtons from './LoginButtons.vue';
 import BannerAppButtons from './BannerAppButtons.vue';
 
+// types
+import { ConfigGlobal } from './types';
+
+// config
+const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
+  process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
+);
+
 export default defineComponent({
   name: 'FormLogin',
   components: {
@@ -45,9 +53,29 @@ export default defineComponent({
     });
 
     const isPassword = ref(true);
-    const formState = ref<'login' | 'password-reset'>('login');
+    const formState = ref<'login' | 'password-reset' | 'reset-finished'>(
+      'login',
+    );
+
+    const backgroundColor = rideToWorkByBikeConfig.colorWhiteOpacity;
+    const contactEmail = rideToWorkByBikeConfig.contactEmail;
 
     const isValid = (val: string): boolean => val?.length > 0;
+
+    const isEmail = (value: string): boolean => {
+      /**
+       * Match 99% of valid email addresses and will not pass validation
+       * for email addresses that have, for instance
+       * - Dots in the beginning
+       * - Multiple dots at the end
+       * But at the same time it will allow part after @ to be IP address.
+       *
+       * https://uibakery.io/regex-library/email
+       */
+      const regex =
+        /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+      return regex.test(value);
+    };
 
     const onSubmitLogin = () => {
       // noop
@@ -57,12 +85,21 @@ export default defineComponent({
       // noop
     };
 
+    const onClickFormPasswordResetBtn = (): void => {
+      if (isValid(formPasswordReset.email) && isEmail(formPasswordReset.email))
+        formState.value = 'reset-finished';
+    };
+
     return {
+      backgroundColor,
+      contactEmail,
       formLogin,
       formPasswordReset,
       formState,
       isPassword,
+      isEmail,
       isValid,
+      onClickFormPasswordResetBtn,
       onSubmitLogin,
       onSubmitPasswordReset,
     };
@@ -71,6 +108,7 @@ export default defineComponent({
 </script>
 
 <template>
+  <!-- State: Login -->
   <div v-if="formState === 'login'" class="text-grey-10" data-cy="form-login">
     <div class="q-my-lg">
       <h1
@@ -93,8 +131,10 @@ export default defineComponent({
           dense
           outlined
           v-model="formLogin.email"
+          lazy-rules
           :rules="[
             (val) => isValid(val) || $t('login.form.messageEmailReqired'),
+            (val) => isEmail(val) || $t('login.form.messageEmailInvalid'),
           ]"
           bg-color="grey-1"
           id="form-login-email"
@@ -177,6 +217,7 @@ export default defineComponent({
       <banner-app-buttons />
     </div>
   </div>
+  <!-- State: Forgotten password -->
   <div
     v-else-if="formState === 'password-reset'"
     class="text-grey-10"
@@ -210,7 +251,7 @@ export default defineComponent({
     <!-- Form: password reset -->
     <q-form @submit.prevent="onSubmitPasswordReset">
       <!-- Input: email -->
-      <div data-cy="form-password-reset-input">
+      <div data-cy="form-password-reset-email">
         <!-- Label -->
         <label for="form-login-password-reset" class="text-caption text-bold">
           {{ $t('login.form.labelPasswordReset') }}
@@ -220,14 +261,17 @@ export default defineComponent({
           dense
           outlined
           v-model="formPasswordReset.email"
+          lazy-rules
           :rules="[
             (val) =>
               isValid(val) || $t('login.form.messagePasswordResetReqired'),
+            (val) => isEmail(val) || $t('login.form.messageEmailInvalid'),
           ]"
           bg-color="grey-1"
           id="form-login-password-reset"
           name="subject"
           class="q-mt-sm"
+          data-cy="form-password-reset-email-input"
         />
       </div>
       <!-- Button: submit -->
@@ -238,9 +282,66 @@ export default defineComponent({
         type="submit"
         color="primary"
         :label="$t('login.form.submitPasswordReset')"
+        @click="onClickFormPasswordResetBtn"
         data-cy="form-password-reset-submit"
       />
     </q-form>
+  </div>
+  <!-- State: Password reset finished -->
+  <div
+    v-else-if="formState === 'reset-finished'"
+    class="text-grey-10"
+    data-cy="form-reset-finished"
+  >
+    <div class="q-my-lg">
+      <!-- Icon: Email -->
+      <div class="flex">
+        <div
+          class="q-pa-sm round"
+          :style="{ 'background-color': backgroundColor }"
+          data-cy="form-reset-finished-icon-wrapper"
+        >
+          <q-icon
+            name="mdi-email-outline"
+            size="40px"
+            color="primary"
+            class="q-ma-xs"
+            data-cy="form-reset-finished-icon"
+          />
+        </div>
+      </div>
+      <!-- Title -->
+      <h2
+        class="text-h5 text-bold q-my-none q-mt-lg"
+        data-cy="form-reset-finished-title"
+      >
+        {{ $t('login.form.titleResetFinished') }}
+      </h2>
+      <!-- Description -->
+      <p
+        v-html="$t('login.form.descriptionResetFinished', { contactEmail })"
+        class="text-body1 q-my-none q-mt-sm"
+        data-cy="form-reset-finished-description"
+      ></p>
+      <!-- Prompt: wrong email -->
+      <p
+        v-html="$t('login.form.promptWrongEmail')"
+        class="text-body1 q-my-none q-mt-lg"
+        data-cy="form-reset-finished-prompt"
+      ></p>
+      <!-- Button: new password -->
+      <q-btn
+        unelevated
+        rounded
+        outline
+        class="full-width q-mt-lg"
+        type="submit"
+        color="primary"
+        :label="$t('login.form.submitNewPassword')"
+        @click="formState = 'password-reset'"
+        data-cy="form-reset-finished-submit"
+      />
+    </div>
   </div>
 </template>
 
@@ -250,5 +351,9 @@ export default defineComponent({
   &:before {
     border-color: transparent;
   }
+}
+
+.round {
+  border-radius: 9999px;
 }
 </style>
