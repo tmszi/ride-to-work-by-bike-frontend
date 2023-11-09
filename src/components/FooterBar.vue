@@ -22,17 +22,10 @@
 // libraries
 import { defineComponent } from 'vue';
 import { i18n } from '../boot/i18n';
+import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // components
 import LanguageSwitcher from './LanguageSwitcher.vue';
-
-// types
-import { ConfigGlobal } from './types';
-
-// config
-const rideToWorkByBikeConfig: ConfigGlobal = JSON.parse(
-  process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
-);
 
 // Deployed app version
 const rideToWorkByBikeDeployedAppVersion: object = JSON.parse(
@@ -65,24 +58,28 @@ export default defineComponent({
 
     const socialLinksList = [
       {
+        id: 'instagram',
         title: i18n.global.t('index.menuLinks.instagram'),
         icon: 'mdi-instagram',
-        url: rideToWorkByBikeConfig.instagramUrl,
+        url: rideToWorkByBikeConfig.urlInstagram,
       },
       {
+        id: 'facebook',
         title: i18n.global.t('index.menuLinks.facebook'),
         icon: 'mdi-facebook',
-        url: rideToWorkByBikeConfig.facebookUrl,
+        url: rideToWorkByBikeConfig.urlFacebook,
       },
       {
+        id: 'twitter',
         title: i18n.global.t('index.menuLinks.twitter'),
         icon: 'mdi-twitter',
-        url: rideToWorkByBikeConfig.twitterUrl,
+        url: rideToWorkByBikeConfig.urlTwitter,
       },
       {
+        id: 'youtube',
         title: i18n.global.t('index.menuLinks.youtube'),
         icon: 'mdi-youtube',
-        url: rideToWorkByBikeConfig.youtubeUrl,
+        url: rideToWorkByBikeConfig.urlYoutube,
       },
     ];
 
@@ -190,14 +187,20 @@ export default defineComponent({
                       v-for="link in socialLinksList"
                       :key="link.icon"
                       :title="link.title"
+                      data-cy="footer-social-menu-button"
                     >
                       <a
                         :href="link.url"
                         class="flex column justify-center text-white"
                         target="_blank"
                         style="text-decoration: none"
+                        :data-cy="`footer-social-menu-link-${link.id}`"
                       >
-                        <q-icon :name="link.icon" size="18px" />
+                        <q-icon
+                          :name="link.icon"
+                          size="18px"
+                          data-cy="footer-social-menu-icon"
+                        />
                       </a>
                     </q-btn>
                   </li>
