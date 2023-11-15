@@ -26,6 +26,7 @@
 
 // libraries
 import { defineComponent, ref, reactive } from 'vue';
+import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // composables
 import { useValidation } from '../composables/useValidation';
@@ -56,7 +57,12 @@ export default defineComponent({
       // noop
     };
 
+    const backgroundColor = rideToWorkByBikeConfig.colorWhiteOpacity;
+    const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
+
     return {
+      backgroundColor,
+      borderRadius,
       formRegister,
       isPassword,
       isPasswordConfirm,
@@ -203,6 +209,49 @@ export default defineComponent({
       <q-separator color="grey-2" class="q-my-lg" />
       <!-- Buttons: Register with 3rd party -->
       <login-register-buttons variant="register" />
+      <!-- Link: Register Coordinator -->
+      <div class="q-mt-xl">
+        <div
+          class="q-pa-md text-body2 text-white"
+          :style="{
+            'background-color': backgroundColor,
+            'border-radius': borderRadius,
+          }"
+          data-cy="form-register-coordinator"
+        >
+          <p
+            class="q-mt-none q-mb-md"
+            data-cy="form-register-coordinator-description"
+          >
+            {{ $t('register.form.hintRegisterAsCoordinator') }}
+          </p>
+          <p
+            class="q-mt-md q-mb-none"
+            data-cy="form-register-coordinator-link-wrapper"
+          >
+            <router-link
+              :to="{ name: 'register-coordinator' }"
+              class="text-white"
+              data-cy="form-register-coordinator-link"
+            >
+              {{ $t('register.form.linkRegisterAsCoordinator') }}
+            </router-link>
+          </p>
+        </div>
+      </div>
+      <!-- Link: Login -->
+      <div class="q-mt-lg text-body2 text-white" data-cy="form-register-login">
+        <p class="q-my-none">
+          {{ $t('register.form.hintLogin') }}
+          <router-link
+            :to="{ name: 'login' }"
+            class="text-white"
+            data-cy="form-register-login-link"
+          >
+            {{ $t('register.form.linkLogin') }} </router-link
+          >.
+        </p>
+      </div>
     </q-form>
   </div>
 </template>
