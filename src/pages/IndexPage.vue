@@ -8,11 +8,25 @@
         {{ $t('index.title') }}
       </h1>
       <countdown-event :release-date="releaseDate" data-cy="countdown-event" />
-      <list-card-challenge
-        :cards="cardsChallenge"
-        class="q-pt-xl q-pb-xl"
+      <!-- Title -->
+      <h2
+        class="text-h6 q-mt-none text-weight-bold q-pt-xl"
+        data-cy="card-list-title"
+      >
+        {{ $t('index.cardListChallenge.title') }}
+      </h2>
+      <section-columns
+        :columns="3"
+        class="q-col-gutter-lg q-pb-xl"
         data-cy="list-challenge"
-      />
+      >
+        <card-challenge
+          v-for="card in cardsChallenge"
+          :key="card.title"
+          :card="card"
+          data-cy="card-list-item"
+        />
+      </section-columns>
       <banner-image
         :banner="bannerImageData"
         class="q-pt-xl q-pb-xl"
@@ -44,11 +58,19 @@
         class="q-pt-xl q-pb-xl"
         data-cy="list-progress"
       ></list-card-progress>
-      <list-badge-achievement
-        :items="badgeList"
-        class="q-pt-xl q-pb-xl"
+      <section-columns
+        :columns="4"
+        class="q-col-gutter-lg q-pt-xl q-pb-xl"
         data-cy="list-badges"
-      ></list-badge-achievement>
+      >
+        <badge-achievement
+          v-for="badge in badgeList"
+          :key="badge.title"
+          :badge="badge"
+          class="full-width"
+          data-cy="badge-item"
+        />
+      </section-columns>
       <section-columns :columns="3" class="q-col-gutter-lg q-pt-xl q-pb-xl">
         <card-stats v-for="card in cardsStats" :key="card.title" :card="card" />
       </section-columns>
@@ -60,11 +82,15 @@
       data-cy="heading-background"
     ></heading-background>
     <div class="bg-gray-light q-px-lg">
-      <list-card-event
-        :cards="cardsEvent"
-        class="q-pt-xl"
-        data-cy="list-event"
-      ></list-card-event>
+      <div class="q-pt-xl" data-cy="list-event">
+        <card-event
+          v-for="card in cardsEvent"
+          :key="card.title"
+          :card="card"
+          class="q-mt-lg"
+          data-cy="card-list-item"
+        />
+      </div>
       <list-card-offer
         :title="$t('index.cardListOffer.title')"
         :cards="cardsOffer"
@@ -94,16 +120,16 @@
 import { defineComponent } from 'vue';
 
 // import components
+import BadgeAchievement from 'components/BadgeAchievement.vue';
 import BannerApp from 'components/BannerApp.vue';
 import BannerImage from 'components/BannerImage.vue';
 import BannerRoutes from 'components/BannerRoutes.vue';
+import CardChallenge from 'components/CardChallenge.vue';
+import CardEvent from 'components/CardEvent.vue';
 import CardStats from 'components/CardStats.vue';
 import CountdownChallenge from 'components/CountdownChallenge.vue';
 import CountdownEvent from 'components/CountdownEvent.vue';
 import HeadingBackground from 'components/HeadingBackground.vue';
-import ListBadgeAchievement from 'components/ListBadgeAchievement.vue';
-import ListCardChallenge from 'components/ListCardChallenge.vue';
-import ListCardEvent from 'components/ListCardEvent.vue';
 import ListCardFollow from 'components/ListCardFollow.vue';
 import ListCardOffer from 'components/ListCardOffer.vue';
 import ListCardPost from 'components/ListCardPost.vue';
@@ -118,15 +144,15 @@ import * as homepage from '../mocks/homepage';
 export default defineComponent({
   name: 'IndexPage',
   components: {
+    BadgeAchievement,
     BannerApp,
     BannerImage,
     BannerRoutes,
+    CardChallenge,
+    CardEvent,
     CountdownChallenge,
     CountdownEvent,
     HeadingBackground,
-    ListBadgeAchievement,
-    ListCardChallenge,
-    ListCardEvent,
     ListCardFollow,
     ListCardOffer,
     ListCardProgress,
