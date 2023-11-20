@@ -36,5 +36,5 @@ jobs:
           file: ./docker/dev/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_REPO_OWNER }}/${{ secrets.DOCKERHUB_DEV_DOCKERFILE_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}
-            ${{ secrets.DOCKERHUB_REPO_OWNER }}/${{ secrets.DOCKERHUB_DEV_DOCKERFILE_REPO_NAME }}:latest
+            ${{ secrets.DOCKERHUB_REPO_OWNER }}/${{ secrets.DOCKERHUB_REPO_DEV_DOCKERFILE_REPO_NAME }}:${{ env.DOCKERHUB_IMAGE_VERSION }}
+            ${{ secrets.DOCKERHUB_REPO_OWNER }}/${{ secrets.DOCKERHUB_REPO_DEV_DOCKERFILE_REPO_NAME }}:latest
