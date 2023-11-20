@@ -26,7 +26,7 @@ Using `nvm`:
 ```bash
 nmv list
 nvm install lts/iron
-nmv use lts/iron
+nvm use lts/iron
 ```
 
 ## Install the dependencies
