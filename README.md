@@ -171,7 +171,10 @@ APP_NAME=ride-to-work-by-bike-app
 APP_DIR=/home/dev/$APP_NAME
 
 # Build Docker image
-docker buildx build --build-arg="UID=$(id -u)" -f ./docker/dev/Dockerfile .
+docker buildx build \
+--build-arg="UID=$(id -u)" \
+-t ride-to-work-by-bike-frontend-dev \
+-f ./docker/dev/Dockerfile .
 
 # Run Docker app container
 xhost local:$(id -u)
@@ -184,7 +187,7 @@ docker run -it --rm \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 --device="/dev/dri/card0:/dev/dri/card0" \
 --name=$APP_NAME \
-<YOUR_BUILDED_DOCKER_IMAGE_ID>
+ride-to-work-by-bike-frontend-dev OR auto0mat/ride-to-work-by-bike-frontend-dev:latest
 
 # Or if you want override some Docker app container ENV variables (-e flag)
 xhost local:$(id -u)
@@ -198,7 +201,7 @@ docker run -it --rm  \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 --device="/dev/dri/card0:/dev/dri/card0" \
 --name=$APP_NAME
-<YOUR_BUILDED_DOCKER_IMAGE_ID>
+ride-to-work-by-bike-frontend-dev OR auto0mat/ride-to-work-by-bike-frontend-dev:latest
 
 # Install app JS dependencies
 dev@61b150727994:~/ride-to-work-by-bike-app$ ./docker/dev/install_app_dependencies.sh
