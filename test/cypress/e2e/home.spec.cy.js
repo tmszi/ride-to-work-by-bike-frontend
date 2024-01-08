@@ -115,6 +115,8 @@ describe('Home page', () => {
           cy.dataCy('contact-form-subject-input')
             .should('be.visible')
             .type('question');
+          // Input lost focus to apply lazy validation rules
+          cy.dataCy('dialog-header').click();
           cy.dataCy('contact-form-subject')
             .find('.q-field__messages')
             .should('not.be.visible');
@@ -355,6 +357,8 @@ describe('Home page', () => {
           cy.dataCy('contact-form-subject-input')
             .should('be.visible')
             .type('question');
+          // Input lost focus to apply lazy validation rules
+          cy.dataCy('dialog-header').click();
           cy.dataCy('contact-form-subject')
             .find('.q-field__messages')
             .should('not.be.visible');
