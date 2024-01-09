@@ -115,9 +115,10 @@ describe('Home page', () => {
           cy.dataCy('contact-form-subject-input')
             .should('be.visible')
             .type('question');
+          cy.dataCy('contact-form-subject-input').blur();
           cy.dataCy('contact-form-subject')
             .find('.q-field__messages')
-            .should('not.be.visible');
+            .should('be.empty');
           cy.dataCy('contact-form-subject')
             .find('.q-field__control')
             .should('not.have.class', 'text-negative');
@@ -355,9 +356,10 @@ describe('Home page', () => {
           cy.dataCy('contact-form-subject-input')
             .should('be.visible')
             .type('question');
+          cy.dataCy('contact-form-subject-input').blur();
           cy.dataCy('contact-form-subject')
             .find('.q-field__messages')
-            .should('not.be.visible');
+            .should('be.empty');
           cy.dataCy('contact-form-subject')
             .find('.q-field__control')
             .should('not.have.class', 'text-negative');
