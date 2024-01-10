@@ -5,7 +5,7 @@ LABEL maintainer="Auto*Mat, z. s. auto-mat@auto-mat.cz"
 
 ENV APP_PATH=/tmp/nginx/ride-to-work-by-bike-app \
     LOCAL_BIN=/usr/local/bin
-RUN apk add --update --no-cache nginx nodejs-current yarn
+RUN apk add --update --no-cache nginx nodejs yarn
 
 # Create the directories we will need
 RUN mkdir -p $APP_PATH /var/log/nginx /var/www/html
