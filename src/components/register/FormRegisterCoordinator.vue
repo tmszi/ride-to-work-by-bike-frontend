@@ -24,6 +24,7 @@ import { defineComponent, reactive, ref } from 'vue';
 import { useValidation } from '../../composables/useValidation';
 
 // components
+import FormFieldCompany from '../global/FormFieldCompany.vue';
 import FormFieldEmail from './../global/FormFieldEmail.vue';
 import FormFieldTextRequired from './../global/FormFieldTextRequired.vue';
 import FormFieldPhone from './../global/FormFieldPhone.vue';
@@ -31,6 +32,7 @@ import FormFieldPhone from './../global/FormFieldPhone.vue';
 export default defineComponent({
   name: 'FormRegisterCoordinator',
   components: {
+    FormFieldCompany,
     FormFieldEmail,
     FormFieldTextRequired,
     FormFieldPhone,
@@ -39,7 +41,7 @@ export default defineComponent({
     const formRegisterCoordinator = reactive({
       firstName: '',
       lastName: '',
-      company: [],
+      company: '',
       jobTitle: '',
       email: '',
       phone: '',
@@ -49,33 +51,11 @@ export default defineComponent({
       terms: false,
     });
 
-    const stringOptions = ['Company 1', 'Company 2'];
-    const options = ref(null);
-
     const isPassword = ref(true);
     const isPasswordConfirm = ref(true);
 
     const { isEmail, isFilled, isIdentical, isPhone, isStrongPassword } =
       useValidation();
-
-    // Quasar types are not implemented yet so we provide custom typing
-    // for update function.
-    // https://github.com/quasarframework/quasar/issues/8914#issuecomment-1313783889
-    const onFilter = (val: string, update: (fn: () => void) => void): void => {
-      if (val === '') {
-        update(() => {
-          options.value = stringOptions;
-        });
-        return;
-      }
-      // Filtering options based on text typing by the user
-      update(() => {
-        const valLowerCase = val.toLowerCase();
-        options.value = stringOptions.filter(
-          (v) => v.toLowerCase().indexOf(valLowerCase) > -1,
-        );
-      });
-    };
 
     const onSubmit = (): void => {
       // noop
@@ -89,13 +69,11 @@ export default defineComponent({
       formRegisterCoordinator,
       isPassword,
       isPasswordConfirm,
-      options,
       isEmail,
       isFilled,
       isIdentical,
       isPhone,
       isStrongPassword,
-      onFilter,
       onReset,
       onSubmit,
     };
@@ -140,47 +118,11 @@ export default defineComponent({
             data-cy="form-register-coordinator-last-name"
           />
           <!-- Input: company -->
-          <!-- TODO: add option to input new company -->
-          <div class="col-12" data-cy="form-register-coordinator-company">
-            <!-- Label -->
-            <label
-              for="form-register-coordinator-company"
-              class="text-caption text-bold"
-            >
-              {{ $t('register.coordinator.form.labelCompany') }}
-            </label>
-            <!-- Input -->
-            <q-select
-              dense
-              outlined
-              use-input
-              v-model="formRegisterCoordinator.company"
-              :options="options"
-              lazy-rules
-              :rules="[
-                (val) =>
-                  isFilled(val) ||
-                  $t('register.coordinator.form.messageFieldRequired', {
-                    fieldName: $t(
-                      'register.coordinator.form.labelCompanyShort',
-                    ),
-                  }),
-              ]"
-              @filter="onFilter"
-              class="q-mt-sm"
-              id="form-register-coordinator-company"
-              name="company"
-              data-cy="form-register-coordinator-company-input"
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    {{ $t('register.coordinator.form.messageNoCompany') }}
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
+          <form-field-company
+            v-model="formRegisterCoordinator.company"
+            class="col-12"
+            data-cy="form-register-coordinator-company"
+          />
           <!-- Input: job title -->
           <form-field-text-required
             v-model="formRegisterCoordinator.jobTitle"

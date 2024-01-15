@@ -72,22 +72,7 @@ describe('<FormRegisterCoordinator>', () => {
 
     it('renders company field', () => {
       // input label
-      cy.dataCy('form-register-coordinator-company')
-        .should('be.visible')
-        .find('label[for="form-register-coordinator-company"]')
-        .should('be.visible')
-        .and('have.color', grey10)
-        .and(
-          'have.text',
-          i18n.global.t('register.coordinator.form.labelCompany'),
-        );
-      // input wrapper
-      cy.dataCy('form-register-coordinator-company')
-        .find('.q-field__control')
-        .should('be.visible')
-        .and('have.css', 'border-radius', '8px');
-      // input
-      cy.dataCy('form-register-coordinator-company-input').should('be.visible');
+      cy.dataCy('form-register-coordinator-company').should('be.visible');
     });
 
     it('renders job title field', () => {
@@ -264,36 +249,6 @@ describe('<FormRegisterCoordinator>', () => {
       });
     });
 
-    it('validates company correctly', () => {
-      // fill in other parts of the form to be able to test company
-      cy.dataCy('form-register-coordinator-first-name')
-        .find('input')
-        .type('John');
-      cy.dataCy('form-register-coordinator-last-name')
-        .find('input')
-        .type('Doe');
-      // empty company
-      cy.dataCy('form-register-coordinator-submit')
-        .should('be.visible')
-        .click();
-      cy.dataCy('form-register-coordinator-company')
-        .find('.q-field__messages')
-        .should('be.visible')
-        .and(
-          'contain',
-          i18n.global.t('register.coordinator.form.messageFieldRequired', {
-            fieldName: i18n.global.t(
-              'register.coordinator.form.labelCompanyShort',
-            ),
-          }),
-        );
-      cy.dataCy('form-register-coordinator-company').click();
-      cy.get('.q-menu .q-item').first().click();
-      cy.dataCy('form-register-coordinator-company')
-        .find('.q-field__messages')
-        .should('be.empty');
-    });
-
     it('validates password correctly', () => {
       // fill in other parts of the form to be able to test password
       cy.dataCy('form-register-coordinator-first-name')
@@ -302,7 +257,7 @@ describe('<FormRegisterCoordinator>', () => {
       cy.dataCy('form-register-coordinator-last-name')
         .find('input')
         .type('Doe');
-      cy.dataCy('form-register-coordinator-company').click();
+      cy.dataCy('form-register-coordinator-company').find('input').click();
       cy.get('.q-menu .q-item').first().click();
       cy.dataCy('form-register-coordinator-job-title').find('input').type('IT');
       cy.dataCy('form-register-coordinator-email')
@@ -358,7 +313,7 @@ describe('<FormRegisterCoordinator>', () => {
       cy.dataCy('form-register-coordinator-last-name')
         .find('input')
         .type('Doe');
-      cy.dataCy('form-register-coordinator-company').click();
+      cy.dataCy('form-register-coordinator-company').find('input').click();
       cy.get('.q-menu .q-item').first().click();
       cy.dataCy('form-register-coordinator-job-title').find('input').type('IT');
       cy.dataCy('form-register-coordinator-email')
@@ -417,7 +372,7 @@ describe('<FormRegisterCoordinator>', () => {
       cy.dataCy('form-register-coordinator-last-name')
         .find('input')
         .type('Doe');
-      cy.dataCy('form-register-coordinator-company').click();
+      cy.dataCy('form-register-coordinator-company').find('input').click();
       cy.get('.q-menu .q-item').first().click();
       cy.dataCy('form-register-coordinator-job-title').find('input').type('IT');
       cy.dataCy('form-register-coordinator-email')
