@@ -18,21 +18,28 @@
 
 // libraries
 import { defineComponent, ref } from 'vue';
+import { QForm, QStepper } from 'quasar';
 
 // config
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // components
 import LoginRegisterHeader from 'components/global/LoginRegisterHeader.vue';
+import FormPersonalDetails from 'src/components/form/FormPersonalDetails.vue';
+
+// composables
+import { useStepperValidation } from 'src/composables/useStepperValidation';
+
+// types
+import type { FormPersonalDetailsFields } from 'src/components/types/Form';
 
 export default defineComponent({
   name: 'RegisterChallengePage',
   components: {
     LoginRegisterHeader,
+    FormPersonalDetails,
   },
   setup() {
-    const step = ref(1);
-
     const challengeMonth = rideToWorkByBikeConfig.challengeMonth;
     const containerWidth = rideToWorkByBikeConfig.containerWidth;
     const doneIcon = `img:${
@@ -71,10 +78,41 @@ export default defineComponent({
     }`;
     const doneIconImgSrcStepper4 = doneIcon;
 
+    const personalDetails = ref<FormPersonalDetailsFields>({
+      firstName: '',
+      lastName: '',
+      nickname: '',
+      gender: '',
+      email: '',
+      newsletter: [],
+      terms: false,
+    });
+
+    const step = ref(1);
+    const stepperRef = ref<typeof QStepper | null>(null);
+    const stepCompanyRef = ref<typeof QForm | null>(null);
+    const stepParticipationRef = ref<typeof QForm | null>(null);
+    const stepPaymentRef = ref<typeof QForm | null>(null);
+    const stepPersonalDetailsRef = ref<typeof QForm | null>(null);
+
+    const { onBack, onContinue } = useStepperValidation({
+      step,
+      stepperRef,
+      stepCompanyRef,
+      stepParticipationRef,
+      stepPaymentRef,
+      stepPersonalDetailsRef,
+    });
+
     return {
       challengeMonth,
       containerWidth,
       step,
+      stepperRef,
+      stepCompanyRef,
+      stepPaymentRef,
+      stepParticipationRef,
+      stepPersonalDetailsRef,
       iconImgSrcStepper1,
       activeIconImgSrcStepper1,
       doneIconImgSrcStepper1,
@@ -87,6 +125,9 @@ export default defineComponent({
       iconImgSrcStepper4,
       activeIconImgSrcStepper4,
       doneIconImgSrcStepper4,
+      personalDetails,
+      onBack,
+      onContinue,
     };
   },
 });
@@ -110,6 +151,7 @@ export default defineComponent({
           }}
         </h1>
         <q-stepper
+          ref="stepperRef"
           v-model="step"
           vertical
           color="primary"
@@ -129,14 +171,19 @@ export default defineComponent({
             class="bg-white"
             data-cy="step-1"
           >
-            Content of step 1
+            <q-form ref="stepPersonalDetailsRef">
+              <form-personal-details
+                :form-values="personalDetails"
+                @update:form-values="personalDetails = $event"
+              />
+            </q-form>
             <q-stepper-navigation>
               <q-btn
                 unelevated
                 rounded
-                @click="step = 2"
                 color="primary"
                 :label="$t('navigation.continue')"
+                @click="onContinue"
                 data-cy="step-1-continue"
               />
             </q-stepper-navigation>
@@ -152,24 +199,24 @@ export default defineComponent({
             class="bg-white q-mt-lg"
             data-cy="step-2"
           >
-            Content of step 2
+            <q-form ref="stepPaymentRef"> Content of step 2 </q-form>
             <q-stepper-navigation>
               <q-btn
                 unelevated
                 rounded
-                @click="step = 3"
                 color="primary"
                 :label="$t('navigation.continue')"
+                @click="onContinue"
                 data-cy="step-2-continue"
               />
               <q-btn
                 unelevated
                 rounded
                 outline
-                @click="step = 1"
                 color="primary"
-                :label="$t('navigation.back')"
                 class="q-ml-sm"
+                :label="$t('navigation.back')"
+                @click="onBack"
                 data-cy="step-2-back"
               />
             </q-stepper-navigation>
@@ -185,7 +232,7 @@ export default defineComponent({
             class="bg-white q-mt-lg"
             data-cy="step-3"
           >
-            Content of step 3
+            <q-form ref="stepParticipationRef"> Content of step 3 </q-form>
             <q-stepper-navigation>
               <q-btn
                 unelevated
@@ -218,7 +265,7 @@ export default defineComponent({
             class="bg-white q-mt-lg"
             data-cy="step-4"
           >
-            Content of step 4
+            <q-form ref="stepCompanyRef"> Content of step 4 </q-form>
             <q-stepper-navigation>
               <q-btn
                 unelevated

@@ -16,6 +16,10 @@ inviteFriends = "Pozvat přátele"
 donate = "Darujte"
 more = "Více"
 
+[global]
+man = "Muž"
+woman = "Žena"
+
 [time]
 day = "den | dní"
 hour = "hodina | hodin"
@@ -32,6 +36,7 @@ back = "Zpět"
 
 [form]
 hintPassword = "Musí obsahovat alespoň 6 znaků a alespoň 1 písmeno."
+hintNickname = "Zobrazí se ve veřejných výsledcích místo vašeho jména"
 labelCompany = "Firma, pro kterou chcete být koordinátorem"
 labelCompanyShort = "Firma"
 labelEmail = "E-mail"
@@ -39,9 +44,12 @@ labelFirstName = "Jméno"
 labelJobTitle = "Vaše pracovní pozice"
 labelJobTitleShort = "Pracovní pozice"
 labelLastName = "Příjmení"
+labelNicknameOptional = "Přezdívka (nepovinné)"
 labelPassword = "Heslo"
 labelPhone = "Telefon"
+labelTerms = "Souhlasím se zpracováním osobních údajů podle "
 labelTextRequired = "Povinný text"
+linkTerms = "Zásad o ochraně a zpracování údajů"
 messageEmailInvalid = "Prosím vyplňte platný e-mail"
 messageFieldRequired = "Pole {fieldName} je povinné"
 messageNoCompany = "Žádnou firmu jsme nenašli. Zkuste hledat znovu, nebo vytvořte novou firmu."
@@ -49,7 +57,15 @@ messageOptionRequired = "Prosím, zvolte jednu z možností"
 messagePhoneInvalid = "Prosím vyplňte platné telefonní číslo"
 messagePasswordStrong = "Heslo musí obsahovat alespoň 6 znaků a alespoň 1 písmeno."
 messagePasswordNotIdentical = "Hesla se neshodují"
+messageTermsRequired = "Musíte souhlasit se zpracováním osobních údajů"
 
+[form.personalDetails]
+labelNewsletterAll = "O všech informacích od Do práce na kole"
+labelNewsletterChallenges = "O budoucích výzvách"
+labelNewsletterEvents = "Chci dostávat info o doprovodných akcích (cyklojízdách, snídaních...) a akčních nabídkách."
+labelNewsletterMobility = "O udržitelné mobilitě"
+titleGender = "Pohlaví"
+titleNewsletter = "O čem chcete být informováni e-mailem"
 
 [index]
 title = "Domov"
