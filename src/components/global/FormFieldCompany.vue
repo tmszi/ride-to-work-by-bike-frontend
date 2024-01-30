@@ -16,6 +16,9 @@
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
  *
+ * @components
+ * - `DialogDefault`: Used to render a dialog window with form as content.
+ *
  * @example
  * <form-field-company />
  *
@@ -24,18 +27,22 @@
 
 // libraries
 import { computed, defineComponent, ref } from 'vue';
+import { QForm } from 'quasar';
+
+// components
+import DialogDefault from 'src/components/global/DialogDefault.vue';
 
 // composables
 import { useValidation } from 'src/composables/useValidation';
-
-// types
-import type { Ref } from 'vue';
 
 // constants
 const stringOptions: string[] = ['Company 1', 'Company 2'];
 
 export default defineComponent({
   name: 'FormFieldCompany',
+  components: {
+    DialogDefault,
+  },
   props: {
     modelValue: {
       type: String,
@@ -43,7 +50,9 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const options: Ref<string[]> = ref([]);
+    const options = ref<string[]>([]);
+    const isDialogOpen = ref<boolean>(false);
+    const formRef = ref<typeof QForm | null>(null);
 
     const company = computed({
       get: () => props.modelValue,
@@ -78,14 +87,44 @@ export default defineComponent({
       });
     };
 
+    const onClose = (): void => {
+      if (formRef.value) {
+        formRef.value.reset();
+      }
+      isDialogOpen.value = false;
+    };
+
+    /**
+     * Validates the form.
+     * If form is valid it submits the data.
+     */
+    const onSubmit = async (): Promise<void> => {
+      if (formRef.value) {
+        const isFormValid: boolean = await formRef.value.validate();
+
+        if (isFormValid) {
+          // TODO: Submit through API
+          isDialogOpen.value = false;
+        } else {
+          formRef.value.$el.scrollIntoView({
+            behavior: 'smooth',
+          });
+        }
+      }
+    };
+
     const { isFilled } = useValidation();
 
     return {
       company,
+      formRef,
+      isDialogOpen,
       options,
       isFilled,
+      onClose,
       onFilter,
       onInputValue,
+      onSubmit,
     };
   },
 });
@@ -145,6 +184,7 @@ export default defineComponent({
           rounded
           icon="mdi-plus"
           color="primary"
+          @click.prevent="isDialogOpen = true"
           data-cy="button-add-company"
         >
           <!-- Label -->
@@ -154,5 +194,44 @@ export default defineComponent({
         </q-btn>
       </div>
     </div>
+    <!-- Dialog: Add company -->
+    <dialog-default
+      v-model="isDialogOpen"
+      :form-ref="formRef"
+      data-cy="dialog-add-company"
+    >
+      <template v-slot:title>
+        {{ $t('form.company.titleAddCompany') }}
+      </template>
+      <template v-slot:content>
+        <q-form ref="formRef">
+          <!-- TODO: Add form fields -->
+        </q-form>
+        <!-- Action buttons -->
+        <div class="flex justify-end q-mt-sm">
+          <div class="flex gap-8">
+            <q-btn
+              rounded
+              unelevated
+              outline
+              color="primary"
+              data-cy="dialog-button-cancel"
+              @click="onClose"
+            >
+              {{ $t('navigation.discard') }}
+            </q-btn>
+            <q-btn
+              rounded
+              unelevated
+              color="primary"
+              data-cy="dialog-button-submit"
+              @click="onSubmit"
+            >
+              {{ $t('form.company.buttonAddCompany') }}
+            </q-btn>
+          </div>
+        </div>
+      </template>
+    </dialog-default>
   </div>
 </template>

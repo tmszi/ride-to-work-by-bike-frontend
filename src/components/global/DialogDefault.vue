@@ -1,90 +1,81 @@
 <script lang="ts">
 /**
- * DialogCard Component
+ * DialogDefault Component
  *
- * The `DialogCard` component is used to render a dialog window that can be
+ * The `DialogDefault` component is used to render a dialog window that can be
  * customized with various slots.
  *
  * It provides slots for the following content:
  *
  * - `title`: For the title of the dialog.
- * - `metadata`: For additional metadata or information.
  * - `content`: For the main content of the dialog.
- * - `buttons`: For action buttons.
- * - `image`: For displaying an image alongside the content.
- *
- * The `content` and `image` slots are rendered side by side within
- * a scrollable dialog window (on desktop screens).
  *
  * @props
  * - `modelValue` (Boolean, required): Controls the visibility of the dialog.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure
- * - `change`: Emitted when the dialog is closed or opened
  *
  * @example
- * <dialog-card>
- *   <template #title>
+ * <dialog-default>
+ *   <template v-slot:title>
  *     <!-- Title content here -->
  *   </template>
- *   <template #metadata>
- *     <!-- Metadata content here -->
- *   </template>
- *   <template #content>
+ *   <template v-slot:content>
  *     <!-- Main content here -->
  *   </template>
- *   <template #buttons>
- *     <!-- Action buttons here -->
- *   </template>
- *   <template #image>
- *     <!-- Image content here -->
- *   </template>
- * </dialog-card>
+ * </dialog-default>
  *
- * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A104737&mode=dev)
+ * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=6014%3A46223&mode=dev)
  */
 
 // libraries
 import { defineComponent, computed } from 'vue';
 
 export default defineComponent({
-  name: 'DialogCard',
+  name: 'DialogDefault',
   props: {
+    horizontal: {
+      type: Boolean,
+      default: false,
+    },
     modelValue: {
       type: Boolean,
       required: true,
     },
   },
-  emits: ['update:modelValue', 'change'],
+  emits: ['change', 'form-submit', 'update:modelValue'],
   setup(props, { emit }) {
-    const dialogOpen = computed({
+    // determines if dialog window is open
+    const isOpen = computed({
       get: (): boolean => props.modelValue,
       set: (value: boolean): void => {
         emit('update:modelValue', value);
-        emit('change');
       },
     });
 
     return {
-      dialogOpen,
+      isOpen,
     };
   },
 });
 </script>
 
 <template>
-  <q-dialog square persistent v-model="dialogOpen" data-cy="dialog-card">
-    <q-card class="relative-position overflow-visible bg-white">
+  <q-dialog square persistent v-model="isOpen" data-cy="dialog-form">
+    <q-card
+      class="relative-position overflow-visible bg-white"
+      style="min-width: 50vw"
+    >
       <!-- Section: Card header -->
       <q-card-section class="q-pt-none" data-cy="dialog-header">
         <!-- Title -->
-        <h3 class="text-h6 q-mt-sm q-pt-xs q-mb-none">
-          <slot v-if="$slots.title" name="title" />
+        <h3 v-if="$slots.title" class="text-h6 q-mt-sm q-pt-xs q-mb-none">
+          <slot name="title" />
         </h3>
         <!-- Metadata -->
-        <div>
-          <slot v-if="$slots.metadata" name="metadata" />
+        <div v-if="$slots.metadata">
+          <slot name="metadata" />
         </div>
       </q-card-section>
 
@@ -92,23 +83,14 @@ export default defineComponent({
 
       <!-- Section: Card body -->
       <q-card-section
-        horizontal
+        v-if="$slots.content || $slots.buttons"
+        :horizontal="horizontal"
         class="scroll items-center"
         data-cy="dialog-body"
-        style="max-height: 50vh; flex-wrap: wrap"
+        style="max-height: 70vh; flex-wrap: wrap"
       >
-        <!-- Left column: Content -->
-        <div class="col-12 col-md-6 q-px-md q-py-md" data-cy="dialog-col-left">
-          <!-- Content -->
-          <slot v-if="$slots.content" name="content"></slot>
-          <!-- Buttons -->
-          <slot v-if="$slots.buttons" name="buttons"></slot>
-        </div>
-        <!-- Right column: Image -->
-        <div class="col-12 col-md-6 q-px-md q-py-md" data-cy="dialog-col-right">
-          <!-- Image -->
-          <slot v-if="$slots.image" name="image"></slot>
-        </div>
+        <!-- Content -->
+        <slot v-if="$slots.content" name="content"></slot>
       </q-card-section>
 
       <!-- Button: Close dialog -->
