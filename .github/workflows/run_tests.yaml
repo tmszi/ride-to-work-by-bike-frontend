@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: [20.x]
+        node: [${{ vars.NODE_VERSION }}]
         os: [ubuntu-latest, macos-latest, windows-latest]
       fail-fast: false
     timeout-minutes: 35
@@ -152,6 +152,10 @@ jobs:
     name: SonarCloud scan analysis
 
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [${{ vars.NODE_VERSION }}]
 
     steps:
       - name: Checkout app repository code
