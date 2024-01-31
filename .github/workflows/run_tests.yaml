@@ -160,6 +160,18 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node -v
+
+      - name: Run yarn install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         env:
