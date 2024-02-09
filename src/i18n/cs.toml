@@ -17,7 +17,9 @@ donate = "Darujte"
 more = "Více"
 
 [global]
+female = "Dámské"
 man = "Muž"
+male = "Pánské"
 woman = "Žena"
 
 [time]
@@ -34,6 +36,9 @@ secondShort = "s."
 continue = "Pokračovat"
 back = "Zpět"
 discard = "Zahodit"
+moreInfo = "Více info"
+select = "Vybrat"
+selected = "Vybráno"
 
 [form]
 hintPassword = "Musí obsahovat alespoň 6 znaků a alespoň 1 písmeno."
@@ -64,6 +69,13 @@ messagePasswordStrong = "Heslo musí obsahovat alespoň 6 znaků a alespoň 1 p�
 messagePasswordNotIdentical = "Hesla se neshodují"
 messageTermsRequired = "Musíte souhlasit se zpracováním osobních údajů"
 messageVatIdInvalid = "Neplatné IČO"
+
+[form.merch]
+hintNoMerch = "Necháte tak plnou částku na neziskové aktivity AutoMatu."
+labelSizes = "Velikosti"
+labelAuthor = "Autor"
+labelMaterial = "Materiál"
+labelNoMerch = "Nechci triko ani nákrčník"
 
 [form.personalDetails]
 labelNewsletterAll = "O všech informacích od Do práce na kole"
@@ -261,6 +273,7 @@ titleStepPersonalDetails = "Osobní údaje"
 titleStepPayment = "Platba"
 titleStepParticipation = "Účast"
 titleStepCompany = "Firma / škola / skupina"
+titleStepMerch = "Startovací balíček"
 buttonAddCompany = "Přidat novou"
 
 [register.coordinator]

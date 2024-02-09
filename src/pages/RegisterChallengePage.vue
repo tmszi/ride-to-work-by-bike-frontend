@@ -8,6 +8,10 @@
  * individual challenge.
  *
  * @components
+ * - `FormFieldCompanySelect`: Component to render company select widget.
+ * - `FormFieldListMerch`: Component to render list of merch options.
+ * - `FormFieldOptionGroup`: Component to render radio buttons.
+ * - `FormPersonalDetails`: Component to render personal details form.
  * - `LoginRegisterHeader`: Component to render page header.
  *
  * @layout
@@ -24,8 +28,9 @@ import { QForm, QStepper } from 'quasar';
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // components
-import FormFieldOptionGroup from 'src/components/form/FormFieldOptionGroup.vue';
 import FormFieldCompanySelect from 'src/components/form/FormFieldCompanySelect.vue';
+import FormFieldListMerch from 'src/components/form/FormFieldListMerch.vue';
+import FormFieldOptionGroup from 'src/components/form/FormFieldOptionGroup.vue';
 import FormPersonalDetails from 'src/components/form/FormPersonalDetails.vue';
 import LoginRegisterHeader from 'components/global/LoginRegisterHeader.vue';
 
@@ -38,8 +43,9 @@ import type { FormPersonalDetailsFields } from 'src/components/types/Form';
 export default defineComponent({
   name: 'RegisterChallengePage',
   components: {
-    FormFieldOptionGroup,
     FormFieldCompanySelect,
+    FormFieldListMerch,
+    FormFieldOptionGroup,
     FormPersonalDetails,
     LoginRegisterHeader,
   },
@@ -81,6 +87,14 @@ export default defineComponent({
       new URL('../assets/svg/numeric-4-fill.svg', import.meta.url).href
     }`;
     const doneIconImgSrcStepper4 = doneIcon;
+    // Stepper 7 imgs
+    const iconImgSrcStepper7 = `img:${
+      new URL('../assets/svg/numeric-7-outline.svg', import.meta.url).href
+    }`;
+    const activeIconImgSrcStepper7 = `img:${
+      new URL('../assets/svg/numeric-7-fill.svg', import.meta.url).href
+    }`;
+    const doneIconImgSrcStepper7 = doneIcon;
 
     const personalDetails = ref<FormPersonalDetailsFields>({
       firstName: '',
@@ -133,6 +147,9 @@ export default defineComponent({
       iconImgSrcStepper4,
       activeIconImgSrcStepper4,
       doneIconImgSrcStepper4,
+      iconImgSrcStepper7,
+      activeIconImgSrcStepper7,
+      doneIconImgSrcStepper7,
       participation,
       company,
       personalDetails,
@@ -308,6 +325,41 @@ export default defineComponent({
                 :label="$t('navigation.back')"
                 class="q-ml-sm"
                 data-cy="step-4-back"
+              />
+            </q-stepper-navigation>
+          </q-step>
+          <!-- Step: Merch -->
+          <q-step
+            :name="7"
+            :title="$t('register.challenge.titleStepMerch')"
+            :icon="iconImgSrcStepper7"
+            :active-icon="activeIconImgSrcStepper7"
+            :done-icon="doneIconImgSrcStepper7"
+            :done="step > 7"
+            class="bg-white q-mt-lg"
+            data-cy="step-7"
+          >
+            <q-form ref="stepMerchRef">
+              <form-field-list-merch />
+            </q-form>
+            <q-stepper-navigation>
+              <q-btn
+                unelevated
+                rounded
+                color="primary"
+                :label="$t('navigation.continue')"
+                @click="onContinue"
+                data-cy="step-7-continue"
+              />
+              <q-btn
+                unelevated
+                rounded
+                outline
+                @click="onBack"
+                color="primary"
+                :label="$t('navigation.back')"
+                class="q-ml-sm"
+                data-cy="step-7-back"
               />
             </q-stepper-navigation>
           </q-step>

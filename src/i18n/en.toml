@@ -17,7 +17,9 @@ donate = "Donate"
 more = "More"
 
 [global]
+female = "Female"
 man = "Man"
+male = "Male"
 woman = "Woman"
 
 [time]
@@ -34,6 +36,9 @@ secondShort = "s"
 continue = "Continue"
 back = "Back"
 discard = "Discard"
+moreInfo = "More info"
+select = "Select"
+selected = "Selected"
 
 [form]
 hintPassword = "It must contain at least 6 characters and at least 1 letter."
@@ -64,6 +69,13 @@ messagePasswordStrong = "Password must contain at least 6 characters and at leas
 messagePasswordNotIdentical = "Passwords don't match"
 messageTermsRequired = "You must consent to the processing of personal data"
 messageVatIdInvalid = "Invalid registration number"
+
+[form.merch]
+hintNoMerch = "This will leave the full amount for AutoMat's non-profit activities."
+labelSizes = "Sizes"
+labelAuthor = "Author"
+labelMaterial = "Material"
+labelNoMerch = "I don't want a shirt or a neck warmer"
 
 [form.personalDetails]
 labelNewsletterAll = "About everything around Ride to Work by Bike"
@@ -261,6 +273,7 @@ titleStepPersonalDetails = "Personal details"
 titleStepPayment = "Payment"
 titleStepParticipation = "Participation"
 titleStepCompany = "Company / school / group"
+titleStepMerch = "Starter package"
 buttonAddCompany = "Add new"
 
 [register.coordinator]

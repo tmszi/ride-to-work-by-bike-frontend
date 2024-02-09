@@ -17,7 +17,9 @@ donate = "Darujte"
 more = "Viac"
 
 [global]
+female = "Dámske"
 man = "Muž"
+male = "Pánske"
 woman = "Žena"
 
 [time]
@@ -34,6 +36,9 @@ secondShort = "s."
 continue = "Pokračovať"
 back = "Späť"
 discard = "Vyhodiť"
+moreInfo = "Viac informácií"
+select = "Vybrať"
+selected = "Vybrané"
 
 [form]
 hintPassword = "Musí obsahovať aspoň 6 znakov a aspoň 1 písmeno."
@@ -64,6 +69,13 @@ messagePasswordStrong = "Heslo musí obsahovať aspoň 6 znakov a aspoň 1 písm
 messagePasswordNotIdentical = "Heslá sa nezhodujú"
 messageTermsRequired = "Musíte súhlasiť so spracovaním osobných údajov"
 messageVatIdInvalid = "Neplatné registrační číslo"
+
+[form.merch]
+hintNoMerch = "Celá suma tak zostane na neziskové aktivity spoločnosti AutoMat."
+labelSizes = "Veľkosti"
+labelAuthor = "Autor"
+labelMaterial = "Materiál"
+labelNoMerch = "Nechcem košeľu ani nákrčník"
 
 [form.personalDetails]
 labelNewsletterAll = "O všetkých informáciách zo stránky Do práce na bicykli"
@@ -261,6 +273,7 @@ titleStepPersonalDetails = "Osobné údaje"
 titleStepPayment = "Platba"
 titleStepParticipation = "Účasť"
 titleStepCompany = "Spoločnosť / škola / skupina"
+titleStepMerch = "Štartovací balíček"
 buttonAddCompany = "Pridanie novej"
 
 [register.coordinator]
