@@ -106,6 +106,12 @@ labelCompany = "Název firmy"
 titleAddAddress = "Přidat vaši pobočku"
 titleAddCompany = "Přidat firmu"
 
+[form.team]
+buttonAddTeam = "Přidat tým"
+labelMembers = "člen | členů"
+labelTeam = "Název týmu"
+titleAddTeam = "Přidat tým"
+
 [index]
 title = "Domov"
 logoAltText = "Logo Do práce na kole"
@@ -281,6 +287,7 @@ titleStepPayment = "Platba"
 titleStepParticipation = "Účast"
 titleStepCompany = "Firma / škola / skupina"
 titleStepMerch = "Startovací balíček"
+titleStepTeam = "Tým"
 buttonAddCompany = "Přidat novou"
 
 [register.coordinator]

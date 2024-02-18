@@ -106,6 +106,12 @@ labelCompany = "Company name"
 titleAddCompany = "Add company"
 titleAddAddress = "Add your subdivision"
 
+[form.team]
+buttonAddTeam = "Add team"
+labelMembers = "member | members"
+labelTeam = "Team name"
+titleAddTeam = "Add team"
+
 [index]
 title = "Home"
 logoAltText = "Logo Ride to Work by Bike"
@@ -281,6 +287,7 @@ titleStepPayment = "Payment"
 titleStepParticipation = "Participation"
 titleStepCompany = "Company / school / group"
 titleStepMerch = "Starter package"
+titleStepTeam = "Team"
 buttonAddCompany = "Add new"
 
 [register.coordinator]

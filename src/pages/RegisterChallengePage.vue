@@ -8,7 +8,7 @@
  * individual challenge.
  *
  * @components
- * - `FormFieldCompanySelect`: Component to render company select widget.
+ * - `FormFieldSelectTable`: Component to render company select widget.
  * - `FormFieldListMerch`: Component to render list of merch options.
  * - `FormFieldOptionGroup`: Component to render radio buttons.
  * - `FormPersonalDetails`: Component to render personal details form.
@@ -29,7 +29,7 @@ import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // components
 import FormFieldCompanyAddress from 'src/components/form/FormFieldCompanyAddress.vue';
-import FormFieldCompanySelect from 'src/components/form/FormFieldCompanySelect.vue';
+import FormFieldSelectTable from 'src/components/form/FormFieldSelectTable.vue';
 import FormFieldListMerch from 'src/components/form/FormFieldListMerch.vue';
 import FormFieldOptionGroup from 'src/components/form/FormFieldOptionGroup.vue';
 import FormPersonalDetails from 'src/components/form/FormPersonalDetails.vue';
@@ -40,15 +40,17 @@ import { useStepperValidation } from 'src/composables/useStepperValidation';
 
 // types
 import type {
-  FormPersonalDetailsFields,
   FormCompanyAddressFields,
+  FormOption,
+  FormPersonalDetailsFields,
+  FormSelectTableOption,
 } from 'src/components/types/Form';
 
 export default defineComponent({
   name: 'RegisterChallengePage',
   components: {
     FormFieldCompanyAddress,
-    FormFieldCompanySelect,
+    FormFieldSelectTable,
     FormFieldListMerch,
     FormFieldOptionGroup,
     FormPersonalDetails,
@@ -92,6 +94,14 @@ export default defineComponent({
       new URL('../assets/svg/numeric-4-fill.svg', import.meta.url).href
     }`;
     const doneIconImgSrcStepper4 = doneIcon;
+    // Stepper 5 imgs
+    const iconImgSrcStepper5 = `img:${
+      new URL('../assets/svg/numeric-5-outline.svg', import.meta.url).href
+    }`;
+    const activeIconImgSrcStepper5 = `img:${
+      new URL('../assets/svg/numeric-5-fill.svg', import.meta.url).href
+    }`;
+    const doneIconImgSrcStepper5 = doneIcon;
     // Stepper 7 imgs
     const iconImgSrcStepper7 = `img:${
       new URL('../assets/svg/numeric-7-outline.svg', import.meta.url).href
@@ -113,6 +123,36 @@ export default defineComponent({
 
     const participation = ref<string>('');
 
+    const companyOptions: FormOption[] = [
+      {
+        label: 'Very long company name spanning 3 lines on mobile',
+        value: 'company-1',
+      },
+      {
+        label: 'Company 2',
+        value: 'company-2',
+      },
+      {
+        label: 'Company 3',
+        value: 'company-3',
+      },
+      {
+        label: 'Company 4',
+        value: 'company-4',
+      },
+      {
+        label: 'Company 5',
+        value: 'company-5',
+      },
+      {
+        label: 'Company 6',
+        value: 'company-6',
+      },
+      {
+        label: 'Company 7',
+        value: 'company-7',
+      },
+    ];
     const companyId = ref<string>('');
     const companyAddress = ref<FormCompanyAddressFields | null>(null);
 
@@ -120,12 +160,29 @@ export default defineComponent({
       companyAddress.value = val;
     };
 
+    const teamOptions: FormSelectTableOption[] = [
+      {
+        label: 'Zelený team',
+        value: 'team-1',
+        members: 2,
+        maxMembers: 5,
+      },
+      {
+        label: 'Modrý team',
+        value: 'team-2',
+        members: 5,
+        maxMembers: 5,
+      },
+    ];
+    const team = ref<string>('');
+
     const step = ref(1);
     const stepperRef = ref<typeof QStepper | null>(null);
     const stepCompanyRef = ref<typeof QForm | null>(null);
     const stepParticipationRef = ref<typeof QForm | null>(null);
     const stepPaymentRef = ref<typeof QForm | null>(null);
     const stepPersonalDetailsRef = ref<typeof QForm | null>(null);
+    const stepTeamRef = ref<typeof QForm | null>(null);
 
     const { onBack, onContinue } = useStepperValidation({
       step,
@@ -134,6 +191,7 @@ export default defineComponent({
       stepParticipationRef,
       stepPaymentRef,
       stepPersonalDetailsRef,
+      stepTeamRef,
     });
 
     return {
@@ -145,6 +203,7 @@ export default defineComponent({
       stepPaymentRef,
       stepParticipationRef,
       stepPersonalDetailsRef,
+      stepTeamRef,
       iconImgSrcStepper1,
       activeIconImgSrcStepper1,
       doneIconImgSrcStepper1,
@@ -157,13 +216,19 @@ export default defineComponent({
       iconImgSrcStepper4,
       activeIconImgSrcStepper4,
       doneIconImgSrcStepper4,
+      iconImgSrcStepper5,
+      activeIconImgSrcStepper5,
+      doneIconImgSrcStepper5,
       iconImgSrcStepper7,
       activeIconImgSrcStepper7,
       doneIconImgSrcStepper7,
+      companyOptions,
       participation,
       companyAddress,
       companyId,
       personalDetails,
+      team,
+      teamOptions,
       onBack,
       onContinue,
       onUpdateAddress,
@@ -192,6 +257,7 @@ export default defineComponent({
         <q-stepper
           animated
           vertical
+          keep-alive
           ref="stepperRef"
           v-model="step"
           color="primary"
@@ -216,7 +282,7 @@ export default defineComponent({
                 @update:form-values="personalDetails = $event"
               />
             </q-form>
-            <q-stepper-navigation>
+            <q-stepper-navigation class="flex justify-end">
               <q-btn
                 unelevated
                 rounded
@@ -239,24 +305,24 @@ export default defineComponent({
             data-cy="step-2"
           >
             <q-form ref="stepPaymentRef"> Content of step 2 </q-form>
-            <q-stepper-navigation>
+            <q-stepper-navigation class="flex justify-end">
+              <q-btn
+                unelevated
+                rounded
+                outline
+                color="primary"
+                :label="$t('navigation.back')"
+                @click="onBack"
+                data-cy="step-2-back"
+              />
               <q-btn
                 unelevated
                 rounded
                 color="primary"
                 :label="$t('navigation.continue')"
                 @click="onContinue"
-                data-cy="step-2-continue"
-              />
-              <q-btn
-                unelevated
-                rounded
-                outline
-                color="primary"
                 class="q-ml-sm"
-                :label="$t('navigation.back')"
-                @click="onBack"
-                data-cy="step-2-back"
+                data-cy="step-2-continue"
               />
             </q-stepper-navigation>
           </q-step>
@@ -284,15 +350,7 @@ export default defineComponent({
                 {{ $t('form.participation.hintPariticipation') }}
               </p>
             </q-form>
-            <q-stepper-navigation>
-              <q-btn
-                unelevated
-                rounded
-                @click="onContinue"
-                color="primary"
-                :label="$t('navigation.continue')"
-                data-cy="step-3-continue"
-              />
+            <q-stepper-navigation class="flex justify-end">
               <q-btn
                 unelevated
                 rounded
@@ -300,8 +358,16 @@ export default defineComponent({
                 @click="onBack"
                 color="primary"
                 :label="$t('navigation.back')"
-                class="q-ml-sm"
                 data-cy="step-3-back"
+              />
+              <q-btn
+                unelevated
+                rounded
+                @click="onContinue"
+                color="primary"
+                :label="$t('navigation.continue')"
+                class="q-ml-sm"
+                data-cy="step-3-continue"
               />
             </q-stepper-navigation>
           </q-step>
@@ -317,20 +383,20 @@ export default defineComponent({
             data-cy="step-4"
           >
             <q-form ref="stepCompanyRef">
-              <form-field-company-select v-model="companyId" />
+              <form-field-select-table
+                v-model="companyId"
+                :options="companyOptions"
+                :label="$t('form.company.labelCompany')"
+                :label-button="$t('register.challenge.buttonAddCompany')"
+                :label-button-dialog="$t('form.company.buttonAddCompany')"
+                :title-dialog="$t('form.company.titleAddCompany')"
+                data-cy="form-select-table-company"
+              />
               <form-field-company-address
                 @update:form-value="onUpdateAddress"
               />
             </q-form>
-            <q-stepper-navigation>
-              <q-btn
-                unelevated
-                rounded
-                color="primary"
-                :label="$t('navigation.continue')"
-                @click="onContinue"
-                data-cy="step-4-continue"
-              />
+            <q-stepper-navigation class="flex justify-end">
               <q-btn
                 unelevated
                 rounded
@@ -338,8 +404,59 @@ export default defineComponent({
                 @click="onBack"
                 color="primary"
                 :label="$t('navigation.back')"
-                class="q-ml-sm"
                 data-cy="step-4-back"
+              />
+              <q-btn
+                unelevated
+                rounded
+                color="primary"
+                :label="$t('navigation.continue')"
+                @click="onContinue"
+                class="q-ml-sm"
+                data-cy="step-4-continue"
+              />
+            </q-stepper-navigation>
+          </q-step>
+          <!-- Step: Team -->
+          <q-step
+            :name="5"
+            :title="$t('register.challenge.titleStepTeam')"
+            :icon="iconImgSrcStepper5"
+            :active-icon="activeIconImgSrcStepper5"
+            :done-icon="doneIconImgSrcStepper5"
+            :done="step > 5"
+            class="bg-white q-mt-lg"
+            data-cy="step-5"
+          >
+            <q-form ref="stepTeamRef">
+              <form-field-select-table
+                v-model="team"
+                :options="teamOptions"
+                :label="$t('form.team.labelTeam')"
+                :label-button="$t('form.team.buttonAddTeam')"
+                :label-button-dialog="$t('form.team.buttonAddTeam')"
+                :title-dialog="$t('form.team.titleAddTeam')"
+                data-cy="form-select-table-team"
+              />
+            </q-form>
+            <q-stepper-navigation class="flex justify-end">
+              <q-btn
+                unelevated
+                rounded
+                outline
+                @click="onBack"
+                color="primary"
+                :label="$t('navigation.back')"
+                data-cy="step-5-back"
+              />
+              <q-btn
+                unelevated
+                rounded
+                color="primary"
+                :label="$t('navigation.continue')"
+                @click="onContinue"
+                class="q-ml-sm"
+                data-cy="step-5-continue"
               />
             </q-stepper-navigation>
           </q-step>
@@ -357,15 +474,7 @@ export default defineComponent({
             <q-form ref="stepMerchRef">
               <form-field-list-merch />
             </q-form>
-            <q-stepper-navigation>
-              <q-btn
-                unelevated
-                rounded
-                color="primary"
-                :label="$t('navigation.continue')"
-                @click="onContinue"
-                data-cy="step-7-continue"
-              />
+            <q-stepper-navigation class="flex justify-end">
               <q-btn
                 unelevated
                 rounded
@@ -373,8 +482,16 @@ export default defineComponent({
                 @click="onBack"
                 color="primary"
                 :label="$t('navigation.back')"
-                class="q-ml-sm"
                 data-cy="step-7-back"
+              />
+              <q-btn
+                unelevated
+                rounded
+                color="primary"
+                :label="$t('navigation.continue')"
+                @click="onContinue"
+                class="q-ml-sm"
+                data-cy="step-7-continue"
               />
             </q-stepper-navigation>
           </q-step>
