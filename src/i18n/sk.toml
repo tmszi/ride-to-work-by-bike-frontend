@@ -74,10 +74,16 @@ messageVatIdInvalid = "Neplatné registrační číslo"
 
 [form.merch]
 hintNoMerch = "Celá suma tak zostane na neziskové aktivity spoločnosti AutoMat."
+hintPhone = "Vyžaduje sa pre informácie o stave doručenia vášho balíka"
 labelSizes = "Veľkosti"
 labelAuthor = "Autor"
 labelMaterial = "Materiál"
+labelNewsletter = "Chcem sa dozvedieť viac o udržateľnej mobilite a súhlasím s tým, aby ste sa vyjadrili k podpore aktívnej dopravy a verejného priestoru."
 labelNoMerch = "Nechcem košeľu ani nákrčník"
+labelSizeFemale = "Veľkosť - dámska:"
+labelSizeMale = "Veľkosť - pánska:"
+labelTrackDelivery = "Rád by som dostal správu o stave doručenia môjho štartovacieho balíka."
+labelVariant = "Variant"
 
 [form.personalDetails]
 labelNewsletterAll = "O všetkých informáciách zo stránky Do práce na bicykli"

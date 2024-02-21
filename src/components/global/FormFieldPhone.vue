@@ -11,6 +11,8 @@
  * @props
  * - `value` (string, required): The object representing user input.
  *   It should be of type `string`.
+ * - `hint` (string, default: ''): The hint text.
+ * - `required` (boolean, default: true): Whether the input is required.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
@@ -34,9 +36,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    testing: {
+    hint: {
+      type: String,
+      default: '',
+    },
+    required: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   emits: ['update:modelValue'],
@@ -71,16 +77,18 @@ export default defineComponent({
     <q-input
       dense
       outlined
+      reactive-rules
       v-model="phone"
-      :lazy-rules="!testing"
       :rules="[
         (val) =>
+          !required ||
           isFilled(val) ||
           $t('form.messageFieldRequired', {
             fieldName: $t('form.labelPhone'),
           }),
-        (val) => isPhone(val) || $t('form.messagePhoneInvalid'),
+        (val) => !val || isPhone(val) || $t('form.messagePhoneInvalid'),
       ]"
+      :hint="hint"
       class="q-mt-sm"
       id="form-phone"
       name="phone"
