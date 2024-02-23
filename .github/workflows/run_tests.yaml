@@ -122,7 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: cypress-tests-screenshots
+          name: cypress-tests-screenshots-${{ matrix.os }}
           path: test/cypress/screenshots
           if-no-files-found: ignore
           retention-days: 3
@@ -131,7 +131,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: cypress-tests-videos
+          name: cypress-tests-videos-${{ matrix.os }}
           path: test/cypress/videos
           if-no-files-found: ignore
           retention-days: 3
