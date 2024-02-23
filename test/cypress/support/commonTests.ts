@@ -56,3 +56,7 @@ export const testPasswordInputReveal = (identifier: string): void => {
     cy.dataCy(identifier).find('input').should('have.attr', 'type', 'password');
   });
 };
+
+export const httpSuccessfullStatus = 200;
+export const httpTooManyRequestsStatus = 429;
+export const httpTooManyRequestsStatusMessage = `HTTP status code ${httpTooManyRequestsStatus} Too Many Requests ("rate limiting").`;

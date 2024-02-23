@@ -3,6 +3,12 @@ import FooterBar from '../global/FooterBar.vue';
 import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
+import {
+  httpSuccessfullStatus,
+  httpTooManyRequestsStatus,
+  httpTooManyRequestsStatusMessage,
+} from '../../../test/cypress/support/commonTests';
+
 const { getPaletteColor } = colors;
 const white = getPaletteColor('white');
 // Fix make request user-agent header on the macOS with Google Chrome web browser
@@ -88,21 +94,37 @@ describe('<FooterBar>', () => {
     });
 
     it('provides valid URLs for social links', () => {
-      cy.request(rideToWorkByBikeConfig.urlFacebook)
-        .its('status')
-        .should('equal', 200);
-      cy.request(rideToWorkByBikeConfig.urlInstagram)
-        .its('status')
-        .should('equal', 200);
+      cy.request(rideToWorkByBikeConfig.urlFacebook).then((resp) => {
+        if (resp.status === httpTooManyRequestsStatus) {
+          cy.log(httpTooManyRequestsStatusMessage);
+          return;
+        }
+        expect(resp.status).to.eq(httpSuccessfullStatus);
+      });
+      cy.request(rideToWorkByBikeConfig.urlInstagram).then((resp) => {
+        if (resp.status === httpTooManyRequestsStatus) {
+          cy.log(httpTooManyRequestsStatusMessage);
+          return;
+        }
+        expect(resp.status).to.eq(httpSuccessfullStatus);
+      });
       cy.request({
         url: rideToWorkByBikeConfig.urlTwitter,
         headers: { 'user-agent': urlTwitterUserAgentHeader },
-      })
-        .its('status')
-        .should('equal', 200);
-      cy.request(rideToWorkByBikeConfig.urlYoutube)
-        .its('status')
-        .should('equal', 200);
+      }).then((resp) => {
+        if (resp.status === httpTooManyRequestsStatus) {
+          cy.log(httpTooManyRequestsStatusMessage);
+          return;
+        }
+        expect(resp.status).to.eq(httpSuccessfullStatus);
+      });
+      cy.request(rideToWorkByBikeConfig.urlYoutube).then((resp) => {
+        if (resp.status === httpTooManyRequestsStatus) {
+          cy.log(httpTooManyRequestsStatusMessage);
+          return;
+        }
+        expect(resp.status).to.eq(httpSuccessfullStatus);
+      });
     });
 
     it('renders language switcher', () => {

@@ -2,6 +2,12 @@ import { colors } from 'quasar';
 import BannerAppButtons from 'components/login/BannerAppButtons.vue';
 import { i18n } from '../../boot/i18n';
 
+import {
+  httpSuccessfullStatus,
+  httpTooManyRequestsStatus,
+  httpTooManyRequestsStatusMessage,
+} from '../../../test/cypress/support/commonTests';
+
 const rideToWorkByBikeConfig = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
 );
@@ -111,8 +117,20 @@ describe('<BannerAppButtons>', () => {
     });
 
     it('provides valid URLs for buttons', () => {
-      cy.request(urlGooglePlay).its('status').should('equal', 200);
-      cy.request(urlAppStore).its('status').should('equal', 200);
+      cy.request(urlGooglePlay).then((resp) => {
+        if (resp.status === httpTooManyRequestsStatus) {
+          cy.log(httpTooManyRequestsStatusMessage);
+          return;
+        }
+        expect(resp.status).to.eq(httpSuccessfullStatus);
+      });
+      cy.request(urlAppStore).then((resp) => {
+        if (resp.status === httpTooManyRequestsStatus) {
+          cy.log(httpTooManyRequestsStatusMessage);
+          return;
+        }
+        expect(resp.status).to.eq(httpSuccessfullStatus);
+      });
     });
   });
 
