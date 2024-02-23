@@ -3,6 +3,7 @@ import BannerAppButtons from 'components/login/BannerAppButtons.vue';
 import { i18n } from '../../boot/i18n';
 
 import {
+  failOnStatusCode,
   httpSuccessfullStatus,
   httpTooManyRequestsStatus,
   httpTooManyRequestsStatusMessage,
@@ -117,20 +118,25 @@ describe('<BannerAppButtons>', () => {
     });
 
     it('provides valid URLs for buttons', () => {
-      cy.request(urlGooglePlay).then((resp) => {
+      cy.request({
+        url: urlGooglePlay,
+        failOnStatusCode: failOnStatusCode,
+      }).then((resp) => {
         if (resp.status === httpTooManyRequestsStatus) {
           cy.log(httpTooManyRequestsStatusMessage);
           return;
         }
         expect(resp.status).to.eq(httpSuccessfullStatus);
       });
-      cy.request(urlAppStore).then((resp) => {
-        if (resp.status === httpTooManyRequestsStatus) {
-          cy.log(httpTooManyRequestsStatusMessage);
-          return;
-        }
-        expect(resp.status).to.eq(httpSuccessfullStatus);
-      });
+      cy.request({ url: urlAppStore, failOnStatusCode: failOnStatusCode }).then(
+        (resp) => {
+          if (resp.status === httpTooManyRequestsStatus) {
+            cy.log(httpTooManyRequestsStatusMessage);
+            return;
+          }
+          expect(resp.status).to.eq(httpSuccessfullStatus);
+        },
+      );
     });
   });
 

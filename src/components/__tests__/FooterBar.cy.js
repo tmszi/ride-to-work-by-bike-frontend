@@ -4,6 +4,7 @@ import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 import {
+  failOnStatusCode,
   httpSuccessfullStatus,
   httpTooManyRequestsStatus,
   httpTooManyRequestsStatusMessage,
@@ -94,14 +95,20 @@ describe('<FooterBar>', () => {
     });
 
     it('provides valid URLs for social links', () => {
-      cy.request(rideToWorkByBikeConfig.urlFacebook).then((resp) => {
+      cy.request({
+        url: rideToWorkByBikeConfig.urlFacebook,
+        failOnStatusCode: failOnStatusCode,
+      }).then((resp) => {
         if (resp.status === httpTooManyRequestsStatus) {
           cy.log(httpTooManyRequestsStatusMessage);
           return;
         }
         expect(resp.status).to.eq(httpSuccessfullStatus);
       });
-      cy.request(rideToWorkByBikeConfig.urlInstagram).then((resp) => {
+      cy.request({
+        url: rideToWorkByBikeConfig.urlInstagram,
+        failOnStatusCode: failOnStatusCode,
+      }).then((resp) => {
         if (resp.status === httpTooManyRequestsStatus) {
           cy.log(httpTooManyRequestsStatusMessage);
           return;
@@ -111,6 +118,7 @@ describe('<FooterBar>', () => {
       cy.request({
         url: rideToWorkByBikeConfig.urlTwitter,
         headers: { 'user-agent': urlTwitterUserAgentHeader },
+        failOnStatusCode: failOnStatusCode,
       }).then((resp) => {
         if (resp.status === httpTooManyRequestsStatus) {
           cy.log(httpTooManyRequestsStatusMessage);
@@ -118,7 +126,10 @@ describe('<FooterBar>', () => {
         }
         expect(resp.status).to.eq(httpSuccessfullStatus);
       });
-      cy.request(rideToWorkByBikeConfig.urlYoutube).then((resp) => {
+      cy.request({
+        url: rideToWorkByBikeConfig.urlYoutube,
+        failOnStatusCode: failOnStatusCode,
+      }).then((resp) => {
         if (resp.status === httpTooManyRequestsStatus) {
           cy.log(httpTooManyRequestsStatusMessage);
           return;
