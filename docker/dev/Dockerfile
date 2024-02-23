@@ -3,7 +3,7 @@ FROM ubuntu:jammy
 LABEL authors="Auto*Mat, z. s. auto-mat@auto-mat.cz"
 LABEL maintainer="Auto*Mat, z. s. auto-mat@auto-mat.cz"
 
-ARG UID
+ARG UID=1000
 ENV APP_USER=dev
 ENV APP_PATH=/home/$APP_USER/ride-to-work-by-bike-app
 ENV ADD_CUSTOM_PACKAGES_REPOSITORIES_SCRIPT_NAME=install_custom_packages.sh
