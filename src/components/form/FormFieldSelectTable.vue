@@ -43,6 +43,7 @@ import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 // components
 import DialogDefault from '../global/DialogDefault.vue';
 import FormAddCompany from '../form/FormAddCompany.vue';
+import FormAddTeam from '../form/FormAddTeam.vue';
 
 // composables
 import { useValidation } from '../../composables/useValidation';
@@ -52,6 +53,7 @@ import {
   FormCompanyFields,
   FormOption,
   FormSelectTableOption,
+  FormTeamFields,
 } from '../types/Form';
 
 export default defineComponent({
@@ -59,6 +61,7 @@ export default defineComponent({
   components: {
     DialogDefault,
     FormAddCompany,
+    FormAddTeam,
   },
   props: {
     modelValue: {
@@ -108,6 +111,9 @@ export default defineComponent({
           department: '',
         },
       ],
+    });
+    const teamNew = ref<FormTeamFields>({
+      name: '',
     });
 
     /**
@@ -176,6 +182,7 @@ export default defineComponent({
       inputValue,
       isDialogOpen,
       query,
+      teamNew,
       isFilled,
       onClose,
       onSubmit,
@@ -190,7 +197,7 @@ export default defineComponent({
     <label
       for="form-company"
       class="text-grey-10 text-caption text-bold"
-      data-cy="form-company-select-query"
+      data-cy="form-select-table-query"
     >
       {{ label }}
     </label>
@@ -211,17 +218,17 @@ export default defineComponent({
         bordered
         class="full-width q-mt-sm"
         :style="{ 'border-radius': borderRadius }"
-        data-cy="form-company-select-card"
+        data-cy="form-select-table-card"
       >
         <!-- Search field -->
-        <q-card-section class="q-pa-sm" data-cy="form-company-select-search">
+        <q-card-section class="q-pa-sm" data-cy="form-select-table-search">
           <!-- Input -->
           <q-input
             dense
             outlined
             v-model="query"
             icon
-            id="form-company-select-query"
+            id="form-select-table-query"
           >
             <template v-slot:prepend>
               <q-icon name="search" class="q-pl-sm" />
@@ -231,14 +238,14 @@ export default defineComponent({
         <!-- Separator -->
         <q-separator />
         <!-- Options list -->
-        <q-card-section class="q-pa-xs" data-cy="form-company-select-options">
+        <q-card-section class="q-pa-xs" data-cy="form-select-table-options">
           <q-scroll-area style="height: 250px">
             <q-option-group
               v-model="inputValue"
               :options="filteredOptions"
               color="primary"
               class="q-pr-sm"
-              data-cy="form-company-select-option-group"
+              data-cy="form-select-table-option-group"
             >
               <!-- Slot: Option label -->
               <template v-slot:label="opt">
@@ -276,7 +283,7 @@ export default defineComponent({
         <!-- Button: Add company -->
         <q-card-section
           class="full-width flex items-center justify-center q-pa-sm"
-          data-cy="form-company-select-button"
+          data-cy="form-select-table-button"
         >
           <!-- Button: Add company -->
           <q-btn
@@ -306,6 +313,12 @@ export default defineComponent({
                 :form-values="companyNew"
                 @update:form-values="companyNew = $event"
               ></form-add-company>
+              <form-add-team
+                v-if="variant === 'team'"
+                class="q-mb-lg"
+                :form-values="teamNew"
+                @update:form-values="teamNew = $event"
+              ></form-add-team>
             </q-form>
             <!-- Action buttons -->
             <div class="flex justify-end q-mt-sm">

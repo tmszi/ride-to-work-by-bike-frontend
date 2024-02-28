@@ -20,7 +20,13 @@ describe('<FormFieldSelectTable>', () => {
       i18n,
     );
     cy.testLanguageStringsInContext(
-      ['buttonAddTeam', 'labelTeam', 'titleAddTeam'],
+      [
+        'buttonAddTeam',
+        'labelTeam',
+        'labelTeamName',
+        'titleAddTeam',
+        'textTeam',
+      ],
       'form.team',
       i18n,
     );
@@ -50,25 +56,23 @@ describe('<FormFieldSelectTable>', () => {
 
     it('renders necessary elements', () => {
       // input label
-      cy.dataCy('form-company-select-query')
+      cy.dataCy('form-select-table-query')
         .should('be.visible')
         .and('contain', i18n.global.t('form.company.labelCompany'));
       // input
-      cy.dataCy('form-company-select-search')
-        .find('input')
-        .should('be.visible');
-      cy.dataCy('form-company-select-search')
+      cy.dataCy('form-select-table-search').find('input').should('be.visible');
+      cy.dataCy('form-select-table-search')
         .find('i')
         .invoke('height')
         .should('eq', 24);
-      cy.dataCy('form-company-select-search')
+      cy.dataCy('form-select-table-search')
         .find('i')
         .invoke('width')
         .should('eq', 24);
       // options
-      cy.dataCy('form-company-select-option-group').should('be.visible');
+      cy.dataCy('form-select-table-option-group').should('be.visible');
       // add new button
-      cy.dataCy('form-company-select-button').should('be.visible');
+      cy.dataCy('form-select-table-button').should('be.visible');
       cy.dataCy('button-add-option').should('be.visible');
       cy.dataCy('button-add-option')
         .find('i')
@@ -82,22 +86,22 @@ describe('<FormFieldSelectTable>', () => {
 
     it('allows to search through options', () => {
       // search for option
-      cy.dataCy('form-company-select-search').find('input').focus();
-      cy.dataCy('form-company-select-search').find('input').type('2');
+      cy.dataCy('form-select-table-search').find('input').focus();
+      cy.dataCy('form-select-table-search').find('input').type('2');
       // show only one option
-      cy.dataCy('form-company-select-option-group')
+      cy.dataCy('form-select-table-option-group')
         .find('.q-radio__label')
         .should('have.length', 1);
-      cy.dataCy('form-company-select-search').find('input').clear();
-      cy.dataCy('form-company-select-search').find('input').blur();
-      cy.dataCy('form-company-select-option-group')
+      cy.dataCy('form-select-table-search').find('input').clear();
+      cy.dataCy('form-select-table-search').find('input').blur();
+      cy.dataCy('form-select-table-option-group')
         .find('.q-radio__label')
         .should('have.length', 7);
     });
 
     it('validates company field correctly', () => {
-      cy.dataCy('form-company-select-search').find('input').focus();
-      cy.dataCy('form-company-select-search').find('input').blur();
+      cy.dataCy('form-select-table-search').find('input').focus();
+      cy.dataCy('form-select-table-search').find('input').blur();
       cy.dataCy('form-select-table-field')
         .find('.q-field__messages')
         .should('be.visible')
@@ -161,10 +165,116 @@ describe('<FormFieldSelectTable>', () => {
     });
 
     it('shows selected option', () => {
-      cy.dataCy('form-company-select-option-group')
+      cy.dataCy('form-select-table-option-group')
         .find('.q-radio__inner')
         .first()
         .should('have.class', 'text-primary');
+    });
+  });
+
+  context('team desktop', () => {
+    beforeEach(() => {
+      cy.fixture('teamOptions').then((options) => {
+        cy.mount(FormFieldSelectTable, {
+          props: {
+            options: options,
+            variant: 'team',
+            label: i18n.global.t('form.team.labelTeam'),
+            labelButton: i18n.global.t('form.team.buttonAddTeam'),
+            labelButtonDialog: i18n.global.t('form.team.buttonAddTeam'),
+            titleDialog: i18n.global.t('form.team.titleAddTeam'),
+          },
+        });
+      });
+      cy.viewport('macbook-16');
+    });
+
+    it('renders HTML elements', () => {
+      // input label
+      cy.dataCy('form-select-table-query')
+        .should('be.visible')
+        .and('contain', i18n.global.t('form.team.labelTeam'));
+      // input
+      cy.dataCy('form-select-table-search').find('input').should('be.visible');
+      cy.dataCy('form-select-table-search')
+        .find('i')
+        .invoke('height')
+        .should('eq', 24);
+      cy.dataCy('form-select-table-search')
+        .find('i')
+        .invoke('width')
+        .should('eq', 24);
+      // options
+      cy.dataCy('form-select-table-option-group').should('be.visible');
+      // add new button
+      cy.dataCy('form-select-table-button').should('be.visible');
+      cy.dataCy('button-add-option').should('be.visible');
+      cy.dataCy('button-add-option')
+        .find('i')
+        .invoke('height')
+        .should('be.gt', 23);
+      cy.dataCy('button-add-option')
+        .find('i')
+        .invoke('width')
+        .should('be.gt', 23);
+    });
+
+    it('allows to search through options', () => {
+      // search for option
+      cy.dataCy('form-select-table-search').find('input').focus();
+      cy.dataCy('form-select-table-search').find('input').type('z');
+      // show only one option
+      cy.dataCy('form-select-table-option-group')
+        .find('.q-radio__label')
+        .should('have.length', 1);
+      cy.dataCy('form-select-table-search').find('input').clear();
+      cy.dataCy('form-select-table-search').find('input').blur();
+      cy.dataCy('form-select-table-option-group')
+        .find('.q-radio__label')
+        .should('have.length', 2);
+    });
+
+    it('validates company field correctly', () => {
+      cy.dataCy('form-select-table-search').find('input').focus();
+      cy.dataCy('form-select-table-search').find('input').blur();
+      cy.dataCy('form-select-table-field')
+        .find('.q-field__messages')
+        .should('be.visible')
+        .and('contain', i18n.global.t('form.messageOptionRequired'));
+    });
+
+    it('renders dialog when for adding a new company', () => {
+      cy.dataCy('button-add-option').click();
+      cy.dataCy('dialog-add-option').should('be.visible');
+      cy.dataCy('dialog-add-option')
+        .find('h3')
+        .should('be.visible')
+        .and('have.css', 'font-size', '20px')
+        .and('have.css', 'font-weight', '500')
+        .and('contain', i18n.global.t('form.team.titleAddTeam'));
+      // scroll to bottom
+      cy.dataCy('dialog-body').scrollTo('bottom', {
+        ensureScrollable: false,
+      });
+      // action buttons are visible
+      cy.dataCy('dialog-button-cancel')
+        .should('be.visible')
+        .and('have.text', i18n.global.t('navigation.discard'));
+      cy.dataCy('dialog-button-submit')
+        .should('be.visible')
+        .and('have.text', i18n.global.t('form.team.buttonAddTeam'));
+      // submit empty
+      cy.dataCy('dialog-button-submit').click();
+      cy.dataCy('dialog-add-option').should('be.visible');
+      // scroll to top
+      cy.dataCy('dialog-body').scrollTo('top', {
+        ensureScrollable: false,
+      });
+      // fill in form
+      cy.dataCy('form-add-team-name').find('input').type('Team AutoMat');
+      // submit
+      cy.dataCy('dialog-button-submit').click();
+      cy.dataCy('dialog-add-option').should('not.exist');
     });
   });
 });
