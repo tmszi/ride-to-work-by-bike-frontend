@@ -29,8 +29,8 @@
  */
 
 // libraries
-import { computed, defineComponent, nextTick, ref, watch } from 'vue';
-import { QCard, QForm } from 'quasar';
+import { computed, defineComponent, ref } from 'vue';
+import { QForm } from 'quasar';
 
 // components
 import DialogDefault from '../global/DialogDefault.vue';
@@ -52,24 +52,11 @@ export default defineComponent({
     SliderMerch,
   },
   setup() {
-    // template ref
-    const formMerchRef = ref<typeof QForm | null>(null);
-    const tabsMerchRef = ref<typeof QCard | null>(null);
-
     // show merch checkbox
     const isNotMerch = ref<boolean>(false);
-    // scroll to tabsMerchRef when shown
-    watch(isNotMerch, (value) => {
-      // wait for show with nextTick
-      nextTick(() => {
-        if (!value) {
-          tabsMerchRef.value?.$el.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
-        }
-      });
-    });
+
+    // template ref
+    const formMerchRef = ref<typeof QForm | null>(null);
 
     // selected options
     const selectedGender = ref<string>('female');
@@ -243,7 +230,6 @@ export default defineComponent({
       selectedOption,
       selectedSize,
       selectedGender,
-      tabsMerchRef,
       trackDelivery,
       onOptionSelect,
       onSubmit,
@@ -272,7 +258,6 @@ export default defineComponent({
   </q-item>
   <!-- Tabs: Merch -->
   <q-card
-    ref="tabsMerchRef"
     v-show="!isNotMerch"
     flat
     class="q-mt-lg"
