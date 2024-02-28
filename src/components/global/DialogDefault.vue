@@ -11,7 +11,12 @@
  * - `content`: For the main content of the dialog.
  *
  * @props
+ * - `horizontal` (Boolean, default: false): Determines if the dialog should
+ *   display content horizontally.
+ * - `minWidth` (String, default: '50vw'): The minimum width of the dialog.
  * - `modelValue` (Boolean, required): Controls the visibility of the dialog.
+ * - `noPadding` (Boolean, default: false): Determines if the dialog content
+ *   should have padding.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure
@@ -39,9 +44,17 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    minWidth: {
+      type: String,
+      default: '50vw',
+    },
     modelValue: {
       type: Boolean,
       required: true,
+    },
+    noPadding: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['change', 'form-submit', 'update:modelValue'],
@@ -64,8 +77,8 @@ export default defineComponent({
 <template>
   <q-dialog square persistent v-model="isOpen" data-cy="dialog-form">
     <q-card
-      class="relative-position overflow-visible bg-white"
-      style="min-width: 50vw"
+      class="relative-position full-width overflow-visible bg-white"
+      :style="{ minWidth: minWidth }"
     >
       <!-- Section: Card header -->
       <q-card-section class="q-pt-none" data-cy="dialog-header">
@@ -85,9 +98,10 @@ export default defineComponent({
       <q-card-section
         v-if="$slots.content || $slots.buttons"
         :horizontal="horizontal"
+        :class="{ 'q-px-none': noPadding }"
         class="scroll items-center"
-        data-cy="dialog-body"
         style="max-height: 70vh; flex-wrap: wrap"
+        data-cy="dialog-body"
       >
         <!-- Content -->
         <slot v-if="$slots.content" name="content"></slot>
