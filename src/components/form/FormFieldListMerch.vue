@@ -32,6 +32,8 @@
 import { computed, defineComponent, ref } from 'vue';
 import { QForm } from 'quasar';
 
+import { nextTick } from 'vue';
+
 // components
 import DialogDefault from '../global/DialogDefault.vue';
 import FormCardMerch from '../form/FormCardMerch.vue';
@@ -65,6 +67,9 @@ export default defineComponent({
     const phone = ref<string>('');
     const trackDelivery = ref<boolean>(false);
     const newsletter = ref<boolean>(false);
+
+    // merch tabs
+    const tabsMerchRef = ref<typeof QCard | null>(null);
 
     // options
     const options: FormCardMerchType[] = [
@@ -218,6 +223,21 @@ export default defineComponent({
       }
     };
 
+    /**
+     * Scroll to merch tabs if you uncheck
+     * "I don't want merch" checkbox widget
+     */
+    const onCheckboxUpdate = function (val) {
+      if (!val) {
+        nextTick(() => {
+          tabsMerchRef.value?.$el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        });
+      }
+    };
+
     return {
       optionsFemale,
       isNotMerch,
@@ -234,6 +254,8 @@ export default defineComponent({
       onOptionSelect,
       onSubmit,
       isSelected,
+      tabsMerchRef,
+      onCheckboxUpdate,
     };
   },
 });
@@ -243,7 +265,13 @@ export default defineComponent({
   <!-- Checkbox: No merch -->
   <q-item tag="label" v-ripple data-cy="no-merch">
     <q-item-section avatar top>
-      <q-checkbox dense v-model="isNotMerch" :val="true" color="primary" />
+      <q-checkbox
+        dense
+        v-model="isNotMerch"
+        :val="true"
+        color="primary"
+        @update:model-value="onCheckboxUpdate"
+      />
     </q-item-section>
     <q-item-section>
       <!-- Checkbox title -->
@@ -258,6 +286,7 @@ export default defineComponent({
   </q-item>
   <!-- Tabs: Merch -->
   <q-card
+    ref="tabsMerchRef"
     v-show="!isNotMerch"
     flat
     class="q-mt-lg"
