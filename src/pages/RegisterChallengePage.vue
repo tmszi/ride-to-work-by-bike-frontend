@@ -256,6 +256,7 @@ export default defineComponent({
         </h1>
         <q-stepper
           animated
+          header-nav
           vertical
           keep-alive
           ref="stepperRef"
@@ -273,6 +274,7 @@ export default defineComponent({
             :active-icon="activeIconImgSrcStepper1"
             :done-icon="doneIconImgSrcStepper1"
             :done="step > 1"
+            :header-nav="step > 1"
             class="bg-white"
             data-cy="step-1"
           >
@@ -301,6 +303,7 @@ export default defineComponent({
             :active-icon="activeIconImgSrcStepper2"
             :done-icon="doneIconImgSrcStepper2"
             :done="step > 2"
+            :header-nav="step > 2"
             class="bg-white q-mt-lg"
             data-cy="step-2"
           >
@@ -334,6 +337,7 @@ export default defineComponent({
             :active-icon="activeIconImgSrcStepper3"
             :done-icon="doneIconImgSrcStepper3"
             :done="step > 3"
+            :header-nav="step > 3"
             class="bg-white q-mt-lg"
             data-cy="step-3"
           >
@@ -379,6 +383,7 @@ export default defineComponent({
             :active-icon="activeIconImgSrcStepper4"
             :done-icon="doneIconImgSrcStepper4"
             :done="step > 4"
+            :header-nav="step > 4"
             class="bg-white q-mt-lg"
             data-cy="step-4"
           >
@@ -426,6 +431,7 @@ export default defineComponent({
             :active-icon="activeIconImgSrcStepper5"
             :done-icon="doneIconImgSrcStepper5"
             :done="step > 5"
+            :header-nav="step > 5"
             class="bg-white q-mt-lg"
             data-cy="step-5"
           >
@@ -470,6 +476,7 @@ export default defineComponent({
             :active-icon="activeIconImgSrcStepper7"
             :done-icon="doneIconImgSrcStepper7"
             :done="step > 7"
+            :header-nav="step > 7"
             class="bg-white q-mt-lg"
             data-cy="step-7"
           >
@@ -538,5 +545,16 @@ export default defineComponent({
   color: $grey-10;
   font-size: 16px;
   font-weight: 700;
+}
+:deep(.q-stepper__tab--done) {
+  padding-right: 48px;
+}
+:deep(.q-stepper__tab--done:after) {
+  content: '';
+  position: absolute;
+  background-image: url('../assets/svg/edit.svg');
+  width: 24px;
+  height: 24px;
+  right: 24px;
 }
 </style>
