@@ -20,6 +20,8 @@ const getAppConfig = (process) => {
     config['colorWhiteOpacity'] = process.env.COLOR_WHITE_OPACITY;
   } else if (process.env.COLOR_BLACK) {
     config['colorBlack'] = process.env.COLOR_BLACK;
+  } else if (process.env.COLOR_RED) {
+    config['colorRed'] = process.env.COLOR_RED;
   } else if (process.env.IMAGE) {
     config['image'] = process.env.IMAGE;
   } else if (process.env.WIDTH) {
@@ -46,6 +48,8 @@ const getAppConfig = (process) => {
     config['urlGooglePlay'] = process.env.URL_GOOGLE_PLAY;
   } else if (process.env.CHALLENGE_MONTH) {
     config['challengeMonth'] = process.env.CHALLENGE_MONTH;
+  } else if (process.env.CHALLENGE_START_DATE) {
+    config['challengeStartDate'] = process.env.CHALLENGE_START_DATE;
   } else if (process.env.CONTAINER_WIDTH) {
     config['containerWidth'] = process.env.CONTAINER_WIDTH;
   }

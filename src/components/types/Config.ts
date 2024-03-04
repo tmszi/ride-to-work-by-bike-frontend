@@ -6,6 +6,7 @@ export interface ConfigGlobal {
   colorWhite: string;
   colorWhiteOpacity: string;
   colorBlack: string;
+  colorRed: string;
   image: string;
   width: string;
   title: string;
@@ -19,6 +20,7 @@ export interface ConfigGlobal {
   urlYoutube: string;
   urlGooglePlay: string;
   urlAppStore: string;
-  challengeMonth: 'may' | 'october';
+  challengeMonth: 'may' | 'october' | 'september';
   containerWidth: string;
+  challengeStartDate: string;
 }
