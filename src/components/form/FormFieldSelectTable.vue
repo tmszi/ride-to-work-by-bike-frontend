@@ -140,7 +140,8 @@ export default defineComponent({
       },
     });
 
-    const borderRadius: string = rideToWorkByBikeConfig.borderRadiusCardSmall;
+    const { borderRadiusCardSmall: borderRadius, contactEmail } =
+      rideToWorkByBikeConfig;
 
     const { isFilled } = useValidation();
 
@@ -177,6 +178,7 @@ export default defineComponent({
     return {
       borderRadius,
       companyNew,
+      contactEmail,
       filteredOptions,
       formRef,
       inputValue,
@@ -348,6 +350,19 @@ export default defineComponent({
         </dialog-default>
       </q-card>
     </q-field>
+    <div
+      v-if="variant === 'company'"
+      class="text-caption text-grey-7 q-mt-sm"
+      data-cy="form-select-table-user-note"
+    >
+      <span
+        v-html="
+          $t('form.company.textUserExperience', {
+            email: contactEmail,
+          })
+        "
+      ></span>
+    </div>
   </div>
 </template>
 
