@@ -8,6 +8,9 @@ jobs:
   push-docker-img:
     runs-on: ubuntu-latest
 
+    outputs:
+      dockerhub_image_version: ${{ steps.set_output.outputs.dockerhub_image_version }}
+
     steps:
       - name: Checkout app repository code
         uses: actions/checkout@v4
