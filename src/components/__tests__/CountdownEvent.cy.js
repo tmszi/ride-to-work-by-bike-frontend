@@ -1,7 +1,16 @@
+import { colors } from 'quasar';
+
 import CountdownEvent from '../homepage/CountdownEvent.vue';
 import { i18n } from '../../boot/i18n';
+import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
-describe('Event Countdown', () => {
+const { getPaletteColor } = colors;
+const grey10 = getPaletteColor('grey-10');
+const grey8 = getPaletteColor('grey-8');
+const { colorPrimary, borderRadiusCard, colorSecondaryOpacity } =
+  rideToWorkByBikeConfig;
+
+describe('<CountdownEvent>', () => {
   const releaseDate = new Date('2023-10-01T12:00:00');
   const currentTime = new Date('2023-09-30T12:00:00');
 
@@ -61,8 +70,9 @@ describe('Event Countdown', () => {
     cy.window().then(() => {
       cy.dataCy('title')
         .should('be.visible')
-        .and('have.css', 'font-size', '14px')
-        .and('have.css', 'font-weight', '700');
+        .and('have.css', 'font-size', '16px')
+        .and('have.css', 'font-weight', '700')
+        .and('have.color', grey10);
     });
   });
 
@@ -71,48 +81,67 @@ describe('Event Countdown', () => {
   });
 
   it('renders the numbers in correct format', () => {
-    cy.dataCy('countdown-days')
-      .should('be.visible')
-      .and('have.css', 'font-size', '64px')
-      .and('have.css', 'font-weight', '700');
-    cy.dataCy('countdown-hours')
-      .should('be.visible')
-      .and('have.css', 'font-size', '64px')
-      .and('have.css', 'font-weight', '700');
-    cy.dataCy('countdown-minutes')
-      .should('be.visible')
-      .and('have.css', 'font-size', '64px')
-      .and('have.css', 'font-weight', '700');
-    cy.dataCy('countdown-seconds')
-      .should('be.visible')
-      .and('have.css', 'font-size', '64px')
-      .and('have.css', 'font-weight', '700');
+    let fontSize;
+    const fontWeight = '700';
+    cy.window()
+      .then((win) => {
+        fontSize = win.countdownEvent.fontSize;
+      })
+      .then(() => {
+        cy.dataCy('countdown-days')
+          .should('be.visible')
+          .and('have.css', 'font-size', fontSize)
+          .and('have.css', 'font-weight', fontWeight)
+          .and('have.color', colorPrimary);
+        cy.dataCy('countdown-hours')
+          .should('be.visible')
+          .and('have.css', 'font-size', fontSize)
+          .and('have.css', 'font-weight', fontWeight)
+          .and('have.color', colorPrimary);
+        cy.dataCy('countdown-minutes')
+          .should('be.visible')
+          .and('have.css', 'font-size', fontSize)
+          .and('have.css', 'font-weight', fontWeight)
+          .and('have.color', colorPrimary);
+        cy.dataCy('countdown-seconds')
+          .should('be.visible')
+          .and('have.css', 'font-size', fontSize)
+          .and('have.css', 'font-weight', fontWeight)
+          .and('have.color', colorPrimary);
+      });
   });
 
   it('renders the labels in correct format', () => {
+    const fontSize = '14px';
+    const fontWeight = '400';
     cy.dataCy('countdown-label-days')
       .should('be.visible')
-      .and('have.css', 'font-size', '14px')
-      .and('have.css', 'font-weight', '400');
+      .and('have.css', 'font-size', fontSize)
+      .and('have.css', 'font-weight', fontWeight)
+      .and('have.color', grey8);
     cy.dataCy('countdown-label-hours')
       .should('be.visible')
-      .and('have.css', 'font-size', '14px')
-      .and('have.css', 'font-weight', '400');
+      .and('have.css', 'font-size', fontSize)
+      .and('have.css', 'font-weight', fontWeight)
+      .and('have.color', grey8);
     cy.dataCy('countdown-label-minutes')
       .should('be.visible')
-      .and('have.css', 'font-size', '14px')
-      .and('have.css', 'font-weight', '400');
+      .and('have.css', 'font-size', fontSize)
+      .and('have.css', 'font-weight', fontWeight)
+      .and('have.color', grey8);
     cy.dataCy('countdown-label-seconds')
       .should('be.visible')
-      .and('have.css', 'font-size', '14px')
-      .and('have.css', 'font-weight', '400');
+      .and('have.css', 'font-size', fontSize)
+      .and('have.css', 'font-weight', fontWeight)
+      .and('have.color', grey8);
   });
 
-  it('has gray background', () => {
+  it('has correct background', () => {
     cy.window().then(() => {
       cy.dataCy('card')
         .should('be.visible')
-        .and('have.css', 'background-color', 'rgb(243, 247, 255)');
+        .and('have.css', 'border-radius', borderRadiusCard)
+        .and('have.backgroundColor', colorSecondaryOpacity);
     });
   });
 
