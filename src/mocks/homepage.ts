@@ -131,9 +131,14 @@ export const cardsPost: CardPost[] = [
 ];
 
 export const bannerImage: BannerImage = {
-  title: 'Vyplňte náš dotazník a vyhrajte jednu z našich skvělých cen!',
-  perex:
-    'Pomůžete nám rozhodnout, čemu příště věnovat více času a co by naopak mělo zůstat stejné.',
+  title: i18n.global.t('index.bannerImage.title'),
+  perex: i18n.global.t('index.bannerImage.perex'),
+  buttons: [
+    {
+      title: i18n.global.t('index.bannerImage.buttonQuestionnaire'),
+      url: '#',
+    },
+  ],
   image: {
     src: 'https://picsum.photos/id/70/600/200',
     alt: 'road lined with trees',
