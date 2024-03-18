@@ -22,7 +22,10 @@ year = datetime.datetime.now().year
 if not results['results']:
    print(f'{year}.0')
 else:
-    tag_number = int(results['results'][0]['name'].split('.')[1]) + 1
+    last_image_name_idx = 0
+    if results['results'][last_image_name_idx]['name'] == 'latest':
+       last_image_name_idx = 1
+    tag_number = int(results['results'][last_image_name_idx]['name'].split('.')[1]) + 1
     print(f'{year}.{tag_number}')
 """
 )
