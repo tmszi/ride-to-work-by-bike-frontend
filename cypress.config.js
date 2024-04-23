@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 const {
   injectQuasarDevServerConfig,
 } = require('@quasar/quasar-app-extension-testing-e2e-cypress/cct-dev-server');
@@ -18,6 +20,9 @@ module.exports = defineConfig({
       addMatchImageSnapshotPlugin(on, config);
       on('task', {
         getAppConfig,
+        fileExists,
+        deleteFile,
+        readFile,
       });
       return config;
     },
@@ -41,3 +46,37 @@ module.exports = defineConfig({
     defaultCommandTimeout: 60000,
   },
 });
+
+// Task to clean up created files after testing boilerplate script
+function deleteFile(path) {
+  return new Promise((resolve, reject) => {
+    fs.unlink(path, (err) => {
+      if (err) reject(err);
+      // return null to indicate Cypress task success
+      else resolve(null);
+    });
+  });
+}
+
+// Task to check the existence of a script-generated file
+function fileExists(path) {
+  return new Promise((resolve) => {
+    fs.access(path, fs.constants.F_OK, (err) => {
+      if (err) {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
+function readFile(path) {
+  return new Promise((resolve) => {
+    if (fs.existsSync(path)) {
+      resolve(fs.readFileSync(path, 'utf8'));
+    }
+
+    resolve(null);
+  });
+}
