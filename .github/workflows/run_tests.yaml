@@ -34,10 +34,11 @@ jobs:
     steps:
       - name: Install Mozilla Firefox
         run: |
-          if [ ${{ matrix.os }} == 'macos-latest' ]; then
+          if [ "$RUNNER_OS" == 'macOS' ]; then
             brew update
             brew install --cask firefox
           fi
+        shell: bash
 
     steps:
       - name: Checkout app repository code
