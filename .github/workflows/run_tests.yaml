@@ -32,11 +32,11 @@ jobs:
       # browser_connect_timeout: 180000
 
     steps:
-      - name: Install Mozilla Firefox
+      - name: Install Mozilla Firefox/Microsoft Edge
         run: |
           if [ "$RUNNER_OS" == 'macOS' ]; then
             brew update
-            brew install --cask firefox
+            brew install --cask firefox microsoft-edge
           fi
         shell: bash
 
