@@ -32,6 +32,14 @@ jobs:
       # browser_connect_timeout: 180000
 
     steps:
+      - name: Install Mozilla Firefox
+        run: |
+          if [ ${{ matrix.os }} == 'macos-latest' ]; then
+            brew update
+            brew install --cask firefox
+          fi
+
+    steps:
       - name: Checkout app repository code
         uses: actions/checkout@v4
         with:
