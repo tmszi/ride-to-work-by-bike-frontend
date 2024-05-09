@@ -71,7 +71,7 @@
     "test:e2e:win:parallel:edge": "npx cypress-parallel -s test:e2e:win:edge -d ./test/cypress/e2e/",
     "test:component:ci:parallel:electron": "npx cypress-parallel -s test:component:ci:electron -d ./src/components/__tests__/",
     "test:component:ci:parallel:firefox": "npx cypress-parallel -s test:component:ci:firefox -d ./src/components/__tests__/",
-    "test:component:ci:parallel::chrome": "npx cypress-parallel -s test:component:ci:chrome -d ./src/components/__tests__/",
+    "test:component:ci:parallel:chrome": "npx cypress-parallel -s test:component:ci:chrome -d ./src/components/__tests__/",
     "test:component:ci:parallel:edge": "npx cypress-parallel -s test:component:ci:edge -d ./src/components/__tests__/",
     "test:e2e:ci:parallel:electron": "npx cypress-parallel -s test:e2e:ci:electron -d ./test/cypress/e2e/",
     "test:e2e:ci:parallel:firefox": "npx cypress-parallel -s test:e2e:ci:firefox -d ./test/cypress/e2e/",
