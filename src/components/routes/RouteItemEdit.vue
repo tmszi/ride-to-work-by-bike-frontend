@@ -10,6 +10,7 @@
  * @props
  * - `route` (RouteItem, required): The object representing the route.
  *   It should be of type `RouteItem`
+ * - `displayLabel` (boolean, optional): Whether to display direction label.`
  *
  * @example
  * <route-list-item :route="route" />
@@ -35,6 +36,10 @@ export default defineComponent({
       type: Object as () => RouteItem,
       required: true,
     },
+    displayLabel: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props) {
     const action = ref<string>('input-distance');
@@ -44,6 +49,10 @@ export default defineComponent({
       {
         label: i18n.global.t('routes.actionInputDistance'),
         value: 'input-distance',
+      },
+      {
+        label: i18n.global.t('routes.actionTraceMap'),
+        value: 'trace-map',
       },
     ];
 
@@ -102,7 +111,7 @@ export default defineComponent({
 
 <template>
   <div class="row items-center" data-cy="route-list-item">
-    <div class="col-12 col-sm-2" data-cy="column-direction">
+    <div v-if="displayLabel" class="col-12 col-sm-2" data-cy="column-direction">
       <!-- Column: Direction -->
       <div
         class="flex gap-8 text-subtitle2 text-weight-bold text-grey-10"
@@ -128,10 +137,16 @@ export default defineComponent({
         </span>
       </div>
     </div>
-    <div class="col-12 col-sm-10" data-cy="column-transport-distance">
+    <div
+      :class="[displayLabel ? 'col-12 col-sm-10' : 'col-12']"
+      data-cy="column-transport-distance"
+    >
       <div class="row">
         <!-- Column: Transport type -->
-        <div class="col-12 col-sm-4" data-cy="column-transport">
+        <div
+          :class="[displayLabel ? 'col-12 col-sm-4' : 'col-12 col-sm-5']"
+          data-cy="column-transport"
+        >
           <!-- Label -->
           <div
             class="text-caption text-weight-bold text-grey-10"
@@ -164,7 +179,7 @@ export default defineComponent({
         <!-- Column: Distance -->
         <div
           v-show="isShownDistance"
-          class="col-12 col-sm-8"
+          :class="[displayLabel ? 'col-12 col-sm-8' : 'col-12 col-sm-7']"
           data-cy="column-distance"
         >
           <!-- Label -->
@@ -189,9 +204,12 @@ export default defineComponent({
                   data-cy="select-action"
                 ></q-select>
               </div>
-              <div class="col-12 col-sm-4">
-                <div class="flex items-center gap-8">
-                  <!-- Input -->
+              <div
+                v-if="action === 'input-distance'"
+                class="col-8 col-sm-5 row items-center gap-8"
+              >
+                <!-- Input: Distance -->
+                <div class="col">
                   <q-input
                     dense
                     outlined
@@ -203,11 +221,28 @@ export default defineComponent({
                     max="999"
                     data-cy="input-distance"
                   />
-                  <span data-cy="units-distance">{{
-                    $t('global.routeLengthUnit')
-                  }}</span>
+                </div>
+                <div class="col">
+                  <span data-cy="units-distance">
+                    {{ $t('global.routeLengthUnit') }}
+                  </span>
                 </div>
               </div>
+              <div v-else-if="action === 'trace-map'" class="col-8 col-sm-5">
+                <!-- Button: Trace map -->
+                <q-btn
+                  unelevated
+                  rounded
+                  color="primary"
+                  data-cy="button-trace-map"
+                >
+                  <!-- Icon -->
+                  <q-icon name="edit" size="18px" class="q-mr-sm" />
+                  <!-- Label -->
+                  <span>{{ $t('routes.buttonTraceMap') }}</span>
+                </q-btn>
+              </div>
+              <div class="col-2 flex items-center"></div>
             </div>
           </div>
         </div>
