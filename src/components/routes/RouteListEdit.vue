@@ -19,7 +19,7 @@
  */
 
 // libraries
-import { computed, defineComponent } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
 
 // component
 import RouteItemEdit from './RouteItemEdit.vue';
@@ -42,12 +42,24 @@ export default defineComponent({
   },
   setup(props) {
     const { formatDate, formatDateName, getDays } = useRoutes();
-    const days = computed((): RouteListDay[] => {
-      return getDays(props.routes);
+    const days = ref([] as RouteListDay[]);
+    // initiate local routes object
+    onMounted(() => {
+      days.value = getDays(props.routes);
+    });
+
+    // dirty state will be tracked within UI to show change count
+    const dirtyCount = computed((): number => {
+      let count = 0;
+      days.value.forEach((day) => {
+        count += day.routes.filter((route) => route.dirty).length;
+      });
+      return count;
     });
 
     return {
       days,
+      dirtyCount,
       formatDate,
       formatDateName,
     };
@@ -56,7 +68,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div data-cy="route-list">
+  <div data-cy="route-list-edit">
     <!-- Item: Day -->
     <div
       v-for="day in days"
@@ -76,7 +88,17 @@ export default defineComponent({
         :key="route.id"
         class="q-my-md"
         data-cy="route-list-item"
+        @update:route="route.dirty = $event"
       />
+    </div>
+    <div class="flex items-center justify-center">
+      <q-btn rounded unelevated outline color="primary" data-cy="button-save">
+        {{
+          $tc('routes.buttonSaveChangesCount', dirtyCount, {
+            count: dirtyCount,
+          })
+        }}
+      </q-btn>
     </div>
   </div>
 </template>

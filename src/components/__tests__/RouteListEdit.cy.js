@@ -44,7 +44,7 @@ describe('<RouteListEdit>', () => {
 function coreTests() {
   it('renders component', () => {
     // component visible
-    cy.dataCy('route-list').should('be.visible');
+    cy.dataCy('route-list-edit').should('be.visible');
     // items visible
     cy.dataCy('route-list-item').should('be.visible');
     // direction labels visible
@@ -70,5 +70,127 @@ function coreTests() {
           );
       });
     });
+  });
+
+  it('renders save button with edit count', () => {
+    cy.dataCy('button-save')
+      .should('be.visible')
+      .and(
+        'contain',
+        i18n.global.tc('routes.buttonSaveChangesCount', 0, { count: 0 }),
+      );
+    // introduce a change
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="button-toggle-transport"]')
+      .find('button')
+      .last()
+      .click();
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 1, { count: 1 }),
+    );
+    // revert change
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="button-toggle-transport"]')
+      .find('button')
+      .first()
+      .click();
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 0, { count: 0 }),
+    );
+    // introduce two changes
+    // change first route
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="button-toggle-transport"]')
+      .find('button')
+      .last()
+      .click();
+    // change last route
+    cy.dataCy('route-list-item')
+      .last()
+      .find('[data-cy="button-toggle-transport"]')
+      .find('button')
+      .first()
+      .click();
+    // count changes
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 2, { count: 2 }),
+    );
+    // revert changes
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="button-toggle-transport"]')
+      .find('button')
+      .first()
+      .click();
+    cy.dataCy('route-list-item')
+      .last()
+      .find('[data-cy="button-toggle-transport"]')
+      .find('button')
+      .last()
+      .click();
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 0, { count: 0 }),
+    );
+
+    // test inputting distance value
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="input-distance"]')
+      .clear();
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="input-distance"]')
+      .type(1);
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="input-distance"]')
+      .blur();
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 1, { count: 1 }),
+    );
+    // reset
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="input-distance"]')
+      .clear();
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="input-distance"]')
+      .type(10);
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="input-distance"]')
+      .blur();
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 0, { count: 0 }),
+    );
+
+    // test changing input type
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="select-action"]')
+      .select(i18n.global.t('routes.actionTraceMap'));
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 1, { count: 1 }),
+    );
+    // reset
+    cy.dataCy('route-list-item')
+      .first()
+      .find('[data-cy="select-action"]')
+      .select(i18n.global.t('routes.actionInputDistance'));
+    cy.dataCy('button-save').should(
+      'contain',
+      i18n.global.tc('routes.buttonSaveChangesCount', 0, { count: 0 }),
+    );
   });
 }
