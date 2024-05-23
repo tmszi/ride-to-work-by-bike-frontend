@@ -74,6 +74,30 @@ const routesConf: RoutesConf = {
       name: 'results',
     },
   },
+  results_detail: {
+    path: '/results/detail',
+    children: {
+      name: 'results/detail',
+    },
+  },
+  results_report: {
+    path: '/results/detail/report',
+    children: {
+      name: 'results/detail/report',
+    },
+  },
+  results_regularity: {
+    path: '/results/detail/regularity',
+    children: {
+      name: 'results/detail/regularity',
+    },
+  },
+  results_performance: {
+    path: '/results/detail/performance',
+    children: {
+      name: 'results/detail/performance',
+    },
+  },
 };
 
 export { routesConf };
