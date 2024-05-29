@@ -19,6 +19,7 @@ results = "Výsledky"
 routes = "Cesty"
 
 [global]
+all = "Všechny"
 buttonShare = "Sdílet"
 female = "Dámské"
 man = "Muž"
@@ -383,9 +384,17 @@ hintPassword = "Musí obsahovat alespoň 6 znaků a alespoň 1 písmeno."
 
 [results]
 buttonPastChallenges = "Výsledky z dřívějších výzev"
+labelCategory = "Kategorie"
+labelCity = "Město"
 labelCo2Saved = "CO<sub>2</sub> ušetřeno"
+labelConsistency = "Pravidelnost"
+labelOrganization = "Organizace"
+labelParticipant = "Účastník"
+labelRank = "Pořadí"
 labelRegularity = "pravidelnost"
+labelRouteCount = "Poč. jízd"
 labelSustainableRoutes = "udržitelných cest"
+labelTeam = "Tým"
 titleBadges = "Odznaky"
 titleCurrentResults = "Dosavadní výsledky"
 titleOngoingChallenges = "Probíhající výzvy"
@@ -427,6 +436,9 @@ titleRoutes = "Cesty"
 titleTabApp = "Automatický záznam"
 titleAutomaticLogging = "Automatický záznam"
 titleManualLogging = "Ruční záznam"
+
+[table]
+textEmptyTable = "Žádné výsledky. Zkuste změnit nastavení filtrů."
 
 [routes.transport]
 bike = "Na kole"

@@ -19,6 +19,7 @@ results = "Results"
 routes = "Routes"
 
 [global]
+all = "All"
 buttonShare = "Share"
 female = "Female"
 man = "Man"
@@ -382,9 +383,17 @@ hintPassword = "It must contain at least 6 characters and at least 1 letter."
 
 [results]
 buttonPastChallenges = "View previous challenges"
+labelCategory = "Category"
+labelCity = "City"
 labelCo2Saved = "of CO<sub>2</sub> saved"
+labelConsistency = "Consistency"
+labelOrganization = "Organization"
+labelParticipant = "Participant"
+labelRank = "Rank"
 labelRegularity = "regularity"
+labelRouteCount = "Route count"
 labelSustainableRoutes = "sustainable rides"
+labelTeam = "Team"
 titleBadges = "Badges"
 titleCurrentResults = "Current results"
 titleOngoingChallenges = "Ongoing challenges"
@@ -426,6 +435,9 @@ titleRoutes = "Routes"
 titleTabApp = "Automatic logging"
 titleAutomaticLogging = "Automatic logging"
 titleManualLogging = "Manual logging"
+
+[table]
+textEmptyTable = "No results. Try changing the filter settings."
 
 [routes.transport]
 bike = "By bike"
