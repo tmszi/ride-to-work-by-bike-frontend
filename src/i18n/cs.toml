@@ -42,6 +42,11 @@ calendarOutlook = "Outlook.com"
 calendarYahoo = "Yahoo"
 calendarOther = "Jiné aplikace (soubor iCal)"
 
+[community]
+labelSelectCity = "Město"
+titleCommunity = "Komunita"
+titleLocalEvents = "Místní události"
+
 [language]
 cs = "Čeština"
 sk = "Slovenština"
