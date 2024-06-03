@@ -73,11 +73,19 @@ Cypress.Commands.add(
   'testElementPercentageWidth',
   ($element, expectedPercentage) => {
     $element.then(($el) => {
-      const actualWidth = $el.outerWidth();
-      const parentWidth = $el.parent().outerWidth();
-      const calculatedPercentage = (actualWidth / parentWidth) * 100;
+      // fix bug where scrollbar is modifying child width
+      cy.wrap($el.parent())
+        .invoke('attr', 'style', 'overflow: hidden')
+        .then(() => {
+          const actualWidth = $el.outerWidth();
+          const parentWidth = $el.parent().outerWidth();
+          const calculatedPercentage = (actualWidth / parentWidth) * 100;
 
-      expect(calculatedPercentage).to.be.closeTo(Number(expectedPercentage), 2);
+          expect(calculatedPercentage).to.be.closeTo(
+            Number(expectedPercentage),
+            2,
+          );
+        });
     });
   },
 );
