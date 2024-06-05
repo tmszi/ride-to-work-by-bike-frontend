@@ -61,13 +61,22 @@ titleSpecialOffers = "Special offers"
 day = "day | days"
 dayShort = "d"
 hour = "hour | hours"
+hoursAgo = "{hours} hours ago"
 hourShort = "h"
+lessThanAnHourAgo = "Less than an hour ago"
 minute = "minute | minutes"
 minuteShort = "m"
 second = "second | seconds"
 secondShort = "s"
 today = "Today"
 yesterday = "Yesterday"
+monday = "Monday"
+tuesday = "Tuesday"
+wednesday = "Wednesday"
+thursday = "Thursday"
+friday = "Friday"
+saturday = "Saturday"
+sunday = "Sunday"
 
 [navigation]
 continue = "Continue"
@@ -172,6 +181,10 @@ labelTeam = "Team name"
 labelTeamName = "Your team name"
 textTeam = "<p>There can be a maximum of 5 members per team, you can invite members at any time until the end of the registration period. A company can have any number of teams.</p><p>Only teams with more than 1 member can join the inter-team challenges.</p"
 titleAddTeam = "Add team"
+
+[forumPostList]
+buttonVisitForum = "Visit forum"
+titleRecentPosts = "Recent posts"
 
 [index]
 title = "Home"

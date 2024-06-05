@@ -61,13 +61,22 @@ titleSpecialOffers = "Špeciálne ponuky"
 day = "deň | dni"
 dayShort = "d."
 hour = "hodina | hodín"
+hoursAgo = "Pred {hours} h."
 hourShort = "h."
+lessThanAnHourAgo = "Pred necelou hodinou"
 minute = "minúta | minút"
 minuteShort = "m."
 second = "sekunda | sekúnd"
 secondShort = "s."
 today = "Dnes"
 yesterday = "Včera"
+monday = "Pondelok"
+tuesday = "Utorok"
+wednesday = "Streda"
+thursday = "Štvrtok"
+friday = "Piatok"
+saturday = "Sobota"
+sunday = "Nedeľa"
 
 [navigation]
 continue = "Pokračovať"
@@ -172,6 +181,10 @@ labelTeam = "Názov tímu"
 labelTeamName = "Názov vášho tímu"
 textTeam = "<p>V jednom tíme môže byť maximálne 5 členov, pričom členky môžete pozvať kedykoľvek do konca registračného obdobia. Spoločnosť môže mať ľubovoľný počet tímov.</p><p>Výziev medzi tímami sa zúčastňujú len tímy s viac ako 1 členom.</p"
 titleAddTeam = "Pridať tím"
+
+[forumPostList]
+buttonVisitForum = "Navštívte fórum"
+titleRecentPosts = "Posledné príspevky"
 
 [index]
 title = "Domovská stránka"

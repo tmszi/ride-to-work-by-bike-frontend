@@ -61,13 +61,22 @@ titleSpecialOffers = "Akční nabídky"
 day = "den | dní"
 dayShort = "d."
 hour = "hodina | hodin"
+hoursAgo = "Před {hours} h."
 hourShort = "h."
+lessThanAnHourAgo = "Před méně než hodinou"
 minute = "minuta | minut"
 minuteShort = "m."
 second = "sekunda | sekund"
 secondShort = "s."
 today = "Dnes"
 yesterday = "Včera"
+monday = "Pondělí"
+tuesday = "Úterý"
+wednesday = "Středa"
+thursday = "Čtvrtek"
+friday = "Pátek"
+saturday = "Sobota"
+sunday = "Neděle"
 
 [navigation]
 continue = "Pokračovat"
@@ -173,6 +182,10 @@ labelTeam = "Název týmu"
 labelTeamName = "Název vašeho týmu"
 textTeam = "<p>V jednom týmu může být max. 5 členů, členy*ky můžete přizvat kdykoliv do konce registračního období výzvy. Firma může mít libovolný počet týmů.</p><p>Jen týmy s více než 1 členem se zapojují do výzev mezi týmy.</p>"
 titleAddTeam = "Přidat tým"
+
+[forumPostList]
+buttonVisitForum = "Navštívit fórum"
+titleRecentPosts = "Poslední příspěvky"
 
 [index]
 title = "Domov"
