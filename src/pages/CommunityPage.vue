@@ -17,22 +17,28 @@ import { defineComponent, ref } from 'vue';
 // components
 import CardEvent from '../components/homepage/CardEvent.vue';
 import ListCardFollow from '../components/homepage/ListCardFollow.vue';
+import ListCardPost from 'src/components/homepage/ListCardPost.vue';
+
+// composables
+import { i18n } from 'src/boot/i18n';
+
+// config
+import { routesConf } from 'src/router/routes_conf';
 
 // fixtures
 import events from '../../test/cypress/fixtures/listCardsEvent.json';
+import listCardsFollow from '../../test/cypress/fixtures/listCardsFollow.json';
+import listCardsPost from '../../test/cypress/fixtures/listCardsPost.json';
 
 // types
 import type { FormOption } from '../components/types/Form';
-import type { CardFollow } from 'src/components/types';
-
-// fixtures
-import listCardsFollow from '../../test/cypress/fixtures/listCardsFollow.json';
 
 export default defineComponent({
   name: 'CommunityPage',
   components: {
     CardEvent,
     ListCardFollow,
+    ListCardPost,
   },
   setup() {
     const optionsCity: FormOption[] = [
@@ -51,11 +57,18 @@ export default defineComponent({
     ];
     const city = ref<string>('');
 
-    const listCardsFollowImport = listCardsFollow as unknown;
-    const cardsFollow = listCardsFollowImport as CardFollow[];
+    const cardsFollow = listCardsFollow;
+    const cardsPost = listCardsPost;
+    const buttonPosts = {
+      title: i18n.global.t('index.cardListPost.button'),
+      // TODO: add route
+      url: routesConf?.blog?.path,
+    };
 
     return {
+      buttonPosts,
       cardsFollow,
+      cardsPost,
       city,
       events,
       optionsCity,
@@ -124,7 +137,13 @@ export default defineComponent({
       <!-- TODO: Section Social networks -->
       <list-card-follow :cards="cardsFollow" class="q-pt-xl" />
 
-      <!-- TODO: Section News -->
+      <list-card-post
+        :cards="cardsPost"
+        :title="$t('index.cardListPost.title')"
+        :button="buttonPosts"
+        class="q-pt-xl"
+        data-cy="list-card-post"
+      />
 
       <!-- TODO: Section Instagram -->
     </div>
