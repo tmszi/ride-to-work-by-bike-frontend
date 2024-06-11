@@ -16,19 +16,22 @@ import { defineComponent, ref } from 'vue';
 
 // components
 import CardOffer from '../components/homepage/CardOffer.vue';
+import CardPrize from 'src/components/global/CardPrize.vue';
 import SectionColumns from '../components/homepage/SectionColumns.vue';
 
 // fixtures
 import listCardsPrizes from '../../test/cypress/fixtures/listCardsPrizes.json';
+import listCardsPrizesAvailable from '../../test/cypress/fixtures/listResultsPrizes.json';
 
 // types
 import type { FormOption } from '../components/types/Form';
-import { CardOffer as CardOfferType } from '../components/types';
+import { CardOffer as CardOfferType, CardPrizeType } from '../components/types';
 
 export default defineComponent({
   name: 'PrizesPage',
   components: {
     CardOffer,
+    CardPrize,
     SectionColumns,
   },
   setup() {
@@ -50,10 +53,13 @@ export default defineComponent({
 
     const prizes = listCardsPrizes as unknown;
     const prizesList = prizes as CardOfferType[];
+    const prizesListAvailable =
+      listCardsPrizesAvailable.cards as CardPrizeType[];
 
     return {
       city,
       prizesList,
+      prizesListAvailable,
       optionsCity,
     };
   },
@@ -115,7 +121,30 @@ export default defineComponent({
         </div>
       </div>
 
-      <!-- TODO: Section Prizes -->
+      <!-- Section: Available prizes -->
+      <section class="q-mt-lg" data-cy="available-prizes">
+        <!-- TODO: Replace with section-heading -->
+        <h2 class="text-h6 q-my-none" data-cy="section-heading-title">
+          <span v-html="$t('prizes.titleAvailablePrizes', { url: '#' })" />
+        </h2>
+        <div class="q-mt-sm" data-cy="section-heading-perex">
+          <span v-html="$t('prizes.textAvailablePrizes')" />
+        </div>
+        <div class="q-mt-lg">
+          <section-columns
+            :columns="4"
+            class="q-col-gutter-lg"
+            data-cy="available-prizes-list"
+          >
+            <card-prize
+              v-for="(card, index) in prizesListAvailable"
+              :key="`card-${index}-${card.title}`"
+              :card="card"
+              data-cy="available-prizes-item"
+            />
+          </section-columns>
+        </div>
+      </section>
 
       <!-- TODO: Section Partners -->
     </div>
