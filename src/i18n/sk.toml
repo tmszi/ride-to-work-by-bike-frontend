@@ -46,9 +46,11 @@ calendarYahoo = "Yahoo"
 calendarOther = "Iné aplikácie (súbor iCal)"
 
 [community]
+buttonLocationsMap = "Zobrazenie na mape"
 labelSelectCity = "Mesto"
 titleCommunity = "Komunita"
 titleLocalEvents = "Miestne udalosti"
+titleLocations = "Zaujímavosti v blízkosti vašej cesty"
 
 [language]
 cs = "Čeština"
