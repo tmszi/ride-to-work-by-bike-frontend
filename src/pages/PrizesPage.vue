@@ -17,6 +17,7 @@ import { defineComponent, ref } from 'vue';
 // components
 import CardOffer from '../components/homepage/CardOffer.vue';
 import CardPrize from 'src/components/global/CardPrize.vue';
+import FormFieldSelectCity from 'src/components/form/FormFieldSelectCity.vue';
 import SectionColumns from '../components/homepage/SectionColumns.vue';
 
 // fixtures
@@ -24,7 +25,6 @@ import listCardsPrizes from '../../test/cypress/fixtures/listCardsPrizes.json';
 import listCardsPrizesAvailable from '../../test/cypress/fixtures/listResultsPrizes.json';
 
 // types
-import type { FormOption } from '../components/types/Form';
 import { CardOffer as CardOfferType, CardPrizeType } from '../components/types';
 
 export default defineComponent({
@@ -32,23 +32,10 @@ export default defineComponent({
   components: {
     CardOffer,
     CardPrize,
+    FormFieldSelectCity,
     SectionColumns,
   },
   setup() {
-    const optionsCity: FormOption[] = [
-      {
-        label: 'Brno',
-        value: 'brno',
-      },
-      {
-        label: 'Ostrava',
-        value: 'ostrava',
-      },
-      {
-        label: 'Praha',
-        value: 'praha',
-      },
-    ];
     const city = ref<string>('');
 
     const prizes = listCardsPrizes as unknown;
@@ -60,7 +47,6 @@ export default defineComponent({
       city,
       prizesList,
       prizesListAvailable,
-      optionsCity,
     };
   },
 });
@@ -82,23 +68,7 @@ export default defineComponent({
         </div>
 
         <!-- Select: City -->
-        <div class="row items-center">
-          <label for="prizes-select-city" class="col-auto q-mr-sm">
-            <span>{{ $t('community.labelSelectCity') }}:</span>
-          </label>
-          <q-select
-            dense
-            outlined
-            emit-value
-            map-options
-            v-model="city"
-            :options="optionsCity"
-            :style="{ 'min-width': '160px' }"
-            class="col-auto"
-            id="prizes-select-city"
-            data-cy="prizes-select-city"
-          />
-        </div>
+        <FormFieldSelectCity v-model="city" data-cy="form-field-select-city" />
       </div>
 
       <!-- Section: Special offers -->
