@@ -19,6 +19,7 @@ import CardOffer from '../components/homepage/CardOffer.vue';
 import CardPrize from 'src/components/global/CardPrize.vue';
 import FormFieldSelectCity from 'src/components/form/FormFieldSelectCity.vue';
 import SectionColumns from '../components/homepage/SectionColumns.vue';
+import SectionHeading from '../components/global/SectionHeading.vue';
 
 // fixtures
 import listCardsPrizes from '../../test/cypress/fixtures/listCardsPrizes.json';
@@ -34,6 +35,7 @@ export default defineComponent({
     CardPrize,
     FormFieldSelectCity,
     SectionColumns,
+    SectionHeading,
   },
   setup() {
     const city = ref<string>('');
@@ -72,23 +74,25 @@ export default defineComponent({
       </div>
 
       <!-- Section: Special offers -->
-      <div class="q-mt-lg">
-        <h2 class="text-h6 q-my-none" data-cy="discount-offers-title">
+      <div class="q-mt-xl">
+        <section-heading data-cy="discount-offers-title">
           {{ $t('prizes.titleSpecialOffers') }}
-        </h2>
-        <div class="q-mt-sm">
-          {{ $t('prizes.textSpecialOffers') }}
-        </div>
-        <div class="q-mt-lg" data-cy="discount-offers-list">
-          <section-columns :columns="3" class="q-col-gutter-lg">
-            <card-offer
-              v-for="card in prizesList"
-              :key="card.title"
-              :card="card"
-              data-cy="discount-offers-item"
-            />
-          </section-columns>
-        </div>
+          <template #perex>
+            {{ $t('prizes.textSpecialOffers') }}
+          </template>
+        </section-heading>
+        <section-columns
+          :columns="3"
+          class="q-col-gutter-lg q-mt-md"
+          data-cy="discount-offers-list"
+        >
+          <card-offer
+            v-for="card in prizesList"
+            :key="card.title"
+            :card="card"
+            data-cy="discount-offers-item"
+          />
+        </section-columns>
       </div>
 
       <!-- Section: Available prizes -->

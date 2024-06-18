@@ -6,6 +6,7 @@
  *
  * @components
  * - `BannerRoutesApp`: Component to display a banner for an App.
+ * - `SectionHeading`: Component to render a heading.
  *
  * @example
  * <routes-apps></routes-apps>
@@ -18,6 +19,7 @@ import { defineComponent } from 'vue';
 
 // components
 import BannerRoutesApp from './BannerRoutesApp.vue';
+import SectionHeading from '../global/SectionHeading.vue';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
@@ -32,6 +34,7 @@ export default defineComponent({
   name: 'RoutesApps',
   components: {
     BannerRoutesApp,
+    SectionHeading,
   },
   setup() {
     const urlAppStore = rideToWorkByBikeConfig.urlAppStore;
@@ -47,17 +50,16 @@ export default defineComponent({
 </script>
 
 <template>
-  <div data-cy="routes-apps">
+  <div data-cy="routes-apps" class="q-my-xl">
     <!-- Section: Apps for automatic logging -->
     <section>
       <!-- Title -->
-      <h2 class="text-h6 text-black" data-cy="routes-apps-title-automatic">
+      <section-heading class="q-mb-md" data-cy="routes-apps-title-auto">
         {{ $t('routes.titleAutomaticLogging') }}
-      </h2>
-      <!-- Hint -->
-      <p class="" data-cy="routes-apps-hint-automatic">
-        {{ $t('routes.hintAutomaticLogging') }}
-      </p>
+        <template #perex>
+          {{ $t('routes.hintAutomaticLogging') }}
+        </template>
+      </section-heading>
       <!-- App banners -->
       <div class="flex column gap-16">
         <banner-routes-app
@@ -69,15 +71,14 @@ export default defineComponent({
       </div>
     </section>
     <!-- Section: Apps for manual logging -->
-    <section>
+    <section class="q-mt-md">
       <!-- Title -->
-      <h2 class="text-h6 text-black" data-cy="routes-apps-title-manual">
+      <section-heading class="q-mb-md" data-cy="routes-apps-title-manual">
         {{ $t('routes.titleManualLogging') }}
-      </h2>
-      <!-- Hint -->
-      <p class="" data-cy="routes-apps-hint-manual">
-        {{ $t('routes.hintManualLogging') }}
-      </p>
+        <template #perex>
+          {{ $t('routes.hintManualLogging') }}
+        </template>
+      </section-heading>
       <div class="flex item-center gap-16" data-cy="routes-apps-buttons">
         <!-- Button: Google Play -->
         <a
