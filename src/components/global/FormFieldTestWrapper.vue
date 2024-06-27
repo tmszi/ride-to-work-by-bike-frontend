@@ -15,6 +15,7 @@
  * - `options` (array): The options used for radio button tests.
  *
  * @components
+ * - `FormFieldCheckboxTeam`: Component to render checkbox team widget.
  * - `FormFieldCompany`: Component to render company input field.
  * - `FormFieldDateRequired`: Component to render date input field.
  * - `FormFieldEmail`: Component to render email input field.
@@ -36,6 +37,7 @@
 import { defineComponent, ref } from 'vue';
 
 // components
+import FormFieldCheckboxTeam from '../form/FormFieldCheckboxTeam.vue';
 import FormFieldCompany from './FormFieldCompany.vue';
 import FormFieldDateRequired from '../form/FormFieldDateRequired.vue';
 import FormFieldEmail from './FormFieldEmail.vue';
@@ -47,11 +49,12 @@ import FormFieldRadioRequired from '../form/FormFieldRadioRequired.vue';
 import FormFieldSelectCity from '../form/FormFieldSelectCity.vue';
 import FormFieldSelectTable from '../form/FormFieldSelectTable.vue';
 import FormFieldTextRequired from './FormFieldTextRequired.vue';
-import FormFieldVatId from '../form/FormFieldVatId.vue';
+import FormFieldBusinessId from '../form/FormFieldBusinessId.vue';
 
 export default defineComponent({
   name: 'FormFieldTestWrapper',
   components: {
+    FormFieldCheckboxTeam,
     FormFieldCompany,
     FormFieldDateRequired,
     FormFieldEmail,
@@ -63,7 +66,7 @@ export default defineComponent({
     FormFieldSelectCity,
     FormFieldSelectTable,
     FormFieldTextRequired,
-    FormFieldVatId,
+    FormFieldBusinessId,
   },
   props: {
     component: {
@@ -85,9 +88,12 @@ export default defineComponent({
     required: {
       type: Boolean,
     },
+    array: {
+      type: Boolean,
+    },
   },
-  setup() {
-    const inputValue = ref('');
+  setup(props) {
+    const inputValue = ref(props.array ? [] : '');
 
     return {
       inputValue,
