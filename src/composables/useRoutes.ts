@@ -36,6 +36,17 @@ export const useRoutes = () => {
   };
 
   /**
+   * Returns the route distance including the unit.
+   *
+   * @param {RouteItem | null} route - The route item containing the distance.
+   * @return {string} The formatted distance label.
+   */
+  const getRouteDistance = (route: RouteItem | null): string => {
+    if (!route?.distance) return '';
+    return `${route.distance} ${i18n.global.t('global.routeLengthUnit')}`;
+  };
+
+  /**
    * Generate an array of RouteListDay objects grouped by date from the given routes.
    *
    * @param routes - The array of RouteItem objects to process.
@@ -103,6 +114,7 @@ export const useRoutes = () => {
     formatDate,
     formatDateName,
     getDays,
+    getRouteDistance,
     getRouteIcon,
   };
 };
