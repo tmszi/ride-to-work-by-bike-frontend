@@ -131,12 +131,12 @@ jobs:
       - name: Build app
         run: npx quasar build
 
-      - name: Archive runned cypress tests screenshots result
+      - name: Archive runned cypress tests snapshots result
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: cypress-tests-screenshots-${{ matrix.os }}
-          path: test/cypress/screenshots
+          name: cypress-tests-snapshots-${{ matrix.os }}
+          path: test/cypress/snapshots
           if-no-files-found: ignore
           retention-days: 3
 
