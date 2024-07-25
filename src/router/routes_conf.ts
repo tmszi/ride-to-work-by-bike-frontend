@@ -2,6 +2,7 @@ type RoutesConf = {
   [key: string]: {
     path: string;
     children: {
+      fullPath?: string;
       name: string;
     };
   };
@@ -11,109 +12,127 @@ const routesConf: RoutesConf = {
   community: {
     path: '/community',
     children: {
+      fullPath: '/community',
       name: 'community',
     },
   },
   company_coordinator: {
     path: '/company-coordinator',
     children: {
+      fullPath: '/company-coordinator',
       name: 'company-coordinator',
     },
   },
   home: {
     path: '/',
     children: {
+      fullPath: '/',
       name: 'home',
     },
   },
   login: {
     path: '/login',
     children: {
+      fullPath: '/login',
       name: 'login',
     },
   },
   prizes: {
     path: '/prizes',
     children: {
+      fullPath: '/prizes',
       name: 'prizes',
     },
   },
   register: {
     path: '/register',
     children: {
+      fullPath: '/register',
       name: 'register',
     },
   },
-  'register-coordinator': {
+  register_coordinator: {
     path: '/register-coordinator',
     children: {
+      fullPath: '/register-coordinator',
       name: 'register-coordinator',
     },
   },
-  'register-challenge': {
+  register_challenge: {
     path: '/register-challenge',
     children: {
+      fullPath: '/register-challenge',
       name: 'register-challenge',
     },
   },
   results: {
     path: '/results',
     children: {
+      fullPath: '/results',
       name: 'results',
     },
   },
   results_detail: {
-    path: '/results/detail',
+    path: 'detail',
     children: {
-      name: 'results/detail',
+      fullPath: '/results/detail',
+      name: 'results-detail',
     },
   },
   results_report: {
-    path: '/results/detail/report',
+    path: 'report',
     children: {
-      name: 'results/detail/report',
+      fullPath: '/results/detail/report',
+      name: 'results-detail-report',
     },
   },
   results_regularity: {
-    path: '/results/detail/regularity',
+    path: 'regularity',
     children: {
-      name: 'results/detail/regularity',
+      fullPath: '/results/detail/regularity',
+      name: 'results-detail-regularity',
     },
   },
   results_performance: {
-    path: '/results/detail/performance',
+    path: 'performance',
     children: {
-      name: 'results/detail/performance',
+      fullPath: '/results/detail/performance',
+      name: 'results-detail-performance',
     },
   },
   routes: {
     path: '/routes',
     children: {
+      fullPath: '/routes',
       name: 'routes',
     },
   },
   routes_calendar: {
-    path: '/routes/calendar',
+    path: 'calendar',
     children: {
-      name: 'routes/calendar',
+      fullPath: '/routes/calendar',
+      name: 'routes-calendar',
     },
   },
   routes_list: {
-    path: '/routes/list',
+    path: 'list',
     children: {
-      name: 'routes/list',
+      fullPath: '/routes/list',
+      name: 'routes-list',
     },
   },
   routes_map: {
-    path: '/routes/map',
+    path: 'map',
     children: {
-      name: 'routes/map',
+      fullPath: '/routes/map',
+      name: 'routes-map',
     },
   },
   routes_app: {
-    path: '/routes/app',
+    path: 'app',
     children: {
-      name: 'routes/app',
+      fullPath: '/routes/app',
+      name: 'routes-app',
     },
   },
 };
