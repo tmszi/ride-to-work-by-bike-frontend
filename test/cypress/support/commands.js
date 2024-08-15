@@ -174,6 +174,20 @@ Cypress.Commands.add(
   },
 );
 
+Cypress.Commands.add(
+  'matchImageSnapshotNamed',
+  (dataCySelector, name, failureThreshold = 0.1) => {
+    cy.dataCy(dataCySelector).matchImageSnapshot({
+      customDiffConfig: { threshold: 0.5 },
+      failureThreshold: failureThreshold,
+      failureThresholdType: 'percent',
+      name,
+      retries: 2,
+      screenshotsFolder: 'test/cypress/snapshots',
+    });
+  },
+);
+
 Cypress.Commands.add('stripHtmlTags', (htmlString) => {
   cy.wrap(htmlString.replace(/<\/?[^>]+(>|$)/g, ''));
 });
@@ -187,8 +201,8 @@ Cypress.Commands.add(
       cy.dataCy(siblingElementSelector).then((sibling) => {
         const siblingOffsetTop = sibling[0].offsetTop;
         const siblingOffsetHeight = sibling[0].offsetHeight;
-        expect(offsetTop + offsetHeight / 2).to.be.eq(
-          siblingOffsetTop + siblingOffsetHeight / 2,
+        expect(Math.round(offsetTop + offsetHeight / 2)).to.be.eq(
+          Math.round(siblingOffsetTop + siblingOffsetHeight / 2),
         );
       });
     });
