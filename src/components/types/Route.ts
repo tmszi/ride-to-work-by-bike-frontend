@@ -1,6 +1,19 @@
 // types
 import type { TimestampOrNull } from '@quasar/quasar-ui-qcalendar';
 
+export enum TransportDirection {
+  toWork = 'toWork',
+  fromWork = 'fromWork',
+}
+
+export enum TransportType {
+  bike = 'bike',
+  car = 'car',
+  walk = 'walk',
+  bus = 'bus',
+  none = 'none',
+}
+
 export type RouteItem = {
   id: string;
   date: string;
@@ -11,11 +24,7 @@ export type RouteItem = {
   inputType?: RouteInputType;
 };
 
-export type TransportType = 'bike' | 'car' | 'walk' | 'bus' | 'none';
-
 export type RouteInputType = 'input-number' | 'input-map';
-
-export type TransportDirection = 'toWork' | 'fromWork';
 
 export type RouteListDay = {
   id: string;
@@ -36,3 +45,9 @@ export type RouteCalendarActive = {
 };
 
 export type RouteTab = 'calendar' | 'list' | 'map' | 'app';
+
+export type RouteLogData = {
+  action: RouteInputType;
+  distance: number;
+  transportType: TransportType;
+};

@@ -5,9 +5,12 @@
  * @description * Use this component to render a calendar for logging routes.
  * This component is used on `RoutesPage` in `RouteTabs` component.
  *
+ * Note: Calendar is NOT made responsive. We use list view to log routes on mobile.
+ *
  * @components
  * - `CalendarNavigation`: Component to render navigation buttons.
  * - `CalendarItemDisplay`: Component to render calendar items.
+ * - `RouteCalendarPanel`: Component to render dialog panel.
  *
  * @example
  * <routes-calendar />
@@ -17,30 +20,35 @@
 
 // libraries
 import { colors } from 'quasar';
-import { parsed, QCalendarMonth, today } from '@quasar/quasar-ui-qcalendar';
-import { defineComponent, computed, ref } from 'vue';
+import { QCalendarMonth, today } from '@quasar/quasar-ui-qcalendar';
+import { defineComponent, computed, ref, watch } from 'vue';
 import { i18n } from '../../boot/i18n';
 
 // components
 import CalendarItemDisplay from './CalendarItemDisplay.vue';
 import CalendarNavigation from './CalendarNavigation.vue';
+import RouteCalendarPanel from './RouteCalendarPanel.vue';
+
+// enums
+import { TransportDirection, TransportType } from '../types/Route';
+
+// fixtures
+import routesListCalendarFixture from '../../../test/cypress/fixtures/routeListCalendar.json';
 
 // types
 import type { Timestamp } from '@quasar/quasar-ui-qcalendar';
 import type {
-  TransportDirection,
   RouteCalendarActive,
   RouteCalendarDay,
+  RouteItem,
 } from '../types/Route';
-
-// fixtures
-import routesListCalendarFixture from '../../../test/cypress/fixtures/routeListCalendar.json';
 
 export default defineComponent({
   name: 'RoutesCalendar',
   components: {
     CalendarItemDisplay,
     CalendarNavigation,
+    RouteCalendarPanel,
   },
   setup() {
     const calendar = ref<typeof QCalendarMonth | null>(null);
@@ -100,9 +108,43 @@ export default defineComponent({
     });
 
     // Active state
-    const activeRoutes = ref<RouteCalendarActive[]>([
-      { timestamp: parsed(today()), direction: 'toWork' },
-    ]);
+    const activeRoutes = ref<RouteCalendarActive[]>([]);
+
+    const activeRoutesComputed = computed((): RouteItem[] => {
+      const routes = [] as RouteItem[];
+      activeRoutes.value.forEach((activeRoute: RouteCalendarActive): void => {
+        if (activeRoute.timestamp && activeRoute.direction) {
+          const day: RouteCalendarDay =
+            routesMap.value[activeRoute.timestamp.date];
+          if (
+            day &&
+            activeRoute.direction === TransportDirection.toWork &&
+            day.toWork
+          ) {
+            // Route is already logged - load data.
+            routes.push({ ...day.toWork });
+          } else if (
+            day &&
+            activeRoute.direction === TransportDirection.fromWork &&
+            day.fromWork
+          ) {
+            // Route is already logged - load data.
+            routes.push({ ...day.fromWork });
+          } else {
+            // Route is not logged - create empty route.
+            routes.push({
+              id: '',
+              date: activeRoute.timestamp.date,
+              direction: activeRoute.direction,
+              transport: TransportType.bike,
+              distance: 0,
+              inputType: 'input-number',
+            });
+          }
+        }
+      });
+      return routes;
+    });
 
     /**
      * Determines if route item is active.
@@ -180,18 +222,45 @@ export default defineComponent({
       }
     }
 
+    /**
+     * Triggered when user saves active routes.
+     * Clears active selection
+     */
+    function onSave(): void {
+      activeRoutes.value = [];
+    }
+
+    /**
+     * Control dialog open state based on selected routes count.
+     */
+    const isPanelOpen = ref<boolean>(false);
+    watch(
+      (): number => activeRoutes.value.length,
+      (length): void => {
+        if (length === 0) {
+          isPanelOpen.value = false;
+        } else {
+          isPanelOpen.value = true;
+        }
+      },
+    );
+
     return {
       activeRoutes,
+      activeRoutesComputed,
       calendar,
+      isPanelOpen,
       locale,
       monthNameAndYear,
       routesMap,
       selectedDate,
       theme,
+      TransportDirection,
       isActive,
       onClickItem,
       onNext,
       onPrev,
+      onSave,
       onToday,
     };
   },
@@ -199,7 +268,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div data-cy="routes-calendar">
+  <div data-cy="routes-calendar" class="relative-position">
     <!-- Top bar -->
     <div class="row q-pb-sm q-my-lg items-center gap-8">
       <!-- Title -->
@@ -241,9 +310,11 @@ export default defineComponent({
           <div v-if="!timestamp.future" class="q-my-sm" data-cy="calendar-day">
             <!-- Route to work -->
             <calendar-item-display
-              :active="isActive({ timestamp, direction: 'toWork' })"
+              :active="
+                isActive({ timestamp, direction: TransportDirection.toWork })
+              "
               :disabled="outside"
-              direction="toWork"
+              :direction="TransportDirection.toWork"
               :day="routesMap[timestamp.date]"
               :timestamp="timestamp"
               @item-click="onClickItem"
@@ -251,9 +322,11 @@ export default defineComponent({
             />
             <!-- Route from work -->
             <calendar-item-display
-              :active="isActive({ timestamp, direction: 'fromWork' })"
+              :active="
+                isActive({ timestamp, direction: TransportDirection.fromWork })
+              "
               :disabled="outside"
-              direction="fromWork"
+              :direction="TransportDirection.fromWork"
               :day="routesMap[timestamp.date]"
               :timestamp="timestamp"
               @item-click="onClickItem"
@@ -263,5 +336,11 @@ export default defineComponent({
         </template>
       </q-calendar-month>
     </div>
+    <route-calendar-panel
+      v-model="isPanelOpen"
+      :routes="activeRoutesComputed"
+      @save="onSave"
+      data-cy="route-calendar-panel"
+    />
   </div>
 </template>

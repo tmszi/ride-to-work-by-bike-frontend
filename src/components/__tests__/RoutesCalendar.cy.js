@@ -7,13 +7,29 @@ const classSelectorFutureDay = '.q-future-day';
 const classSelectorHeadWeekday = '.q-calendar-month__head--weekday';
 const classSelectorOutsideDay = '.q-outside';
 const classSelectorPastDay = '.q-past-day';
+const dataSelectorButtonSave = '[data-cy="dialog-save-button"]';
+const dataSelectorDialogClose = '[data-cy="dialog-close"]';
+const dataSelectorDialogHeader = '[data-cy="dialog-header"]';
+const dataSelectorInputDistance = '[data-cy="input-distance"]';
+const dataSelectorInputTransportType = '[data-cy="route-input-transport-type"]';
 const dataSelectorItemFromWork = '[data-cy="calendar-item-display-from-work"]';
-const dataSelectorItemFromWorkActive = '[data-cy="calendar-item-icon-fromwork-active"]';
-const dataSelectorItemFromWorkEmpty = '[data-cy="calendar-item-icon-fromwork-empty"]';
+const dataSelectorItemFromWorkActive =
+  '[data-cy="calendar-item-icon-fromwork-active"]';
+const dataSelectorItemFromWorkEmpty =
+  '[data-cy="calendar-item-icon-fromwork-empty"]';
 const dataSelectorItemToWork = '[data-cy="calendar-item-display-to-work"]';
-const dataSelectorItemToWorkActive = '[data-cy="calendar-item-icon-towork-active"]';
-const dataSelectorItemToWorkEmpty = '[data-cy="calendar-item-icon-towork-empty"]';
+const dataSelectorItemToWorkActive =
+  '[data-cy="calendar-item-icon-towork-active"]';
+const dataSelectorItemToWorkEmpty =
+  '[data-cy="calendar-item-icon-towork-empty"]';
+const dataSelectorRouteInputDistance = '[data-cy="route-input-distance"]';
 const selectorCalendarTitle = 'calendar-title';
+const selectorRouteCalendarPanel = 'route-calendar-panel';
+const selectorRoutesCalendar = 'routes-calendar';
+
+// variables
+const routeCountSingle = 1;
+const routeCountMultiple = 2;
 
 const dayNames = [
   i18n.global.t('time.mondayShort'),
@@ -30,7 +46,7 @@ describe('<RoutesCalendar>', () => {
     cy.testLanguageStringsInContext([], 'index.component', i18n);
   });
 
-  context('desktop', () => {
+  context('desktop - fixed date', () => {
     beforeEach(() => {
       // set default date
       const now = new Date(2024, 5, 17);
@@ -45,12 +61,137 @@ describe('<RoutesCalendar>', () => {
     coreTests();
   });
 
-  // TODO: Responsive version (option to use mini-mode) https://qcalendar.netlify.app/developing/qcalendarmonth-minimode/minimode-getting-started
+  context('desktop - current date', () => {
+    beforeEach(() => {
+      // skipping the cy.clock call, as it breaks the interaction with q-dialog
+      cy.mount(RoutesCalendar, {
+        props: {},
+      });
+      cy.viewport('macbook-16');
+    });
+
+    it('renders panel with dynamic heading if routes are selected', () => {
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
+      // Note: cy.dataCy(selectorRouteCalendarPanel) is "not visible" because of its CSS properties.
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('routes.titleBottomPanel', routeCountSingle, {
+            count: routeCountSingle,
+          }),
+        );
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorInputTransportType)
+        .should('be.visible');
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorRouteInputDistance)
+        .should('be.visible');
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('routes.titleBottomPanel', routeCountMultiple, {
+            count: routeCountMultiple,
+          }),
+        );
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('not.be.visible');
+    });
+
+    it('renders inputs and allows saving when value is entered', () => {
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('routes.titleBottomPanel', routeCountSingle, {
+            count: routeCountSingle,
+          }),
+        );
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorInputTransportType)
+        .should('be.visible');
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorRouteInputDistance)
+        .should('be.visible');
+      // save disabed
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorButtonSave)
+        .should('be.visible')
+        .and('be.disabled');
+      // fill in distance
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorInputDistance)
+        .should('be.visible')
+        .focus();
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorInputDistance)
+        .should('be.visible')
+        .clear();
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorInputDistance)
+        .should('be.visible')
+        .type('10');
+      // save enabled
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorButtonSave)
+        .should('not.be.disabled');
+      // save
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorButtonSave)
+        .click();
+      // panel is closed
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('not.be.visible');
+    });
+
+    it('allows to manually close panel and reopen on interaction', () => {
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
+      // show panel with 1 route
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('routes.titleBottomPanel', routeCountSingle, {
+            count: routeCountSingle,
+          }),
+        );
+      // close button
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogClose)
+        .click();
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('not.be.visible');
+      // enable new route
+      cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
+      // show panel with 2 routes
+      cy.dataCy(selectorRouteCalendarPanel)
+        .find(dataSelectorDialogHeader)
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('routes.titleBottomPanel', routeCountMultiple, {
+            count: routeCountMultiple,
+          }),
+        );
+    });
+  });
 });
 
 function coreTests() {
   it('renders component', () => {
-    cy.dataCy('routes-calendar').should('be.visible');
+    cy.dataCy(selectorRoutesCalendar).should('be.visible');
   });
 
   it('renders top title with month and year', () => {
@@ -92,47 +233,38 @@ function coreTests() {
   });
 
   // First route of the current date is active
-  it('renders default active route', () => {
+  it('renders inactive routes by default', () => {
     // check for active background
-    checkTodayToWorkActive();
+    checkTodayToWorkInactive();
+    checkTodayFromWorkInactive();
   });
 
   it('allows to enable multiple active routes', () => {
+    // enable today's "to work" route
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
     // enable today's "from work" route
-    cy.get(classSelectorCurrentDay)
-      .find(dataSelectorItemFromWork)
-      .click();
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
     // both today's routes are active
     checkTodayFromWorkActive();
     checkTodayToWorkActive();
     // enable a past day's to work route
-    cy.get(classSelectorPastDay)
-      .first()
-      .find(dataSelectorItemFromWork)
-      .click();
+    cy.get(classSelectorPastDay).first().find(dataSelectorItemFromWork).click();
     // from work is active
     checkTodayToWorkActive();
     checkTodayFromWorkActive();
     checkPastDayToWorkActive();
     // disable today's "to work" route
-    cy.get(classSelectorCurrentDay)
-      .find(dataSelectorItemToWork)
-      .click();
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
     checkTodayToWorkInactive();
     checkTodayFromWorkActive();
     checkPastDayToWorkActive();
     // disable today's "from work" route
-    cy.get(classSelectorCurrentDay)
-      .find(dataSelectorItemFromWork)
-      .click();
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
     checkTodayToWorkInactive();
     checkTodayFromWorkInactive();
     checkPastDayToWorkActive();
     // distable a past day's to work route
-    cy.get(classSelectorPastDay)
-      .first()
-      .find(dataSelectorItemFromWork)
-      .click();
+    cy.get(classSelectorPastDay).first().find(dataSelectorItemFromWork).click();
     checkTodayToWorkInactive();
     checkTodayFromWorkInactive();
     checkPastDayToWorkInactive();
@@ -150,7 +282,7 @@ function coreTests() {
       .first()
       .find(dataSelectorItemToWorkActive)
       .should('not.exist');
-  })
+  });
 }
 
 function checkTodayToWorkActive() {

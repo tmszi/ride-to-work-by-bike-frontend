@@ -23,17 +23,23 @@
  */
 
 // libraries
-import { computed, defineComponent, ref, watch } from 'vue';
+import { computed, defineComponent, watch } from 'vue';
 
 // components
 import RouteInputDistance from './RouteInputDistance.vue';
 import RouteInputTransportType from './RouteInputTransportType.vue';
 
+// composables
+import { useLogRoutes } from '../../composables/useLogRoutes';
+
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
+// enums
+import { TransportDirection } from '../types/Route';
+
 // types
-import type { RouteItem, RouteInputType, TransportType } from '../types/Route';
+import type { RouteItem } from '../types/Route';
 
 export default defineComponent({
   name: 'RouteItemEdit',
@@ -56,32 +62,19 @@ export default defineComponent({
     const { borderRadiusCard: borderRadius, colorGray: borderColor } =
       rideToWorkByBikeConfig;
 
-    const routeInitial: RouteItem = { ...props.route };
-
-    const action = ref<RouteInputType>(
-      props.route?.inputType || 'input-number',
-    );
-    const distance = ref<number>(props.route?.distance || 0);
-
-    const transport = ref<TransportType | null>(props.route.transport || null);
-    // show distance input if transport is bike, walk or bus
-    const isShownDistance = computed((): boolean => {
-      return (
-        transport.value === 'bike' ||
-        transport.value === 'walk' ||
-        transport.value === 'bus'
-      );
-    });
+    const routes = computed(() => [props.route]);
+    const { action, distance, transportType, isShownDistance } =
+      useLogRoutes(routes);
 
     // watcher for changes compared to the initial state (dirty)
     watch(
-      [action, distance, transport],
+      [action, distance, transportType],
       ([actionNew, distanceNew, transportNew]) => {
         // if settings are the same as initial, mark dirty as false
         if (
-          actionNew === (routeInitial?.inputType || 'input-number') &&
-          Number(distanceNew) === Number(routeInitial.distance) &&
-          transportNew === routeInitial?.transport
+          actionNew === (props.route?.inputType || 'input-number') &&
+          Number(distanceNew) === Number(props.route?.distance || 0) &&
+          transportNew === props.route?.transport
         ) {
           emit('update:route', false);
         }
@@ -101,7 +94,8 @@ export default defineComponent({
       distance,
       iconSize,
       isShownDistance,
-      transport,
+      transportType,
+      TransportDirection,
     };
   },
 });
@@ -123,7 +117,7 @@ export default defineComponent({
         data-cy="label-direction"
       >
         <!-- From work -->
-        <span v-if="route.direction === 'fromWork'">
+        <span v-if="route.direction === TransportDirection.fromWork">
           <q-icon
             name="arrow_back"
             :size="iconSize"
@@ -132,7 +126,7 @@ export default defineComponent({
           {{ $t('routes.labelDirectionFromWork') }}
         </span>
         <!-- To work -->
-        <span v-if="route.direction === 'toWork'">
+        <span v-if="route.direction === TransportDirection.toWork">
           <q-icon
             name="arrow_forward"
             :size="iconSize"
@@ -148,7 +142,7 @@ export default defineComponent({
         <!-- Section: Transport type -->
         <route-input-transport-type
           horizontal
-          v-model="transport"
+          v-model="transportType"
           class="q-mt-sm"
           data-cy="section-transport"
         />
@@ -158,6 +152,7 @@ export default defineComponent({
           v-model="distance"
           :modelAction="action"
           @update:modelAction="action = $event"
+          class="q-mt-lg"
           data-cy="section-distance"
         />
       </div>
