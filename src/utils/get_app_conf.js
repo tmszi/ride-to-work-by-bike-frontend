@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { parse } = require('toml');
 const { readFileSync } = require('fs');
 
@@ -64,6 +65,9 @@ const getAppConfig = (process) => {
     config['challengeStartDate'] = process.env.CHALLENGE_START_DATE;
   } else if (process.env.CONTAINER_WIDTH) {
     config['containerWidth'] = process.env.CONTAINER_WIDTH;
+  } else if (process.env.CHALLENGE_LOGGING_WINDOW_DAYS) {
+    config['challengeLoggingWindowDays'] =
+      process.env.CHALLENGE_LOGGING_WINDOW_DAYS;
   }
 
   return config;

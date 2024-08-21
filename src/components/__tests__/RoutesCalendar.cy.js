@@ -6,7 +6,7 @@ const classSelectorCurrentDay = '.q-current-day';
 const classSelectorFutureDay = '.q-future-day';
 const classSelectorHeadWeekday = '.q-calendar-month__head--weekday';
 const classSelectorOutsideDay = '.q-outside';
-const classSelectorPastDay = '.q-past-day';
+const classSelectorPastDay = '.q-past-day:not(.q-disabled-day)';
 const dataSelectorButtonSave = '[data-cy="dialog-save-button"]';
 const dataSelectorDialogClose = '[data-cy="dialog-close"]';
 const dataSelectorDialogHeader = '[data-cy="dialog-header"]';
@@ -17,11 +17,15 @@ const dataSelectorItemFromWorkActive =
   '[data-cy="calendar-item-icon-fromwork-active"]';
 const dataSelectorItemFromWorkEmpty =
   '[data-cy="calendar-item-icon-fromwork-empty"]';
+const dataSelectorItemFromWorkLogged =
+  '[data-cy="calendar-item-icon-fromwork-logged"]';
 const dataSelectorItemToWork = '[data-cy="calendar-item-display-to-work"]';
 const dataSelectorItemToWorkActive =
   '[data-cy="calendar-item-icon-towork-active"]';
 const dataSelectorItemToWorkEmpty =
   '[data-cy="calendar-item-icon-towork-empty"]';
+const dataSelectorItemToWorkLogged =
+  '[data-cy="calendar-item-icon-towork-logged"]';
 const dataSelectorRouteInputDistance = '[data-cy="route-input-distance"]';
 const selectorCalendarTitle = 'calendar-title';
 const selectorRouteCalendarPanel = 'route-calendar-panel';
@@ -282,6 +286,50 @@ function coreTests() {
       .first()
       .find(dataSelectorItemToWorkActive)
       .should('not.exist');
+  });
+
+  it('only allows to select a single logged route', () => {
+    // enable today's "to work" route
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
+    // enable today's "from work" route
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
+    // only one route should be active
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemFromWorkActive)
+      .should('have.length', 1);
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemToWorkActive)
+      .should('have.length', 1);
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemToWorkLogged)
+      .first()
+      .click({ force: true });
+    // only one route should be active
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemFromWorkActive)
+      .should('have.length', 0);
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemToWorkActive)
+      .should('have.length', 1);
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemFromWorkLogged)
+      .first()
+      .click({ force: true });
+    // only one route should be active
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemFromWorkActive)
+      .should('have.length', 1);
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemToWorkActive)
+      .should('have.length', 0);
+    // enable today's "to work" route
+    cy.get(classSelectorCurrentDay).find(dataSelectorItemToWork).click();
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemFromWorkActive)
+      .should('have.length', 0);
+    cy.dataCy(selectorRoutesCalendar)
+      .find(dataSelectorItemToWorkActive)
+      .should('have.length', 1);
   });
 }
 

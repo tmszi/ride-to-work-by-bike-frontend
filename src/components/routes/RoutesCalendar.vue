@@ -20,7 +20,12 @@
 
 // libraries
 import { colors } from 'quasar';
-import { QCalendarMonth, today } from '@quasar/quasar-ui-qcalendar';
+import {
+  addToDate,
+  parseTimestamp,
+  QCalendarMonth,
+  today,
+} from '@quasar/quasar-ui-qcalendar';
 import { defineComponent, computed, ref, watch } from 'vue';
 import { i18n } from '../../boot/i18n';
 
@@ -29,19 +34,21 @@ import CalendarItemDisplay from './CalendarItemDisplay.vue';
 import CalendarNavigation from './CalendarNavigation.vue';
 import RouteCalendarPanel from './RouteCalendarPanel.vue';
 
+// composables
+import { useCalendarRoutes } from '../../composables/useCalendarRoutes';
+
+// config
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
 // enums
-import { TransportDirection, TransportType } from '../types/Route';
+import { TransportDirection } from '../types/Route';
 
 // fixtures
 import routesListCalendarFixture from '../../../test/cypress/fixtures/routeListCalendar.json';
 
 // types
 import type { Timestamp } from '@quasar/quasar-ui-qcalendar';
-import type {
-  RouteCalendarActive,
-  RouteCalendarDay,
-  RouteItem,
-} from '../types/Route';
+import type { RouteCalendarDay } from '../types/Route';
 
 export default defineComponent({
   name: 'RoutesCalendar',
@@ -55,6 +62,22 @@ export default defineComponent({
     const selectedDate = ref<string>(today());
     const locale = computed((): string => {
       return i18n.global.locale;
+    });
+    // disable logging outside the specified time window
+    const { challengeLoggingWindowDays } = rideToWorkByBikeConfig;
+    const disabledAfter = computed((): string | null => {
+      const timestamp = parseTimestamp(today());
+      const timestampFuture = timestamp
+        ? addToDate(timestamp, { day: 1 })
+        : null;
+      return timestampFuture?.date || null;
+    });
+    const disabledBefore = computed((): string | null => {
+      const timestamp = parseTimestamp(today());
+      const timestampPast = timestamp
+        ? addToDate(timestamp, { day: -1 * challengeLoggingWindowDays })
+        : null;
+      return timestampPast?.date || null;
     });
 
     // Define calendar CSS vars for calendar theme
@@ -88,118 +111,19 @@ export default defineComponent({
     }
 
     // Get data
-    const routes: RouteCalendarDay[] =
-      routesListCalendarFixture as RouteCalendarDay[];
+    const days = ref<RouteCalendarDay[]>(
+      routesListCalendarFixture as RouteCalendarDay[],
+    );
 
-    /**
-     * Computed property of the routes map.
-     * Contains an array of days - each with two routes:
-     * - to work
-     * - from work
-     */
-    const routesMap = computed((): Record<string, RouteCalendarDay> => {
-      const routesObject = {} as Record<string, RouteCalendarDay>;
-      if (routes.length > 0) {
-        routes.forEach((route) => {
-          routesObject[route.date] = route;
-        });
-      }
-      return routesObject;
-    });
-
-    // Active state
-    const activeRoutes = ref<RouteCalendarActive[]>([]);
-
-    const activeRoutesComputed = computed((): RouteItem[] => {
-      const routes = [] as RouteItem[];
-      activeRoutes.value.forEach((activeRoute: RouteCalendarActive): void => {
-        if (activeRoute.timestamp && activeRoute.direction) {
-          const day: RouteCalendarDay =
-            routesMap.value[activeRoute.timestamp.date];
-          if (
-            day &&
-            activeRoute.direction === TransportDirection.toWork &&
-            day.toWork
-          ) {
-            // Route is already logged - load data.
-            routes.push({ ...day.toWork });
-          } else if (
-            day &&
-            activeRoute.direction === TransportDirection.fromWork &&
-            day.fromWork
-          ) {
-            // Route is already logged - load data.
-            routes.push({ ...day.fromWork });
-          } else {
-            // Route is not logged - create empty route.
-            routes.push({
-              id: '',
-              date: activeRoute.timestamp.date,
-              direction: activeRoute.direction,
-              transport: TransportType.bike,
-              distance: 0,
-              inputType: 'input-number',
-            });
-          }
-        }
-      });
-      return routes;
-    });
-
-    /**
-     * Determines if route item is active.
-     * It checks timestamp and direction against a stored routes.
-     * @param {Object} { timestamp: Timestamp; direction: TransportDirection }
-     * @return {boolean}
-     */
-    function isActive({
-      timestamp,
-      direction,
-    }: {
-      timestamp: Timestamp;
-      direction: TransportDirection;
-    }): boolean {
-      if (
-        !timestamp ||
-        !direction ||
-        !activeRoutes.value ||
-        !activeRoutes.value.length
-      ) {
-        return false;
-      }
-      return getActiveIndex({ timestamp, direction }) > -1;
-    }
-
-    /**
-     * Finds the index of the active route based on timestamp and direction.
-     * @param {Object} payload - Object containing the timestamp and
-     * the direction of the route item.
-     * - `timestamp` (Timestamp): The timestamp of the route item.
-     * - `direction` (TransportDirection): The direction of the route item.
-     * @return {number} The index of the active route or -1 if route not found.
-     */
-    function getActiveIndex({
-      timestamp,
-      direction,
-    }: {
-      timestamp: Timestamp;
-      direction: TransportDirection;
-    }): number {
-      if (
-        !timestamp ||
-        !direction ||
-        !activeRoutes.value ||
-        !activeRoutes.value.length
-      ) {
-        return -1;
-      }
-      return activeRoutes.value.findIndex((activeRoute) => {
-        return (
-          activeRoute.timestamp?.date === timestamp?.date &&
-          activeRoute.direction === direction
-        );
-      });
-    }
+    const {
+      activeRoutes,
+      activeRouteItems,
+      isActiveRouteLogged,
+      routesMap,
+      getActiveIndex,
+      isActive,
+      isCalendarRouteLogged,
+    } = useCalendarRoutes(days);
 
     /**
      * Handles click on route item within a day frame.
@@ -218,6 +142,13 @@ export default defineComponent({
       if (isActive({ timestamp, direction })) {
         activeRoutes.value.splice(getActiveIndex({ timestamp, direction }), 1);
       } else {
+        if (
+          isActiveRouteLogged.value ||
+          isCalendarRouteLogged({ timestamp, direction })
+        ) {
+          // do not allow selecting multiple logged routes
+          activeRoutes.value = [];
+        }
         activeRoutes.value.push({ timestamp, direction });
       }
     }
@@ -246,10 +177,12 @@ export default defineComponent({
     );
 
     return {
-      activeRoutes,
-      activeRoutesComputed,
+      activeRouteItems,
       calendar,
+      disabledAfter,
+      disabledBefore,
       isPanelOpen,
+      isActiveRouteLogged,
       locale,
       monthNameAndYear,
       routesMap,
@@ -297,6 +230,8 @@ export default defineComponent({
         no-active-date
         use-navigation
         short-weekday-label
+        :disabled-before="disabledBefore"
+        :disabled-after="disabledAfter"
         :locale="locale"
         :show-month-label="false"
         :weekdays="[1, 2, 3, 4, 5, 6, 0]"
@@ -313,7 +248,7 @@ export default defineComponent({
               :active="
                 isActive({ timestamp, direction: TransportDirection.toWork })
               "
-              :disabled="outside"
+              :disabled="outside || timestamp.disabled"
               :direction="TransportDirection.toWork"
               :day="routesMap[timestamp.date]"
               :timestamp="timestamp"
@@ -325,7 +260,7 @@ export default defineComponent({
               :active="
                 isActive({ timestamp, direction: TransportDirection.fromWork })
               "
-              :disabled="outside"
+              :disabled="outside || timestamp.disabled"
               :direction="TransportDirection.fromWork"
               :day="routesMap[timestamp.date]"
               :timestamp="timestamp"
@@ -338,7 +273,7 @@ export default defineComponent({
     </div>
     <route-calendar-panel
       v-model="isPanelOpen"
-      :routes="activeRoutesComputed"
+      :routes="activeRouteItems"
       @save="onSave"
       data-cy="route-calendar-panel"
     />
