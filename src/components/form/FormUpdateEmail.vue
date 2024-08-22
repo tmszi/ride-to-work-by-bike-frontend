@@ -1,0 +1,106 @@
+<script lang="ts">
+/**
+ * FormUpdateEmail Component
+ *
+ * @description * Use this component to render a form for updating email.
+ * Note: Used in `DetailsItem` component on `ProfilePage`.
+ *
+ * @props
+ * - `value` (string, required): Email value.
+ * - `onClose` (function, required): Function to close the dialog.
+ *
+ * @events
+ * - `update:value`: Emitted when value successfully changes.
+ *
+ * @components
+ * - `FormFieldEmailRequired` - Component to render email field.
+ * - `FormFieldPassword` - Component to render password field.
+ *
+ * @example
+ * <form-update-email :value="email" @update:value="onUpdateEmail">
+ *
+ * @see [Figma Design](https://www.figma.com/design/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?node-id=4858-104393&t=07BEuitYbnwTVn44-1)
+ */
+
+// libraries
+import { defineComponent, onMounted, ref } from 'vue';
+
+// components
+import FormFieldEmail from '../global/FormFieldEmail.vue';
+import FormFieldPassword from '../global/FormFieldPassword.vue';
+
+export default defineComponent({
+  name: 'FormUpdateEmail',
+  components: {
+    FormFieldEmail,
+    FormFieldPassword,
+  },
+  props: {
+    value: {
+      type: String,
+      required: true,
+    },
+    onClose: {
+      type: Function,
+      required: true,
+    },
+  },
+  emits: ['update:value', 'close'],
+  setup(props, { emit }) {
+    const inputValue = ref<string>('');
+    const password = ref<string>('');
+
+    onMounted(() => {
+      inputValue.value = props.value;
+    });
+
+    const closeDialog = (): void => {
+      props.onClose();
+    };
+
+    const onUpdateEmail = (): void => {
+      emit('update:value', inputValue.value);
+      props.onClose();
+    };
+
+    return {
+      inputValue,
+      password,
+      closeDialog,
+      onUpdateEmail,
+    };
+  },
+});
+</script>
+
+<template>
+  <q-form @submit.prevent="onUpdateEmail" data-cy="form-update-email">
+    <!-- Input: Email -->
+    <form-field-email v-model="inputValue" data-cy="form-email" />
+    <!-- Message: Confirm password to save changes -->
+    <p data-cy="form-message">{{ $t('profile.textPasswordConfirm') }}</p>
+    <!-- Input: Password -->
+    <form-field-password hide-hint v-model="password" data-cy="form-password" />
+    <div class="q-mt-xl flex justify-end gap-8">
+      <!-- Button: Cancel -->
+      <q-btn
+        rounded
+        unelevated
+        outline
+        color="primary"
+        :label="$t('navigation.discardChanges')"
+        @click.prevent="closeDialog"
+        data-cy="form-button-cancel"
+      />
+      <!-- Button: Save -->
+      <q-btn
+        rounded
+        unelevated
+        type="submit"
+        color="primary"
+        :label="$t('navigation.edit')"
+        data-cy="form-button-save"
+      />
+    </div>
+  </q-form>
+</template>

@@ -6,6 +6,7 @@
  * Note: Used on `ProfilePage`.
  *
  * @components
+ * - `ProfileDetails`: Component to display a ProfileDetails section.
  *
  * @example
  * <profile-tabs />
@@ -15,6 +16,9 @@
 
 // libraries
 import { defineComponent, ref } from 'vue';
+
+// components
+import ProfileDetails from './ProfileDetails.vue';
 
 // routes
 import { routesConf } from '../../router/routes_conf';
@@ -29,6 +33,9 @@ enum tabsProfile {
 
 export default defineComponent({
   name: 'ProfileTabs',
+  components: {
+    ProfileDetails,
+  },
   setup() {
     const activeTab = ref(tabsProfile.none);
 
@@ -85,9 +92,10 @@ export default defineComponent({
       <!-- Panel: Details -->
       <q-tab-panel
         :name="tabsProfile.details"
+        class="q-px-lg"
         data-cy="profile-tabs-panel-details"
       >
-        <!-- <profile-details /> -->
+        <profile-details />
       </q-tab-panel>
       <!-- Panel: Forms -->
       <q-tab-panel :name="tabsProfile.forms" data-cy="profile-tabs-panel-forms">
