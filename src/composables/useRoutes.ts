@@ -5,7 +5,7 @@ import { date } from 'quasar';
 import { i18n } from 'src/boot/i18n';
 
 // enums
-import { TransportType } from 'src/components/types/Route';
+import { TransportDirection, TransportType } from 'src/components/types/Route';
 
 // types
 import type { RouteItem, RouteListDay } from 'src/components/types/Route';
@@ -62,30 +62,92 @@ export const useRoutes = () => {
   };
 
   /**
-   * Generate an array of RouteListDay objects grouped by date from the given routes.
-   *
-   * @param routes - The array of RouteItem objects to process.
-   * @return The array of RouteListDay objects grouped by date.
+   * Creates an array of RouteListDay objects for each day between specified
+   * dates. Including end date and excluding start date.
+   * Fills in data from routes array based on date and direction.
+   * If data is empty for given day/route, it will create an empty route.
+   * @param {Date} startDate - The start date of the date range.
+   * @param {Date} endDate - The end date of the date range.
+   * @param {RouteItem[]} routes - The array logged routes.
+   * @return {RouteListDay[]} The array representing days with routes.
    */
-  const getDays = (routes: RouteItem[] | null | undefined): RouteListDay[] => {
-    const dayArray: RouteListDay[] = [];
-    if (!routes) return dayArray;
+  const createDaysArrayWithRoutes = (
+    startDate: Date,
+    endDate: Date,
+    routes: RouteItem[],
+  ): RouteListDay[] => {
+    const numberOfDays = date.getDateDiff(endDate, startDate, 'days');
+    const days = [] as RouteListDay[];
+    const routeDateFormat = 'YYYY-MM-DD';
 
-    routes?.forEach((route) => {
-      const routeDate = route.date;
-      let day: RouteListDay | undefined = dayArray.find((day) => {
-        return day.date === routeDate;
-      });
+    if (routes) {
+      for (let i = 0; i < numberOfDays; i++) {
+        const currentDate = date.subtractFromDate(endDate, { days: i });
 
-      if (!day) {
-        day = { date: routeDate, routes: [] };
-        dayArray.push(day);
+        // For any given day, get data from routes or create an empty route.
+        const fromWork = getRouteByDateAndDirection(
+          routes,
+          currentDate,
+          TransportDirection.fromWork,
+        );
+        const toWork = getRouteByDateAndDirection(
+          routes,
+          currentDate,
+          TransportDirection.toWork,
+        );
+        days.push({
+          id: date.formatDate(currentDate, routeDateFormat),
+          date: date.formatDate(currentDate, routeDateFormat),
+          fromWork: fromWork
+            ? fromWork
+            : ({
+                id: `${date.formatDate(currentDate, routeDateFormat)}-${TransportDirection.fromWork}`,
+                date: date.formatDate(currentDate, routeDateFormat),
+                transport: TransportType.none,
+                distance: 0,
+                direction: TransportDirection.fromWork,
+                dirty: false,
+                inputType: 'input-number',
+              } as RouteItem),
+          toWork: toWork
+            ? toWork
+            : ({
+                id: `${date.formatDate(currentDate, routeDateFormat)}-${TransportDirection.toWork}`,
+                date: date.formatDate(currentDate, routeDateFormat),
+                transport: TransportType.none,
+                distance: 0,
+                direction: TransportDirection.toWork,
+                dirty: false,
+                inputType: 'input-number',
+              } as RouteItem),
+        });
       }
+    }
+    return days;
+  };
 
-      day.routes.push(route);
+  /**
+   * Retrieves a route from a given list of routes based on date and direction.
+   * @param {RouteItem[]} routes - The list of route items to search through.
+   * @param {Date} dateQuery - Route date.
+   * @param {TransportDirection} directionQuery - Route direction.
+   * @return {RouteItem | null} Matching route, or null if no match is found.
+   */
+  const getRouteByDateAndDirection = (
+    routes: RouteItem[],
+    dateQuery: Date,
+    directionQuery: TransportDirection,
+  ): RouteItem | null => {
+    const route = routes.find((route) => {
+      const matchesDate = date.isSameDate(
+        new Date(route.date),
+        dateQuery,
+        'day',
+      );
+      const matchesDirection = route.direction === directionQuery;
+      return matchesDate && matchesDirection;
     });
-
-    return dayArray;
+    return route || null;
   };
 
   /**
@@ -126,9 +188,10 @@ export const useRoutes = () => {
   };
 
   return {
+    createDaysArrayWithRoutes,
     formatDate,
     formatDateName,
-    getDays,
+    getRouteByDateAndDirection,
     getRouteDistance,
     getRouteIcon,
     getTransportLabel,

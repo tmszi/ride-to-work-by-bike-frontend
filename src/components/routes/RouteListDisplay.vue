@@ -19,13 +19,17 @@
  */
 
 // libraries
-import { computed, defineComponent } from 'vue';
+import { date } from 'quasar';
+import { defineComponent, ref } from 'vue';
 
 // components
 import RouteItemDisplay from './RouteItemDisplay.vue';
 
 // composables
 import { useRoutes } from '../../composables/useRoutes';
+
+// config
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // types
 import type { RouteItem, RouteListDay } from '../types/Route';
@@ -35,16 +39,30 @@ export default defineComponent({
   props: {
     routes: {
       type: Array as () => RouteItem[],
+      required: true,
     },
   },
   components: {
     RouteItemDisplay,
   },
   setup(props) {
-    const { formatDate, formatDateName, getDays } = useRoutes();
-    const days = computed((): RouteListDay[] => {
-      return getDays(props.routes);
+    const { formatDate, formatDateName, createDaysArrayWithRoutes } =
+      useRoutes();
+
+    const { challengeLoggingWindowDays, challengeStartDate } =
+      rideToWorkByBikeConfig;
+    const todayDate = new Date();
+    // Start date is not included in createDaysArrayWithRoutes so we subtract 1 day.
+    const startDate = date.addToDate(new Date(challengeStartDate), {
+      days: -1,
     });
+    const endDate = date.addToDate(todayDate, {
+      days: -1 * challengeLoggingWindowDays,
+    });
+
+    const days = ref<RouteListDay[]>(
+      createDaysArrayWithRoutes(startDate, endDate, props.routes),
+    );
 
     return {
       days,
@@ -70,14 +88,29 @@ export default defineComponent({
       </h3>
       <div class="q-py-md">
         <div class="row q-col-gutter-lg">
-          <!-- Item: Route -->
+          <!-- Item: Route to work -->
           <div
-            v-for="route in day.routes"
-            :key="route.id"
+            v-if="day.toWork"
             class="col-12 col-sm-6"
             data-cy="route-list-item-wrapper"
           >
-            <route-item-display :route="route" data-cy="route-list-item" />
+            <route-item-display
+              :route="day.toWork"
+              data-cy="route-list-item"
+              :data-id="day.toWork.id"
+            />
+          </div>
+          <!-- Item: Route from work -->
+          <div
+            v-if="day.fromWork"
+            class="col-12 col-sm-6"
+            data-cy="route-list-item-wrapper"
+          >
+            <route-item-display
+              :route="day.fromWork"
+              data-cy="route-list-item"
+              :data-id="day.fromWork.id"
+            />
           </div>
         </div>
       </div>
