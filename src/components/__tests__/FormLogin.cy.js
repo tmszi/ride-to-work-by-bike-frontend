@@ -1,8 +1,11 @@
 import { colors } from 'quasar';
+import { createPinia, setActivePinia } from 'pinia';
+import { useLoginStore } from 'src/stores/login';
 
 import FormLogin from '../login/FormLogin.vue';
 import { i18n } from '../../boot/i18n';
 
+// colors
 const { getPaletteColor } = colors;
 const white = getPaletteColor('white');
 const grey10 = getPaletteColor('grey-10');
@@ -12,6 +15,10 @@ const rideToWorkByBikeConfig = JSON.parse(
 );
 const colorPrimary = rideToWorkByBikeConfig.colorPrimary;
 const contactEmail = rideToWorkByBikeConfig.contactEmail;
+
+// variables
+const email = 'test@example.com';
+const password = 'example123';
 
 describe('<FormLogin>', () => {
   it('has translation for all strings', () => {
@@ -233,12 +240,32 @@ describe('<FormLogin>', () => {
     });
   });
 
-  context('mobile', () => {
+  context('desktop - login store', () => {
     beforeEach(() => {
+      setActivePinia(createPinia());
       cy.mount(FormLogin, {
         props: {},
       });
-      cy.viewport('iphone-6');
+      cy.viewport('macbook-16');
+    });
+
+    it('uses the login store', () => {
+      const loginStore = useLoginStore();
+      // initial state
+      expect(loginStore.user.email).to.equal(null);
+      expect(loginStore.user.password).to.equal(null);
+      // type email
+      cy.dataCy('form-login-email').find('input').type(email);
+      // check email in store
+      cy.dataCy('form-login-email').then(() => {
+        expect(loginStore.user.email).to.equal(email);
+      });
+      // type password
+      cy.dataCy('form-login-password').find('input').type(password);
+      // check password in store
+      cy.dataCy('form-login-password').then(() => {
+        expect(loginStore.user.password).to.equal(password);
+      });
     });
   });
 });

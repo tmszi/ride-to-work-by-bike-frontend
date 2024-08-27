@@ -23,6 +23,7 @@
 
 // libraries
 import { defineComponent, ref, reactive } from 'vue';
+import { storeToRefs } from 'pinia';
 
 // components
 import BannerAppButtons from './BannerAppButtons.vue';
@@ -31,6 +32,9 @@ import LoginRegisterButtons from '../global/LoginRegisterButtons.vue';
 
 // composables
 import { useValidation } from '../../composables/useValidation';
+
+// stores
+import { useLoginStore } from '../../stores/login';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
@@ -44,10 +48,10 @@ export default defineComponent({
   },
   emits: ['formSubmit'],
   setup() {
-    const formLogin = reactive({
-      email: '',
-      password: '',
-    });
+    // store
+    const { userEmailString, userPasswordString } =
+      storeToRefs(useLoginStore());
+    const { setUserPassword, setUserEmail } = useLoginStore();
 
     const formPasswordReset = reactive({
       email: '',
@@ -79,15 +83,18 @@ export default defineComponent({
     return {
       backgroundColor,
       contactEmail,
-      formLogin,
       formPasswordReset,
       formState,
       isPassword,
       isEmail,
       isFilled,
+      userEmailString,
+      userPasswordString,
       onClickFormPasswordResetBtn,
       onSubmitLogin,
       onSubmitPasswordReset,
+      setUserPassword,
+      setUserEmail,
     };
   },
 });
@@ -108,7 +115,8 @@ export default defineComponent({
     <q-form @submit.prevent="onSubmitLogin">
       <!-- Input: email -->
       <form-field-email
-        v-model="formLogin.email"
+        :model-value="userEmailString"
+        @update:model-value="setUserEmail"
         bg-color="white"
         data-cy="form-login-email"
       />
@@ -124,7 +132,8 @@ export default defineComponent({
           outlined
           hide-bottom-space
           bg-color="grey-1"
-          v-model="formLogin.password"
+          :model-value="userPasswordString"
+          @update:model-value="setUserPassword"
           id="form-login-password"
           :type="isPassword ? 'password' : 'text'"
           :rules="[
