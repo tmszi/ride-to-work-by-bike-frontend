@@ -13,6 +13,10 @@
  * Note: This component is commonly used within the `SliderProgress`
  * component.
  *
+ * @components
+ * - `LinearProgressNumbers` - Used to render a linear progress bar with
+ *   labels for numbers.
+ *
  * @props
  * - `card` (Object, required): The card object containing progress details.
  *   It should be of type `CardProgressType`.
@@ -26,39 +30,44 @@
  */
 
 // libraries
-import { defineComponent, computed } from 'vue';
+import { defineComponent } from 'vue';
 import { useCircleSize } from '../../composables/useCircleSize';
 
 // types
 import { CardProgress as CardProgressType } from '../types';
+
+// components
+import LinearProgressNumbers from '../global/LinearProgressNumbers.vue';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 export default defineComponent({
   name: 'CardProgressSlider',
+  components: {
+    LinearProgressNumbers,
+  },
   props: {
     card: {
       type: Object as () => CardProgressType,
       required: true,
     },
   },
-  setup(props) {
-    const timelineValue = computed((): number => {
-      if (!props.card.duration?.current || !props.card.duration?.total) {
-        return 0;
-      }
-      return props.card.duration?.current / props.card.duration?.total;
-    });
+  setup() {
+    const imageMask = `url(${new URL('../../assets/svg/image-mask.svg', import.meta.url).href})`;
 
-    const { circleSize } = useCircleSize();
+    const { circleSize, trackWidth } = useCircleSize();
 
-    const borderRadius = rideToWorkByBikeConfig.borderRadiusCard;
+    const { borderRadiusCard, colorPrimary, colorPrimaryDark } =
+      rideToWorkByBikeConfig;
 
     return {
-      timelineValue,
+      borderRadiusCard,
       circleSize,
-      borderRadius,
+      colorPrimary,
+      colorPrimaryDark,
+      imageMask,
+      trackWidth,
     };
   },
 });
@@ -69,153 +78,160 @@ export default defineComponent({
     dark
     flat
     bordered
-    :style="{ 'border-radius': borderRadius }"
-    class="bg-blue-grey-3"
-    data-cy="card"
+    :style="{
+      'border-radius': borderRadiusCard,
+    }"
+    class="bg-primary"
+    data-cy="card-progress-slider"
   >
-    <!-- Background image -->
-    <q-img :src="card?.image" height="450px" fit="contain">
-      <div class="q-pa-none" style="width: 100%; height: 100%">
-        <!-- Card header -->
-        <q-card-section
-          class="absolute-top flex items-center justify-between q-px-lg gap-16 z-1"
-          data-cy="card-progress-header"
+    <!-- Card header -->
+    <q-card-section
+      class="flex items-center justify-between bg-primary q-px-lg gap-16"
+      data-cy="card-progress-header"
+    >
+      <!-- Title with icon -->
+      <div class="flex items-center gap-16 text-body1">
+        <!-- Card icon -->
+        <q-icon :name="card.icon" size="18px" color="white" />
+        <!-- Card title -->
+        <component
+          :is="card.url ? 'a' : 'div'"
+          :href="card.url"
+          class="text-white text-weight-bold"
+          data-cy="card-progress-title"
         >
-          <div class="flex items-center gap-16 text-body1">
-            <!-- Card icon -->
-            <q-icon :name="card.icon" size="18px" color="blue-grey-1" />
-            <!-- Card title -->
-            <component
-              :is="card.url ? 'a' : 'div'"
-              :href="card.url"
-              class="text-white text-weight-bold"
-              data-cy="card-progress-title"
-            >
-              <h3 class="text-body1 text-weight-bold q-my-none">
-                {{ card.title }}
-              </h3>
-            </component>
-          </div>
-
-          <!-- Timeline showing the progress of the challenge -->
-          <div data-cy="card-progress-timeline" class="min-w-180 gt-xs">
-            <!-- Timeline label -->
-            <div class="text-subtitle2 text-right">
-              {{ card.duration?.current }} / {{ card.duration?.total }}
-              {{ $t('index.cardProgressSlider.timeline') }}
-            </div>
-            <!-- Timeline progress bar -->
-            <q-linear-progress
-              :value="timelineValue"
-              color="white"
-              rounded
-              class="q-mt-xs"
-            />
-          </div>
-        </q-card-section>
-
-        <!-- Card body -->
-        <q-card-section class="full-width" style="padding: 92px 0 0">
-          <div class="row items-center q-pa-xl" data-cy="card-progress-content">
-            <!-- Section progress -->
-            <div
-              class="col-lg-4 flex justify-center justify-sm-start"
-              data-cy="card-progress-percentage"
-            >
-              <div class="relative-position">
-                <!-- Progress bar -->
-                <q-circular-progress
-                  rounded
-                  class="text-white"
-                  :value="card.progress"
-                  :size="circleSize"
-                  :thickness="0.05"
-                  color="white"
-                  track-color="blue-grey-10"
-                  data-cy="card-progress-circular"
-                />
-                <!-- Progress label -->
-                <div class="text-white absolute-center text-center">
-                  <!-- Caption -->
-                  <div class="text-caption">
-                    {{ $t('index.cardProgressSlider.toDate') }}
-                  </div>
-                  <!-- Number -->
-                  <div class="circular-progress-number q-mt-xs">
-                    {{ card.progress }}%
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Section stats -->
-            <div class="col flex column gap-16 gt-xs q-pl-xl">
-              <div
-                v-for="stat in card.stats"
-                :key="stat.title"
-                data-cy="card-progress-stats"
-              >
-                <!-- Title stats -->
-                <div class="stats-title text-uppercase text-caption">
-                  {{ stat.title }}
-                </div>
-                <!-- List stats -->
-                <q-list dark dense class="q-mt-lg">
-                  <q-item
-                    v-for="item in stat.items"
-                    :key="item.id"
-                    class="stats-value"
-                    style="padding: 0"
-                  >
-                    {{ item.text }}
-                  </q-item>
-                </q-list>
-              </div>
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-separator color="blue-grey-8 lt-sm" />
-
-        <!-- Card footer (mobile) -->
-        <q-card-section class="lt-sm" data-cy="card-progress-footer-mobile">
-          <!-- Timeline showing the progress of the challenge -->
-          <div class="min-w-180" data-cy="card-progress-timeline">
-            <!-- Timeline label -->
-            <div class="text-subtitle2 text-center">
-              {{ card.duration?.current }} / {{ card.duration?.total }}
-              {{ $t('index.cardProgressSlider.timeline') }}
-            </div>
-            <!-- Timeline progress bar -->
-            <q-linear-progress
-              class="q-mt-xs"
-              :value="timelineValue"
-              color="white"
-              rounded
-            />
-          </div>
-        </q-card-section>
+          <h3 class="text-body1 text-weight-bold q-my-none">
+            {{ card.title }}
+          </h3>
+        </component>
       </div>
-    </q-img>
+
+      <!-- Timeline (desktop) -->
+      <linear-progress-numbers
+        :value="card.duration?.current"
+        :max="card.duration?.total"
+        :label="$t('index.cardProgressSlider.timeline')"
+        class="gt-xs"
+      />
+    </q-card-section>
+    <!-- Card body -->
+    <q-card-section :style="{ backgroundColor: colorPrimaryDark }">
+      <div class="row items-center q-pa-xl" data-cy="card-progress-content">
+        <!-- Section progress -->
+        <div
+          class="col-12 col-sm-6 col-lg-4 flex justify-center justify-sm-start"
+          data-cy="card-section-progress"
+        >
+          <div class="relative-position">
+            <!-- Progress bar -->
+            <q-circular-progress
+              rounded
+              :value="card.progress"
+              :size="circleSize"
+              :thickness="trackWidth"
+              color="secondary"
+              track-color="blue-grey-8"
+              data-cy="card-progress-circular"
+            />
+            <!-- Progress label -->
+            <div class="text-white absolute-center text-center">
+              <!-- Caption -->
+              <div
+                class="text-caption"
+                data-cy="card-progress-circular-caption"
+              >
+                {{ $t('index.cardProgressSlider.toDate') }}
+              </div>
+              <!-- Number -->
+              <div
+                class="circular-progress-number q-mt-xs text-weight-bold"
+                data-cy="card-progress-circular-number"
+              >
+                {{ card.progress }}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section stats -->
+        <div
+          class="col col-sm-6 col-lg-4 flex column gap-16 gt-xs"
+          data-cy="card-section-stats"
+        >
+          <div
+            v-for="stat in card.stats"
+            :key="stat.title"
+            data-cy="card-progress-stats"
+          >
+            <!-- Title stats -->
+            <div
+              class="text-uppercase text-caption text-secondary"
+              data-cy="card-progress-stats-title"
+            >
+              {{ stat.title }}
+            </div>
+            <!-- List stats -->
+            <q-list dark dense class="q-mt-sm">
+              <q-item
+                v-for="item in stat.items"
+                :key="item.id"
+                class="stats-value"
+                style="padding: 0"
+              >
+                <q-item-section v-if="item.icon" avatar>
+                  <q-icon
+                    color="primary"
+                    :name="item.icon"
+                    size="18px"
+                    data-cy="card-progress-stats-icon"
+                  />
+                </q-item-section>
+
+                <q-item-section data-cy="card-progress-stats-value">
+                  {{ item.text }}
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+        </div>
+
+        <!-- Section image -->
+        <div v-if="$q.screen.gt.md" class="absolute-right col-lg-4 full-height">
+          <q-img
+            fit="cover"
+            position="50% 100%"
+            class="full-width full-height"
+            src="~assets/image/card-progress-slider/bike.webp"
+            :img-style="{
+              maskImage: imageMask,
+              maskRepeat: 'no-repeat',
+              maskSize: 'contain',
+            }"
+          />
+        </div>
+      </div>
+    </q-card-section>
+    <!-- Card footer (mobile) -->
+    <q-separator v-if="$q.screen.lt.sm" color="blue-grey-8" />
+    <q-card-section
+      v-if="$q.screen.lt.sm"
+      :style="{ backgroundColor: colorPrimaryDark }"
+      data-cy="card-progress-footer-mobile"
+    >
+      <!-- Timeline (mobile) -->
+      <linear-progress-numbers
+        :value="card.duration?.current"
+        :max="card.duration?.total"
+        :label="$t('index.cardProgressSlider.timeline')"
+      />
+    </q-card-section>
   </q-card>
 </template>
 
 <style scoped lang="scss">
-.q-img__content > div {
-  padding: 0; // fixes card padding
-}
-.z-1 {
-  z-index: 1;
-}
-.gap-16 {
-  gap: 16px;
-}
 .justify-sm-start {
   @media (min-width: $breakpoint-sm-min) {
     justify-content: flex-start;
   }
-}
-.min-w-180 {
-  min-width: 180px;
 }
 </style>
