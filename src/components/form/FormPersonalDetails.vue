@@ -27,7 +27,11 @@
 import { defineComponent, nextTick } from 'vue';
 
 // components
-import FormFieldTextRequired from 'components/global/FormFieldTextRequired.vue';
+import FormFieldTextRequired from '../global/FormFieldTextRequired.vue';
+import FormFieldRadioRequired from './FormFieldRadioRequired.vue';
+
+// composables
+import { i18n } from 'src/boot/i18n';
 
 // types
 import {
@@ -39,6 +43,7 @@ export default defineComponent({
   name: 'FormPersonalDetails',
   components: {
     FormFieldTextRequired,
+    FormFieldRadioRequired,
   },
   props: {
     formValues: {
@@ -71,11 +76,11 @@ export default defineComponent({
 
     const genderOptions: FormOption[] = [
       {
-        label: 'global.man',
+        label: i18n.global.t('global.man'),
         value: 'male',
       },
       {
-        label: 'global.woman',
+        label: i18n.global.t('global.woman'),
         value: 'female',
       },
     ];
@@ -139,7 +144,7 @@ export default defineComponent({
             name="nickname"
             :hint="$t('form.hintNickname')"
             id="form-nickname"
-            class="q-mt-sm"
+            class="q-mt-sm hint-no-padding"
             @change="onUpdate"
             data-cy="form-nickname-input"
           />
@@ -152,23 +157,14 @@ export default defineComponent({
           {{ $t('form.personalDetails.titleGender') }}
         </label>
         <!-- Radio group -->
-        <q-option-group
-          dense
+        <form-field-radio-required
           inline
-          id="form-gender"
           v-model="personalDetails.gender"
           :options="genderOptions"
-          :rules="[(val: string) => !!val || $t('form.messageOptionRequired')]"
-          color="primary"
-          type="radio"
-          class="q-gutter-md q-mt-xs"
-          data-cy="form-gender-input"
-        >
-          <!-- Default slot: label (used so that label is translated dynamically) -->
-          <template v-slot:label="option">
-            {{ $t(option.label) }}
-          </template>
-        </q-option-group>
+          :hint="$t('form.personalDetails.hintGender')"
+          @update:model-value="onUpdate"
+          class="q-mt-sm"
+        />
       </div>
       <!-- Input: Newsletter -->
       <div class="col-12" data-cy="form-personal-details-newsletter">
@@ -232,3 +228,11 @@ export default defineComponent({
     </div>
   </div>
 </template>
+
+<style>
+.hint-no-padding {
+  .q-field__bottom {
+    padding: 8px 0 0;
+  }
+}
+</style>
