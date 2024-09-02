@@ -7,6 +7,7 @@
  * Note: This component is used on `ProfilePage` in `ProfileTabs` component.
  *
  * @components
+ * - `AddressDisplay`: Component to display an address.
  * - `DetailsItem`: Component to display a row of data.
  * - `FormUpdateEmail`: Component to render a form for updating email.
  * - `FormUpdateGender`: Component to render a form for updating gender.
@@ -23,6 +24,7 @@
 import { defineComponent, reactive } from 'vue';
 
 // components
+import AddressDisplay from '../global/AddressDisplay.vue';
 import DetailsItem from '../profile/DetailsItem.vue';
 import FormUpdateEmail from '../form/FormUpdateEmail.vue';
 import FormUpdateGender from '../form/FormUpdateGender.vue';
@@ -38,6 +40,7 @@ import type { Profile } from '../types/Profile';
 export default defineComponent({
   name: 'ProfileDetails',
   components: {
+    AddressDisplay,
     DetailsItem,
     FormUpdateEmail,
     FormUpdateGender,
@@ -160,7 +163,6 @@ export default defineComponent({
         <details-item
           :label="$t('profile.labelOrganizationType')"
           :value="profile.organizationType"
-          :empty-label="$t('profile.labelOrganizationTypeEmpty')"
           class="col-12 col-sm-6"
           data-cy="profile-details-organization-type"
         />
@@ -168,9 +170,93 @@ export default defineComponent({
         <details-item
           :label="$t('profile.labelOrganization')"
           :value="profile.organization"
-          :empty-label="$t('profile.labelOrganizationEmpty')"
           class="col-12 col-sm-6"
           data-cy="profile-details-organization"
+        />
+        <!-- Address / Division -->
+        <details-item
+          :label="$t('profile.labelAddressDivision')"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-address-division"
+        >
+          <template #value>
+            <address-display :address="profile.division.address" />
+          </template>
+        </details-item>
+        <!-- Team -->
+        <details-item
+          :label="$t('profile.labelTeam')"
+          :value="profile.team"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-team"
+        />
+      </div>
+    </div>
+
+    <!-- Title -->
+    <h2
+      class="text-h6 text-grey-10 q-mb-none q-mt-xl"
+      data-cy="profile-title-starter-package"
+    >
+      {{ $t('profile.titleStarterPackage') }}
+    </h2>
+
+    <!-- Starter package -->
+    <div class="q-mt-lg">
+      <div class="row q-col-gutter-lg">
+        <!-- Package -->
+        <details-item
+          :label="$t('profile.labelPackage')"
+          :value="profile.package.title"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-package"
+        >
+          <template #value>
+            <a
+              :href="profile.package.url"
+              data-cy="profile-details-package-link"
+            >
+              {{ profile.package.title }}
+            </a>
+          </template>
+        </details-item>
+        <!-- Size -->
+        <details-item
+          :label="$t('profile.labelSize')"
+          :value="profile.package.size"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-size"
+        />
+        <!-- State -->
+        <details-item
+          :label="$t('profile.labelState')"
+          :value="profile.package.state"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-state"
+        />
+        <!-- Tracking number -->
+        <details-item
+          :label="$t('profile.labelTrackingNumber')"
+          :value="profile.package.trackingNumber"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-tracking-number"
+        />
+        <!-- Delivery address -->
+        <details-item
+          :label="$t('profile.labelDeliveryAddress')"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-delivery-address"
+        >
+          <template #value>
+            <address-display :address="profile.deliveryAddress" />
+          </template>
+        </details-item>
+        <!-- Phone number -->
+        <details-item
+          :label="$t('profile.labelPhone')"
+          :value="profile.phone"
+          class="col-12 col-sm-6"
+          data-cy="profile-details-phone"
         />
       </div>
     </div>
