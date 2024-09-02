@@ -33,6 +33,8 @@
  * - `FormFieldSelectTable`: Component to render company select field.
  * - `FormFieldTextRequired`: Component to render text input field.
  * - `RouteInputTransportType`: Component to render transport type input field.
+ * - `FormFieldBusinessId`: Component to render business id input field.
+ * - `FormFieldSliderNumber`: Component to render number input field.
  *
  * @slots
  * - `default`: Slot for input fields
@@ -59,7 +61,20 @@ import FormFieldSelectCity from '../form/FormFieldSelectCity.vue';
 import FormFieldSelectTable from '../form/FormFieldSelectTable.vue';
 import FormFieldTextRequired from './FormFieldTextRequired.vue';
 import FormFieldBusinessId from '../form/FormFieldBusinessId.vue';
+import FormFieldSliderNumber from '../form/FormFieldSliderNumber.vue';
 import RouteInputTransportType from '../routes/RouteInputTransportType.vue';
+
+// types
+type DefaultValue =
+  | number
+  | boolean
+  | string
+  | object
+  | number[]
+  | boolean[]
+  | string[]
+  | object[];
+import { PropType } from 'vue';
 
 export default defineComponent({
   name: 'FormFieldTestWrapper',
@@ -78,6 +93,7 @@ export default defineComponent({
     FormFieldSelectTable,
     FormFieldTextRequired,
     FormFieldBusinessId,
+    FormFieldSliderNumber,
     RouteInputTransportType,
   },
   props: {
@@ -100,16 +116,16 @@ export default defineComponent({
     required: {
       type: Boolean,
     },
-    type: {
-      type: String as () => 'array' | 'boolean' | 'string',
-      default: 'string',
-    },
     validationMessage: {
       type: String,
     },
+    defaultValue: {
+      type: [Number, String, Boolean, Array, Object] as PropType<DefaultValue>,
+      default: '',
+    },
   },
   setup(props) {
-    const inputValue = ref(props.type === 'array' ? [] : props.type === 'boolean' ? false : '');
+    const inputValue = ref(props.defaultValue);
 
     return {
       inputValue,

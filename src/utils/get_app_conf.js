@@ -74,6 +74,14 @@ const getAppConfig = (process) => {
       process.env.CHALLENGE_LOGGING_WINDOW_DAYS;
   } else if (process.env.DEFAULT_DISTANCE_ZERO) {
     config['defaultDistanceZero'] = process.env.DEFAULT_DISTANCE_ZERO;
+  } else if (process.env.ENTRY_FEE_PAYMENT_MIN) {
+    config['entryFeePaymentMin'] = process.env.ENTRY_FEE_PAYMENT_MIN;
+  } else if (process.env.ENTRY_FEE_PAYMENT_MAX) {
+    config['entryFeePaymentMax'] = process.env.ENTRY_FEE_PAYMENT_MAX;
+  } else if (process.env.ENTRY_FEE_PAYMENT_OPTIONS) {
+    config['entryFeePaymentOptions'] = process.env.ENTRY_FEE_PAYMENT_OPTIONS;
+  } else if (process.env.NOTIFY_MESSAGE_POSITION) {
+    config['notifyMessagePosition'] = process.env.NOTIFY_MESSAGE_POSITION;
   }
 
   return config;

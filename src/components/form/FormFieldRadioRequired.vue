@@ -6,7 +6,7 @@
  *
  * @description * Use this component to render email input in forms.
  *
- * Note: This component is commonly used in `FormRegister`, `FormLogin`.
+ * Used in `FormRegister`, `FormLogin`, `RegisterChallengePayment`.
  *
  * @props
  * - `modelValue` (string, required): The object representing user input.
@@ -90,6 +90,12 @@ export default defineComponent({
       color="primary"
       class="text-grey-10 q-gutter-md"
       data-cy="form-field-radio"
-    />
+    >
+      <template v-slot:label="opt">
+        <span :data-cy="`radio-option-${opt.value}`" class="text-grey-10">{{
+          opt.label
+        }}</span>
+      </template>
+    </q-option-group>
   </q-field>
 </template>

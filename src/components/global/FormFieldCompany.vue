@@ -7,7 +7,7 @@
  * @description * Use this component to allow user to select their company
  * and create a new company to register under.
  *
- * Note: This component is commonly used in `FormRegisterCoordinator`.
+ * Used in `FormRegisterCoordinator`, `RegisterChallengePayment`.
  *
  * @props
  * - `modelValue` (string, required): The object representing user input.
@@ -35,6 +35,7 @@ import DialogDefault from 'src/components/global/DialogDefault.vue';
 import FormAddCompany from 'src/components/form/FormAddCompany.vue';
 
 // composables
+import { i18n } from 'src/boot/i18n';
 import { useValidation } from 'src/composables/useValidation';
 
 // types
@@ -54,11 +55,19 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    label: {
+      type: String,
+      default: '',
+    },
   },
   setup(props, { emit }) {
     const options = ref<string[]>([]);
     const isDialogOpen = ref<boolean>(false);
     const formRef = ref<typeof QForm | null>(null);
+
+    const formFieldLabel = computed(
+      () => props.label || i18n.global.t('form.labelCompany'),
+    );
 
     const company = computed({
       get: () => props.modelValue,
@@ -70,6 +79,16 @@ export default defineComponent({
     const companyNew: FormCompanyFields = {
       name: '',
       vatId: '',
+      address: [
+        {
+          street: '',
+          houseNumber: '',
+          city: '',
+          zip: '',
+          cityChallenge: '',
+          department: '',
+        },
+      ],
     };
 
     // handles select input
@@ -129,6 +148,7 @@ export default defineComponent({
     return {
       company,
       companyNew,
+      formFieldLabel,
       formRef,
       isDialogOpen,
       options,
@@ -145,8 +165,12 @@ export default defineComponent({
 <template>
   <div data-cy="form-company">
     <!-- Label -->
-    <label for="form-company" class="text-caption text-bold">
-      {{ $t('form.labelCompany') }}
+    <label
+      for="form-company"
+      class="text-caption text-bold"
+      data-cy="form-field-company-label"
+    >
+      {{ formFieldLabel }}
     </label>
     <div class="row">
       <div class="col-12 col-sm" data-cy="col-input">
