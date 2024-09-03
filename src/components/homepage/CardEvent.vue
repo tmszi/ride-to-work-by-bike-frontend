@@ -66,8 +66,11 @@ export default defineComponent({
     const setHorizontalPosition = (): boolean => (Screen.xs ? false : true);
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCard;
 
+    const iconSize = '18px';
+
     return {
       borderRadius,
+      iconSize,
       modalOpened,
       eventDateTime,
       setHorizontalPosition,
@@ -78,9 +81,8 @@ export default defineComponent({
 
 <template>
   <div>
-    <q-card
-      flat
-      class="bg-white"
+    <div
+      class="overflow-hidden bg-white border-grey-5"
       :style="{ 'border-radius': borderRadius }"
       data-cy="card"
     >
@@ -91,7 +93,8 @@ export default defineComponent({
       >
         <!-- Bg image -->
         <q-img
-          :ratio="3 / 2"
+          fit="cover"
+          :ratio="2 / 1"
           :img-style="{
             borderRadius: setHorizontalPosition()
               ? `${borderRadius} 0 0 ${borderRadius}`
@@ -104,10 +107,10 @@ export default defineComponent({
         />
         <!-- Content -->
         <div
-          class="col-grow flex wrap items-center q-py-lg"
+          class="col-grow flex gap-16 gap-x-32 wrap items-center q-pa-lg text-grey-10"
           data-cy="card-content"
         >
-          <div class="col-grow q-px-md">
+          <div class="col-grow">
             <!-- Event name link for open modal dialog -->
             <div class="text-subtitle1 text-bold" data-cy="card-title">
               <a
@@ -122,7 +125,7 @@ export default defineComponent({
             <!-- Event date and place description -->
             <div
               v-if="eventDateTime || card?.location"
-              class="meta flex items-center gap-8 q-mt-sm"
+              class="meta flex items-center gap-8 q-mt-sm text-grey-8"
             >
               <div
                 v-if="eventDateTime"
@@ -131,10 +134,11 @@ export default defineComponent({
               >
                 <!-- Event calendar icon -->
                 <q-icon
-                  name="event"
-                  size="sm"
+                  name="svguse:icons/card_event/icons.svg#calendar"
+                  :size="iconSize"
                   class="q-pr-xs"
-                  color="blue-grey-2"
+                  color="primary"
+                  data-cy="card-dates-icon"
                 />
                 {{ eventDateTime }}
               </div>
@@ -145,20 +149,26 @@ export default defineComponent({
               >
                 <!-- Event place icon -->
                 <q-icon
-                  name="place"
-                  size="sm"
+                  name="svguse:icons/card_event/icons.svg#map-pin"
+                  :size="iconSize"
                   class="q-pr-xs"
-                  color="blue-grey-2"
+                  color="primary"
+                  data-cy="card-location-icon"
                 />
                 {{ card?.location }}
               </div>
             </div>
           </div>
           <!-- Add to calendar btn -->
-          <div class="overflow-hidden flex items-center q-mt-md">
-            <div class="q-px-md">
-              <q-btn round outline data-cy="calendar-button">
-                <q-icon name="fa-solid fa-calendar-plus" size="xs"></q-icon>
+          <div class="overflow-hidden flex items-center">
+            <div>
+              <q-btn round outline color="primary" data-cy="calendar-button">
+                <q-icon
+                  name="svguse:icons/card_event/icons.svg#calendar-plus"
+                  size="xs"
+                  color="primary"
+                  data-cy="calendar-button-icon"
+                ></q-icon>
               </q-btn>
             </div>
           </div>
@@ -177,30 +187,32 @@ export default defineComponent({
         </template>
         <!-- Metadata -->
         <template v-if="eventDateTime || card?.location" #metadata>
-          <div class="flex flex-wrap items-center gap-x-32 gap-y-8 q-mt-sm">
+          <div class="flex flex-wrap items-center gap-8 gap-x-32 q-mt-sm">
             <div
               v-if="eventDateTime"
-              class="flex items-center text-blue-grey-7"
+              class="flex items-center text-grey-8"
               data-cy="dialog-meta"
             >
               <q-icon
                 name="event"
-                size="18px"
+                :size="iconSize"
                 class="q-pr-xs"
-                color="blue-grey-3"
+                color="primary"
+                data-cy="dialog-meta-date-icon"
               />
               {{ eventDateTime }}
             </div>
             <div
               v-if="card?.location"
-              class="flex items-center text-blue-grey-7"
+              class="flex items-center text-grey-8"
               data-cy="dialog-meta"
             >
               <q-icon
                 name="pedal_bike"
-                size="18px"
+                :size="iconSize"
                 class="q-pr-xs"
-                color="blue-grey-3"
+                color="primary"
+                data-cy="dialog-meta-location-icon"
               />
               {{ card?.location }}
             </div>
@@ -241,21 +253,13 @@ export default defineComponent({
           </div>
         </template>
       </dialog-default>
-    </q-card>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.gap-y-8 {
-  row-gap: 8px;
-}
-
-.gap-x-32 {
-  column-gap: 32px;
-}
-
-.q-dialog__inner > div {
-  overflow: visible !important;
+.border-grey-5 {
+  border: 1px solid $grey-5;
 }
 
 .card-link {
@@ -263,27 +267,6 @@ export default defineComponent({
 
   &:hover {
     text-decoration: underline;
-  }
-}
-
-.dialog-close-btn {
-  top: -21px;
-  right: -21px;
-}
-
-.q-card > div:first-child > .q-img {
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-@media (min-width: $breakpoint-sm-min) {
-  .q-card > div:first-child > .q-img {
-    border-top-left-radius: inherit;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: inherit;
-    border-bottom-right-radius: 0;
   }
 }
 </style>
