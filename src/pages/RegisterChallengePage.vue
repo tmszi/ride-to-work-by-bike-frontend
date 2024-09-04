@@ -12,6 +12,7 @@
  * - `FormFieldListMerch`: Component to render list of merch options.
  * - `FormFieldOptionGroup`: Component to render radio buttons.
  * - `FormPersonalDetails`: Component to render personal details form.
+ * - `FormSelectOrganization`: Component to render organization select widget.
  * - `LoginRegisterHeader`: Component to render page header.
  * - `TopBarCountdown`: Component to display countdown.
  *
@@ -29,36 +30,29 @@ import { QForm, QStepper } from 'quasar';
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // components
-import FormFieldCompanyAddress from '../components/form/FormFieldCompanyAddress.vue';
-import FormFieldSelectTable from '../components/form/FormFieldSelectTable.vue';
-import FormFieldListMerch from '../components/form/FormFieldListMerch.vue';
-import FormFieldOptionGroup from '../components/form/FormFieldOptionGroup.vue';
-import FormPersonalDetails from '../components/form/FormPersonalDetails.vue';
-import LoginRegisterHeader from '../components/global/LoginRegisterHeader.vue';
-import RegisterChallengePayment from '../components/register/RegisterChallengePayment.vue';
-import TopBarCountdown from '../components/global/TopBarCountdown.vue';
+import FormFieldSelectTable from 'src/components/form/FormFieldSelectTable.vue';
+import FormFieldListMerch from 'src/components/form/FormFieldListMerch.vue';
+import FormFieldOptionGroup from 'src/components/form/FormFieldOptionGroup.vue';
+import FormPersonalDetails from 'src/components/form/FormPersonalDetails.vue';
+import FormSelectOrganization from 'src/components/form/FormSelectOrganization.vue';
+import LoginRegisterHeader from 'components/global/LoginRegisterHeader.vue';
+import TopBarCountdown from 'src/components/global/TopBarCountdown.vue';
 
 // composables
 import { useStepperValidation } from 'src/composables/useStepperValidation';
 
 // types
-import type {
-  FormCompanyAddressFields,
-  FormOption,
-  FormPersonalDetailsFields,
-  FormSelectTableOption,
-} from 'src/components/types/Form';
+import type { FormSelectTableOption } from 'src/components/types/Form';
 
 export default defineComponent({
   name: 'RegisterChallengePage',
   components: {
-    FormFieldCompanyAddress,
     FormFieldSelectTable,
     FormFieldListMerch,
     FormFieldOptionGroup,
     FormPersonalDetails,
+    FormSelectOrganization,
     LoginRegisterHeader,
-    RegisterChallengePayment,
     TopBarCountdown,
   },
   setup() {
@@ -116,54 +110,7 @@ export default defineComponent({
     }`;
     const doneIconImgSrcStepper6 = doneIcon;
 
-    const personalDetails = ref<FormPersonalDetailsFields>({
-      firstName: '',
-      lastName: '',
-      nickname: '',
-      gender: '',
-      email: '',
-      newsletter: [],
-      terms: false,
-    });
-
     const participation = ref<string>('');
-
-    const companyOptions: FormOption[] = [
-      {
-        label: 'Very long company name spanning 3 lines on mobile',
-        value: 'company-1',
-      },
-      {
-        label: 'Company 2',
-        value: 'company-2',
-      },
-      {
-        label: 'Company 3',
-        value: 'company-3',
-      },
-      {
-        label: 'Company 4',
-        value: 'company-4',
-      },
-      {
-        label: 'Company 5',
-        value: 'company-5',
-      },
-      {
-        label: 'Company 6',
-        value: 'company-6',
-      },
-      {
-        label: 'Company 7',
-        value: 'company-7',
-      },
-    ];
-    const BusinessId = ref<string>('');
-    const companyAddress = ref<FormCompanyAddressFields | null>(null);
-
-    const onUpdateAddress = (val: FormCompanyAddressFields) => {
-      companyAddress.value = val;
-    };
 
     const teamOptions: FormSelectTableOption[] = [
       {
@@ -227,16 +174,11 @@ export default defineComponent({
       iconImgSrcStepper6,
       activeIconImgSrcStepper6,
       doneIconImgSrcStepper6,
-      companyOptions,
       participation,
-      companyAddress,
-      BusinessId,
-      personalDetails,
       team,
       teamOptions,
       onBack,
       onContinue,
-      onUpdateAddress,
     };
   },
 });
@@ -287,10 +229,7 @@ export default defineComponent({
             data-cy="step-1"
           >
             <q-form ref="stepPersonalDetailsRef">
-              <form-personal-details
-                :form-values="personalDetails"
-                @update:form-values="personalDetails = $event"
-              />
+              <form-personal-details data-cy="form-personal-details" />
             </q-form>
             <q-stepper-navigation class="flex justify-end">
               <q-btn
@@ -399,19 +338,7 @@ export default defineComponent({
             data-cy="step-4"
           >
             <q-form ref="stepCompanyRef">
-              <form-field-select-table
-                variant="company"
-                v-model="BusinessId"
-                :options="companyOptions"
-                :label="$t('form.company.labelCompany')"
-                :label-button="$t('register.challenge.buttonAddCompany')"
-                :label-button-dialog="$t('form.company.buttonAddCompany')"
-                :title-dialog="$t('form.company.titleAddCompany')"
-                data-cy="form-select-table-company"
-              />
-              <form-field-company-address
-                @update:form-value="onUpdateAddress"
-              />
+              <form-select-organization />
             </q-form>
             <q-stepper-navigation>
               <div class="flex justify-end">

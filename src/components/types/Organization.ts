@@ -1,9 +1,34 @@
 import { Image } from './Image';
 import { FormCompanyAddressFields } from './Form';
 
-export interface OrganizationBranch {
+export enum OrganizationType {
+  company = 'company',
+  school = 'school',
+  family = 'family',
+}
+
+export interface Organization {
+  divisions: OrganizationDivision[];
+  description?: string;
+  id: string;
+  identificationNumber: string;
+  identificationNumberVat?: string;
+  image?: Image;
+  organizationType: OrganizationType;
+  title: string;
+}
+
+export interface OrganizationDivision {
   id: string;
   title: string;
+  address?: FormCompanyAddressFields;
+  teams: OrganizationTeam[];
+}
+
+export interface OrganizationTeam {
+  id: string;
+  title: string;
+  members: OrganizationMember[];
 }
 
 export interface OrganizationMember {
@@ -13,16 +38,4 @@ export interface OrganizationMember {
   payment: {
     amount: number;
   };
-}
-
-export interface Organization {
-  address?: FormCompanyAddressFields;
-  branches: OrganizationBranch[];
-  description?: string;
-  id: string;
-  identificationNumber: string;
-  identificationNumberVat?: string;
-  image?: Image;
-  members: OrganizationMember[];
-  title: string;
 }

@@ -9,6 +9,8 @@
  * Note: This component is commonly used in `RegisterChallengePage`.
  *
  * @props
+ * - `options` (FormOption[], required): Object representing address options.
+ *   It should be of type `FormOption[]`.
  * - `modelValue` (object, required): The object representing address.
  *   It should be of type `FormAddressType`.
  *
@@ -25,7 +27,7 @@
  */
 
 // libraries
-import { defineComponent, nextTick, ref } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 
 // components
 import DialogDefault from 'src/components/global/DialogDefault.vue';
@@ -34,10 +36,7 @@ import DialogDefault from 'src/components/global/DialogDefault.vue';
 import { useValidation } from 'src/composables/useValidation';
 
 // types
-import type {
-  FormCompanyAddressFields,
-  FormOption,
-} from 'src/components/types/Form';
+import type { FormOption } from 'src/components/types/Form';
 
 export default defineComponent({
   name: 'FormFieldCompanyAddress',
@@ -45,75 +44,62 @@ export default defineComponent({
     DialogDefault,
   },
   props: {
-    BusinessId: {
-      type: String,
+    options: {
+      type: Array as () => FormOption[],
+      required: true,
+    },
+    modelValue: {
+      type: String as () => string | null,
+      required: true,
     },
   },
-  emits: ['update:formValue'],
+  emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const address = ref<string | null>(null);
-    const isDialogOpen = ref<boolean>(false);
+    const address = computed<string | null>({
+      get: () => props.modelValue,
+      set: (value: string | null) => emit('update:modelValue', value),
+    });
 
-    const options: FormOption[] = [
-      {
-        label: 'Address 1',
-        value: 'address-1',
+    watch(
+      () => props.options,
+      () => {
+        address.value = null;
       },
-      {
-        label: 'Address 2',
-        value: 'address-2',
-      },
-    ];
-
-    // Lookup dictionary which provides the full values based on address ID.
-    // TODO: validate the possibility of using this method
-    const addresses: { [key: string]: FormCompanyAddressFields } = {
-      'address-1': {
-        street: 'Street 1',
-        streetNumber: '123',
-        city: 'City 1',
-        zip: '1234',
-        referenceCity: 'Ref City 1',
-        department: 'Department 1',
-      },
-      'address-2': {
-        street: 'Street 2',
-        streetNumber: '123',
-        city: 'City 2',
-        zip: '1234',
-        referenceCity: 'Ref City 2',
-        department: 'Department 2',
-      },
-    };
-
-    const onUpdate = (): void => {
-      // wait for next tick to emit the value after update
-      nextTick((): void => {
-        if (address.value) {
-          emit('update:formValue', addresses[address.value as string]);
-        }
-      });
-    };
-
-    const onClose = (): void => {
-      isDialogOpen.value = false;
-    };
-
-    const onSubmit = async (): Promise<void> => {
-      // noop
-      isDialogOpen.value = false;
-    };
+    );
 
     const { isFilled } = useValidation();
+    const { isDialogOpen, onClose } = useDialog();
+
+    const onSubmit = async (): Promise<void> => {
+      // TODO: Add address via API
+      isDialogOpen.value = false;
+    };
+
+    /**
+     * Provides dialog behaviour
+     * @returns
+     * - `isDialogOpen` (boolean): Whether the dialog is open.
+     * - `onClose` (function): Runs when the dialog is closed.
+     */
+    function useDialog() {
+      const isDialogOpen = ref<boolean>(false);
+
+      const onClose = (): void => {
+        isDialogOpen.value = false;
+      };
+
+      return {
+        isDialogOpen,
+        onClose,
+      };
+    }
 
     return {
       address,
       isDialogOpen,
-      options,
       isFilled,
       onClose,
       onSubmit,
-      onUpdate,
     };
   },
 });
@@ -148,7 +134,6 @@ export default defineComponent({
               }),
           ]"
           data-cy="form-company-address-input"
-          @update:model-value="onUpdate"
         >
           <!-- Item: No option -->
           <template v-slot:no-option>
