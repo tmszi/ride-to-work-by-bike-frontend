@@ -26,7 +26,20 @@
  */
 
 // libraries
+import { Screen } from 'quasar';
 import { defineComponent } from 'vue';
+
+// config
+import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
+
+// enums
+enum Variants {
+  default = 'default',
+  start = 'start',
+}
+
+// routes
+import { routesConf } from '../../router/routes_conf';
 
 export default defineComponent({
   name: 'BannerRoutes',
@@ -36,54 +49,81 @@ export default defineComponent({
       required: true,
     },
     variant: {
-      type: String as () => 'default' | 'start',
+      type: String as () => Variants,
       required: true,
     },
+  },
+  setup() {
+    const { borderRadiusCard, colorSecondaryOpacity } = rideToWorkByBikeConfig;
+
+    return {
+      borderRadiusCard,
+      colorSecondaryOpacity,
+      routesConf,
+      Screen,
+      Variants,
+    };
   },
 });
 </script>
 
 <template>
   <div
-    class="bg-grey-1"
-    :class="[variant === 'default' ? 'q-py-sm' : 'q-py-lg']"
+    class="text-grey-10"
+    :class="[variant === Variants.default ? 'q-py-sm' : 'q-py-lg']"
+    :style="`border-radius: ${borderRadiusCard}; background-color: ${colorSecondaryOpacity}`"
     data-cy="banner-routes-card"
   >
     <div class="row justify-between">
-      <!-- Title -->
+      <!-- Section: title -->
       <div
-        class="col-12 flex items-center q-py-sm q-px-md"
-        :class="[variant === 'default' ? 'col-md-8' : 'justify-center']"
+        class="col-12 flex gap-24 items-center q-py-sm q-px-lg"
+        :class="[
+          variant === Variants.default ? 'col-md-6' : 'justify-center',
+          Screen.lg ? 'no-wrap' : '',
+        ]"
         data-cy="banner-routes-section-title"
       >
+        <!-- Image -->
+        <q-img
+          class="col-12 col-sm-auto"
+          src="~assets/svg/banner-routes.svg"
+          width="70px"
+          height="102px"
+          alt=""
+          aria-hidden="true"
+          data-cy="banner-routes-image"
+        />
+        <!-- Title -->
         <h3
-          class="text-weight-bold q-my-none"
-          :class="[variant === 'default' ? 'text-subtitle2' : 'text-h6']"
+          class="col-12 col-sm text-h5 text-weight-bold q-my-none"
           data-cy="banner-routes-title"
         >
-          <span v-if="variant === 'default'">
+          <span v-if="variant === Variants.default">
             <!-- TODO: fix conjugation in CZ and SK -->
             {{
               $tc('index.bannerRoutes.title', routesCount, { n: routesCount })
             }}
           </span>
-          <span v-else-if="variant === 'start'">
+          <span v-else-if="variant === Variants.start">
             {{ $t('index.bannerRoutes.titleStart') }}
           </span>
         </h3>
       </div>
-      <!-- Link to Route log -->
+      <!-- Link to Routes list -->
       <div
-        class="col-12 flex items-center justify-end q-py-sm q-px-md"
-        :class="[variant === 'default' ? 'col-md-4' : 'justify-center']"
+        class="col-12 flex items-center justify-end q-py-sm q-px-xl"
+        :class="[variant === 'default' ? 'col-md-6' : 'justify-center']"
         data-cy="banner-routes-section-button"
       >
         <q-btn
           rounded
           unelevated
-          color="grey-10"
+          color="primary"
+          size="16px"
           text-color="white"
-          class="q-pa-md q-pr-lg"
+          :to="routesConf['routes_list'].children.fullPath"
+          class="q-pa-md text-weight-bold"
           data-cy="banner-routes-button-add-routes"
         >
           <!-- Plus icon -->
@@ -95,10 +135,13 @@ export default defineComponent({
             data-cy="banner-routes-button-icon"
           />
           <!-- Button text -->
-          <span v-if="variant === 'default'" class="inline-block q-px-sm">
+          <span
+            v-if="variant === Variants.default"
+            class="inline-block q-px-sm"
+          >
             {{ $t('index.bannerRoutes.addRoutes') }}
           </span>
-          <span v-else-if="variant == 'start'">
+          <span v-else-if="variant == Variants.start">
             {{ $t('index.bannerRoutes.addFirstRoutes') }}
           </span>
         </q-btn>
@@ -106,9 +149,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-<style scoped>
-.flex-wrap {
-  flex-wrap: wrap;
-}
-</style>
