@@ -54,8 +54,11 @@ export default defineComponent({
       return props.showLogo ? 'justify-between' : 'justify-end';
     });
 
+    const iconSize = '18px';
+
     return {
       classes,
+      iconSize,
     };
   },
 });
@@ -76,12 +79,30 @@ export default defineComponent({
     <!-- Content -->
     <div class="flex items-center gap-24">
       <!-- Help icon link for displaying modal dialog-->
-      <help-button size="8px" />
+      <help-button>
+        <template #button="{ openDialog }">
+          <q-btn
+            unelevated
+            round
+            color="primary"
+            size="8px"
+            @click.prevent="openDialog"
+            data-cy="button-help"
+          >
+            <q-icon
+              name="svguse:/icons/button_icons.svg#question-mark"
+              :size="iconSize"
+              color="white"
+              data-cy="icon-help"
+            />
+          </q-btn>
+        </template>
+      </help-button>
       <!-- Notification icon link -->
       <a href="#">
         <q-icon
           name="notifications"
-          size="sm"
+          :size="iconSize"
           color="black"
           data-cy="icon-notification"
         />

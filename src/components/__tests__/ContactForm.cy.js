@@ -2,8 +2,24 @@ import { colors } from 'quasar';
 import ContactForm from '../global/ContactForm.vue';
 import { i18n } from '../../boot/i18n';
 
+// colors
 const { getPaletteColor } = colors;
-const black = getPaletteColor('black');
+const grey8 = getPaletteColor('grey-8');
+const grey10 = getPaletteColor('grey-10');
+const primary = getPaletteColor('primary');
+
+// selectors
+const selectorContactFormSubject = 'contact-form-subject';
+const selectorContactFormMessage = 'contact-form-message';
+const selectorContactFormFile = 'contact-form-file';
+const selectorContactFormFileIcon = 'contact-form-file-icon';
+const selectorContactFormEmail = 'contact-form-email';
+const selectorContactFormSubmit = 'contact-form-submit';
+
+// variables
+const borderRadius = '8px';
+const fileLabelFontSize = '14px';
+const submitButtonBorderRadius = '28px';
 
 describe('<ContactForm>', () => {
   it('has translation for all strings', () => {
@@ -29,43 +45,43 @@ describe('<ContactForm>', () => {
     });
 
     it('should render contact-form-subject field', () => {
-      cy.dataCy('contact-form-subject').should('be.visible');
+      cy.dataCy(selectorContactFormSubject).should('be.visible');
     });
 
     it('should render contact-form-message field', () => {
-      cy.dataCy('contact-form-message')
+      cy.dataCy(selectorContactFormMessage)
         .should('be.visible')
         .find('label[for="contact-form-message"]')
         .should('be.visible')
         .and('have.text', i18n.global.t('index.contact.message'));
-      cy.dataCy('contact-form-message')
+      cy.dataCy(selectorContactFormMessage)
         .find('.q-field__control')
         .should('be.visible')
-        .and('have.css', 'border-radius', '8px');
+        .and('have.css', 'border-radius', borderRadius);
     });
 
     it('should render contact-form-file field', () => {
-      cy.dataCy('contact-form-file')
-        .find('i.q-icon')
+      cy.dataCy(selectorContactFormFileIcon)
         .should('be.visible')
+        .and('have.color', grey8)
         .and('contain', 'attachment');
-      cy.dataCy('contact-form-file')
+      cy.dataCy(selectorContactFormFile)
         .find('.q-field__label')
         .should('be.visible')
-        .and('have.css', 'font-size', '14px')
-        .and('have.color', black)
+        .and('have.css', 'font-size', fileLabelFontSize)
+        .and('have.color', grey10)
         .and('have.text', i18n.global.t('index.contact.file'));
     });
 
     it('should render contact-form-email field', () => {
-      cy.dataCy('contact-form-email').should('be.visible');
+      cy.dataCy(selectorContactFormEmail).should('be.visible');
     });
 
     it('should render a submit button', () => {
-      cy.dataCy('contact-form-submit')
+      cy.dataCy(selectorContactFormSubmit)
         .should('be.visible')
-        .and('have.css', 'border-radius', '28px')
-        .and('have.backgroundColor', black)
+        .and('have.css', 'border-radius', submitButtonBorderRadius)
+        .and('have.backgroundColor', primary)
         .and('have.text', i18n.global.t('index.contact.submit'));
     });
   });
