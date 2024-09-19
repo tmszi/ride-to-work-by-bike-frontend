@@ -31,6 +31,7 @@ const selectorProfileCoordinatorContact = 'profile-coordinator-contact';
 const selectorSize = 'profile-details-size';
 const selectorState = 'profile-details-state';
 const selectorTeam = 'profile-details-team';
+const selectorAllowContactPhone = 'profile-allow-contact-phone';
 const selectorTrackingNumber = 'profile-details-tracking-number';
 const selectorTitleChallengeDetails = 'profile-title-challenge-details';
 const selectorTitlePersonalDetails = 'profile-title-personal-details';
@@ -62,6 +63,8 @@ describe('<ProfileDetails>', () => {
         'buttonDownloadInvoice',
         'descriptionNickname',
         'labelAddressDivision',
+        'labelAllowContactPhone',
+        'labelDeliveryAddress',
         'labelEmail',
         'labelEmailEmpty',
         'labelGender',
@@ -74,6 +77,7 @@ describe('<ProfileDetails>', () => {
         'labelOrganization',
         'labelOrganizationType',
         'labelPackage',
+        'labelPaymentState',
         'labelPaymentStateNotPaid',
         'labelPaymentStatePaid',
         'labelPaymentStatePaidByCompany',
@@ -239,6 +243,10 @@ function coreTests() {
       cy.dataCy(selectorPhone)
         .find(dataSelectorValue)
         .should('contain', formPersonalDetails.phone);
+      // contact participation
+      cy.dataCy(selectorAllowContactPhone)
+        .should('be.visible')
+        .and('contain', i18n.global.t('profile.labelAllowContactPhone'));
       // coordinator contact
       cy.dataCy(selectorProfileCoordinatorContact).should('be.visible');
     });
