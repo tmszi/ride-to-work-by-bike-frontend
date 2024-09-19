@@ -14,6 +14,12 @@ import UserSelect from 'components/global/UserSelect.vue';
 // config
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
+declare global {
+  interface Window {
+    i18n: typeof i18n;
+  }
+}
+
 // set global i18n object (for test purposes)
 if (window.Cypress) {
   window.i18n = i18n;
@@ -70,13 +76,14 @@ export default defineComponent({
       <drawer-menu class="q-pt-lg" data-cy="drawer-menu" />
     </q-drawer>
 
-    <q-page-container class="bg-white pb-footer">
+    <q-page-container class="bg-white">
       <router-view :style="{ 'max-width': containerContentWidth }" />
-    </q-page-container>
-    <q-footer class="position-static md-position-absolute bg-transparent">
-      <!-- footer content -->
-      <mobile-bottom-panel />
+      <!-- Footer content (desktop) -->
       <footer-bar />
+    </q-page-container>
+    <!-- Footer content (mobile) -->
+    <q-footer class="position-static md-position-absolute bg-transparent">
+      <mobile-bottom-panel />
     </q-footer>
   </q-layout>
 </template>

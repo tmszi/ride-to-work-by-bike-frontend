@@ -19,6 +19,7 @@ export interface ConfigGlobal {
   borderRadiusButtonSmall: string;
   maxWidthBanner: string;
   contactEmail: string;
+  urlAutoMat: string;
   urlFacebook: string;
   urlInstagram: string;
   urlTwitter: string;
@@ -37,4 +38,8 @@ export interface ConfigGlobal {
   entryFeePaymentMax: string;
   entryFeePaymentOptions: string;
   notifyMessagePosition: string;
+}
+
+export interface ConfigAppVersion {
+  version: string;
 }

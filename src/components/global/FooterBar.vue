@@ -22,13 +22,18 @@
 // libraries
 import { defineComponent } from 'vue';
 import { i18n } from '../../boot/i18n';
-import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // components
 import LanguageSwitcher from '../global/LanguageSwitcher.vue';
 
+// config
+import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
+
+// types
+import { ConfigAppVersion } from '../types/Config';
+
 // Deployed app version
-const rideToWorkByBikeDeployedAppVersion: object = JSON.parse(
+const rideToWorkByBikeDeployedAppVersion: ConfigAppVersion = JSON.parse(
   process.env.RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION,
 );
 
@@ -40,13 +45,9 @@ export default defineComponent({
   setup() {
     let copyrightList: string[];
     if (rideToWorkByBikeDeployedAppVersion.version) {
-      copyrightList = [
-        'copyrightOpenSource',
-        'deployedAppVersion',
-        'copyrightAuthor',
-      ];
+      copyrightList = ['softwareLicence', 'deployedAppVersion'];
     } else {
-      copyrightList = ['copyrightOpenSource', 'copyrightAuthor'];
+      copyrightList = ['softwareLicence'];
     }
 
     function scrollToTop(): void {
@@ -83,153 +84,110 @@ export default defineComponent({
       },
     ];
 
+    const { containerContentWidth } = rideToWorkByBikeConfig;
+
     return {
-      socialLinksList,
       copyrightList,
-      scrollToTop,
+      containerContentWidth,
       rideToWorkByBikeDeployedAppVersion,
+      rideToWorkByBikeConfig,
+      socialLinksList,
+      scrollToTop,
     };
   },
 });
 </script>
 
 <template>
-  <div class="absolute-bottom text-white overflow-hidden" data-cy="footer">
-    <!-- Background image (cityscape) -->
-    <q-img
-      class="absolute-top-left h-254"
-      src="~assets/svg/bg-footer.svg"
-      data-cy="footer-background"
-    />
+  <div
+    class="bg-info q-px-lg q-py-xl q-mt-xl"
+    :style="{ 'max-width': containerContentWidth }"
+    data-cy="footer"
+  >
     <!-- Footer content (leave space above for graphics) -->
-    <div class="relative-position pt-112">
-      <div
-        class="footer-wrapper h-lg-142 max-w-lg-90perc flex items-end q-px-md"
-      >
-        <!-- Scroll to top button (desktop) -->
-        <div class="footer-scroll-top shrink-0">
-          <q-btn
-            class="w-38 h-38 gt-sm"
-            color="white"
-            outline
-            round
-            data-cy="footer-top-button"
-            @click.prevent="scrollToTop"
-          >
-            <q-icon name="arrow_upward" size="18px" />
-          </q-btn>
-        </div>
+    <div>
+      <!-- Scroll to top button (desktop) -->
+      <div class="flex items-center">
+        <q-btn
+          dense
+          round
+          outline
+          color="primary"
+          @click.prevent="scrollToTop"
+          data-cy="footer-top-button"
+        >
+          <q-icon name="arrow_upward" size="18px" />
+        </q-btn>
+        <a
+          href="#"
+          class="text-primary no-underline q-ml-sm"
+          @click.prevent="scrollToTop"
+          data-cy="footer-top-button-text"
+        >
+          {{ $t('footer.buttonBackToTop') }}
+        </a>
+      </div>
 
-        <div class="footer-content h-full col-grow">
-          <div
-            class="col-grow flex flex-wrap items-start justify-between gap-8"
-          >
+      <q-separator color="primary" class="q-my-lg" />
+
+      <div class="footer-content">
+        <div class="col-grow row q-col-gutter-md items-center justify-between">
+          <div class="col-12 col-sm-auto flex items-center">
             <!-- Logo -->
             <q-img
-              src="~assets/svg/logo-white.svg"
+              src="~assets/svg/logo.svg"
               width="142px"
               height="40px"
               data-cy="footer-logo"
             />
-
-            <!-- Scroll to top button (mobile) -->
-            <q-btn
-              class="w-38 h-38 lt-md"
-              color="white"
-              outline
-              round
-              data-cy="footer-top-button-mobile"
-              @click.prevent="scrollToTop"
-            >
-              <q-icon name="arrow_upward" size="18px" />
-            </q-btn>
-
-            <!-- License + Owner information (mobile) -->
-            <div
-              class="w-full w-md-auto flex flex-wrap items-center justify-center gap-12 text-center q-py-md lt-md copyright"
-              data-cy="footer-copyright-list-mobile"
-            >
-              <div
-                v-for="(message, index) in copyrightList"
-                :key="message"
-                class="text-white flex items-center gap-12"
+            <q-separator
+              vertical
+              class="q-mx-lg"
+              data-cy="footer-logo-separator"
+            />
+            <div class="flex items-end gap-16" data-cy="footer-auto-mat">
+              <span
+                class="gt-sm text-grey-8"
+                data-cy="footer-challenge-organizer"
               >
-                <span
-                  v-if="message !== 'deployedAppVersion'"
-                  v-html="$t('index.footer.' + message)"
-                ></span>
-                <!-- Deployed app version -->
-                <span
-                  v-else-if="rideToWorkByBikeDeployedAppVersion.version"
-                  v-html="
-                    `${$t('index.footer.' + message)}: ${
-                      rideToWorkByBikeDeployedAppVersion.version
-                    }`
-                  "
-                ></span>
-                <span v-if="index < copyrightList.length - 1" class="gt-sm"
-                  >|</span
-                >
-              </div>
-            </div>
-            <div class="flex column items-center row-md w-full w-md-auto">
-              <!-- List: Social links -->
-              <div>
-                <ul
-                  class="flex items-center gap-32"
-                  data-cy="footer-social-menu"
-                  style="list-style: none"
-                >
-                  <li>
-                    <q-btn
-                      flat
-                      round
-                      v-for="link in socialLinksList"
-                      :key="link.icon"
-                      :title="link.title"
-                      data-cy="footer-social-menu-button"
-                    >
-                      <a
-                        :href="link.url"
-                        class="flex column justify-center text-white"
-                        target="_blank"
-                        style="text-decoration: none"
-                        :data-cy="`footer-social-menu-link-${link.id}`"
-                      >
-                        <q-icon
-                          :name="link.icon"
-                          size="18px"
-                          data-cy="footer-social-menu-icon"
-                        />
-                      </a>
-                    </q-btn>
-                  </li>
-                </ul>
-              </div>
-              <span class="q-mx-lg gt-sm">|</span>
-              <!-- Language switcher component -->
-              <language-switcher data-cy="language-switcher-footer" />
+                {{ $t('footer.textChallengeOrganizer') }}
+              </span>
+              <a
+                :href="rideToWorkByBikeConfig.urlAutoMat"
+                class="block"
+                target="_blank"
+                data-cy="footer-auto-mat-logo-link"
+              >
+                <q-img
+                  src="~assets/svg/logo-automat.svg"
+                  width="74px"
+                  height="28px"
+                  class="q-mb-xs"
+                  data-cy="footer-auto-mat-logo"
+                />
+              </a>
             </div>
           </div>
-          <!-- License + Owner information (desktop) -->
+
+          <!-- License + Owner information (mobile) -->
           <div
-            class="flex flex-wrap items-center gap-12 copyright gt-sm"
-            data-cy="footer-copyright-list-desktop"
+            class="col-12 lt-sm w-md-auto flex flex-wrap items-center text-grey-8 justify-center gap-12 text-center q-my-md"
+            data-cy="footer-copyright-list-mobile"
           >
             <div
               v-for="(message, index) in copyrightList"
               :key="message"
-              class="text-white flex items-center gap-12"
+              class="flex items-center gap-12"
             >
               <span
                 v-if="message !== 'deployedAppVersion'"
-                v-html="$t('index.footer.' + message)"
+                v-html="$t('footer.' + message)"
               ></span>
               <!-- Deployed app version -->
               <span
                 v-else-if="rideToWorkByBikeDeployedAppVersion.version"
                 v-html="
-                  `${$t('index.footer.' + message)}: ${
+                  `${$t('footer.' + message)}: ${
                     rideToWorkByBikeDeployedAppVersion.version
                   }`
                 "
@@ -239,6 +197,83 @@ export default defineComponent({
               >
             </div>
           </div>
+
+          <!-- List: Social links -->
+          <div
+            class="col-12 col-sm-auto col-lg flex justify-center justify-lg-end"
+          >
+            <div>
+              <ul
+                class="flex items-center gap-32 q-my-none q-px-none"
+                data-cy="footer-social-menu"
+                style="list-style: none"
+              >
+                <li>
+                  <q-btn
+                    flat
+                    round
+                    v-for="link in socialLinksList"
+                    :key="link.icon"
+                    :title="link.title"
+                    data-cy="footer-social-menu-button"
+                  >
+                    <a
+                      :href="link.url"
+                      class="flex column justify-center"
+                      target="_blank"
+                      style="text-decoration: none"
+                      :data-cy="`footer-social-menu-link-${link.id}`"
+                    >
+                      <q-icon
+                        :name="link.icon"
+                        size="24px"
+                        color="primary"
+                        data-cy="footer-social-menu-icon"
+                      />
+                    </a>
+                  </q-btn>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Language switcher component -->
+          <div class="col-12 col-sm-auto flex">
+            <div class="q-mx-auto q-py-sm">
+              <language-switcher
+                class="q-my-none"
+                variant="light"
+                data-cy="language-switcher-footer"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- License + Owner information (desktop) -->
+        <div
+          class="flex flex-wrap items-center text-grey-8 gap-12 gt-xs q-mt-lg"
+          data-cy="footer-copyright-list-desktop"
+        >
+          <div
+            v-for="(message, index) in copyrightList"
+            :key="message"
+            class="flex items-center gap-12"
+          >
+            <span
+              v-if="message !== 'deployedAppVersion'"
+              v-html="$t('footer.' + message)"
+            ></span>
+            <!-- Deployed app version -->
+            <span
+              v-else-if="rideToWorkByBikeDeployedAppVersion.version"
+              v-html="
+                `${$t('footer.' + message)}: ${
+                  rideToWorkByBikeDeployedAppVersion.version
+                }`
+              "
+            ></span>
+            <span v-if="index < copyrightList.length - 1" class="gt-sm">|</span>
+          </div>
         </div>
       </div>
     </div>
@@ -247,100 +282,23 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
-.h-full {
-  height: 100%;
-}
-
-.h-lg-142 {
-  @media (min-width: $breakpoint-lg-min) {
-    height: 142px;
-  }
-}
-
-.h-254 {
-  height: 254px;
-}
-
-.w-38 {
-  width: 38px;
-  min-width: 0;
-}
-
-.h-38 {
-  height: 38px;
-  min-height: 0;
-}
-
-.pt-112 {
-  padding-top: 112px;
-}
-
-.w-full {
-  width: 100%;
-}
-
 .w-md-auto {
   @media (min-width: $breakpoint-md-min) {
-    width: auto;
-  }
-}
-
-.max-w-lg-90perc {
-  @media (min-width: $breakpoint-lg-min) {
-    max-width: 90%;
-  }
-}
-
-.row-md {
-  @media (min-width: $breakpoint-md-min) {
-    flex-direction: row;
-  }
-}
-
-.footer-wrapper {
-  background-color: $grey-10;
-
-  @media (min-width: $breakpoint-md-min) {
-    background-color: transparent;
-  }
-}
-
-.footer-scroll-top {
-  padding-top: 16px;
-
-  @media (min-width: $breakpoint-md-min) {
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-bottom: 8px;
-  }
-
-  @media (min-width: $breakpoint-md-min) {
-    padding-top: 0;
-    padding-bottom: 24px;
+    width: auto !important;
   }
 }
 
 .footer-content {
-  padding-top: 16px;
-  padding-bottom: 70px;
-
-  @media (min-width: $breakpoint-md-min) {
-    padding-top: 32px;
-  }
+  padding-bottom: 40px;
 
   @media (min-width: $breakpoint-md-min) {
     padding-bottom: 0;
   }
 }
 
-.language-list {
-  list-style: none;
-  font-size: 14px;
-  padding-left: 0;
-  padding-inline-start: 0;
-}
-
-.copyright :deep(a) {
-  color: #fff;
+.justify-lg-end {
+  @media (min-width: $breakpoint-lg-min) {
+    justify-content: flex-end;
+  }
 }
 </style>
