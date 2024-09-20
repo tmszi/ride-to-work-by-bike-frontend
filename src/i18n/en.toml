@@ -433,6 +433,15 @@ description = "Download the app and log rides from anywhere."
 voucherApplySuccess = "Voucher successfully redeemed"
 voucherApplyError = "Invalid voucher"
 
+[notifications]
+labelAction = "Action"
+labelDate = "Date"
+labelRead = "Read"
+labelState = "State"
+labelTitle = "Notification"
+labelUnread = "Unread"
+labelMarkAllAsRead = "Mark all as read"
+
 [offer]
 titleOfferValidation = "To use it, just show proof of identity on the spot:"
 labelOfferValidationTshirt = "T-shirt or neck warmer"
