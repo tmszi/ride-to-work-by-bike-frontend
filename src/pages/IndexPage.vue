@@ -43,15 +43,15 @@
       <slider-progress
         :title="$t('index.progressSlider.title')"
         :cards="cardsProgressSlider"
-        :stats="progressStats"
+        :stats="stasBar"
         class="q-pt-xl q-mb-md"
-        :button="{ title: $t('index.progressSlider.button'), url: '/blog' }"
+        :button="{ title: $t('index.progressSlider.button'), url: urlResults }"
       >
       </slider-progress>
       <list-card-progress
         :title="$t('index.cardListProgress.title')"
         :cards="cardsProgress"
-        :stats="progressStats"
+        :stats="stasBar"
         class="q-pt-xl q-pb-xl"
         data-cy="list-progress"
       ></list-card-progress>
@@ -102,7 +102,7 @@
         :cards="cardsPost"
         :button="{
           title: $t('index.cardListPost.button'),
-          url: '/blog',
+          url: urlCommunity,
         }"
         class="q-pt-xl"
         data-cy="list-post"
@@ -141,12 +141,17 @@ import SectionColumns from 'components/homepage/SectionColumns.vue';
 import SectionHeading from 'src/components/global/SectionHeading.vue';
 import SliderProgress from 'components/homepage/SliderProgress.vue';
 
+// config
+import { routesConf } from '../router/routes_conf';
+
 // mocks
 import * as homepage from '../mocks/homepage';
 
 // fixtures
 import listCardsFollow from '../../test/cypress/fixtures/listCardsFollow.json';
 import listCardsPost from '../../test/cypress/fixtures/listCardsPost.json';
+import stasBar from '../../test/cypress/fixtures/statsBar.json';
+import cardsProgressSlider from '../../test/cypress/fixtures/cardsProgress.json';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -176,6 +181,9 @@ export default defineComponent({
     const cardsFollow = listCardsFollow;
     const cardsPost = listCardsPost;
 
+    const urlCommunity = routesConf['community']['path'];
+    const urlResults = routesConf['results']['path'];
+
     return {
       badgeList: homepage.badgeList,
       bannerImageData: homepage.bannerImage,
@@ -186,11 +194,13 @@ export default defineComponent({
       cardsOffer: homepage.cardsOffer,
       cardsPost,
       cardsProgress: homepage.cardsProgress,
-      cardsProgressSlider: homepage.cardsProgressSlider,
+      cardsProgressSlider,
       cardsStats: homepage.cardsStats,
       headingBgTitle: homepage.headingBgTitle,
-      progressStats: homepage.progressStats,
       releaseDate: challengeStartDate,
+      stasBar,
+      urlCommunity,
+      urlResults,
     };
   },
 });

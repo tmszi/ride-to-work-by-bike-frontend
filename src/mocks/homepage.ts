@@ -9,7 +9,6 @@ import {
   CardProgress,
   CardStats,
   ItemBadge,
-  ItemStatistics,
   NewsletterItem,
   CardOffer,
 } from 'components/types';
@@ -245,79 +244,16 @@ export const cardsOffer: CardOffer[] = [
   },
 ];
 
-export const cardsProgressSlider: CardProgress[] = [
-  {
-    title: 'Týmová pravidelnost',
-    icon: 'person',
-    url: '#',
-    image: '',
-    progress: 60,
-    stats: [
-      {
-        title: 'Váš podíl na výsledku',
-        items: [{ id: '1', text: '80% pravidelnost' }],
-      },
-      {
-        title: 'Postavení v žebříčku',
-        items: [
-          { id: '1', text: '2. Automati a 1 další (80 %)' },
-          { id: '2', text: '3. Váš tým a 2 další (60 %)' },
-          { id: '3', text: '4. Tygři a 2 další (40 %)' },
-        ],
-      },
-    ],
-    duration: {
-      current: 14,
-      total: 30,
-    },
-  },
-  {
-    title: 'Žebříčky',
-    icon: 'person',
-    url: '#',
-    image: '',
-    progress: 60,
-    stats: [
-      {
-        title: '',
-        items: [{ id: '1', text: '' }],
-      },
-      {
-        title: '',
-        items: [{ id: '1', text: '' }],
-      },
-    ],
-    duration: {
-      current: 14,
-      total: 30,
-    },
-  },
-];
-
-export const progressStats: ItemStatistics[] = [
-  {
-    icon: 'route',
-    label: 'udržitelných cest',
-    value: '18',
-  },
-  {
-    icon: 'open_in_full',
-    label: '312,25 km',
-    value: '',
-  },
-  {
-    icon: 'eco',
-    label: 'ušetřeno',
-    value: '420 g CO2',
-  },
-];
-
 export const cardsProgress: CardProgress[] = [
   {
     title: 'Týmová pravidelnost',
     icon: 'people',
     url: '#',
     progress: 95,
+    duration: {
+      current: 24,
+      total: 30,
+    },
     prizes: [
       {
         icon: 'emoji_events',
@@ -331,6 +267,10 @@ export const cardsProgress: CardProgress[] = [
     icon: 'person',
     url: '#',
     progress: 80,
+    duration: {
+      current: 24,
+      total: 30,
+    },
     prizes: [
       {
         icon: '',
@@ -344,6 +284,10 @@ export const cardsProgress: CardProgress[] = [
     icon: 'person',
     url: '#',
     progress: 48,
+    duration: {
+      current: 24,
+      total: 30,
+    },
     prizes: [
       {
         icon: '',

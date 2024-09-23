@@ -66,29 +66,25 @@ export interface CardPost {
 export interface CardProgress {
   title: string;
   icon: string;
-  url: string;
+  url?: string;
   image?: string;
   progress: number;
   prizes?: ItemPrize[];
-  stats?: [
-    {
-      title: string;
-      items: [
-        {
-          id: string;
-          text: string;
-        },
-      ];
-    },
-    {
-      title: string;
-      items: { id: string; text: string }[];
-    },
-  ];
+  stats?: StatList[];
   duration?: {
     current: number;
     total: number;
   };
+}
+
+export interface StatList {
+  title: string;
+  items: StatsItem[];
+}
+
+export interface StatsItem {
+  id: string;
+  text: string;
 }
 
 export interface CardStats {

@@ -20,6 +20,7 @@
  * @components
  * - `CardProgressSlider`: Component to render individual progress cards.
  * - `SectionHeading`: Component to render a heading.
+ * - `StatsBar`: Component to render stats.
  *
  * @example
  * <slider-progress
@@ -39,15 +40,18 @@ import { Screen } from 'quasar';
 // components
 import CardProgressSlider from './CardProgressSlider.vue';
 import SectionHeading from '../global/SectionHeading.vue';
+import StatsBar from '../global/StatsBar.vue';
 
 // types
-import { CardProgress, Link, ItemStatistics } from '../types';
+import { CardProgress, Link } from '../types';
+import type { ItemStatistics } from '../types/Statistics';
 
 export default defineComponent({
   name: 'SliderProgress',
   components: {
     CardProgressSlider,
     SectionHeading,
+    StatsBar,
   },
   props: {
     title: {
@@ -84,32 +88,25 @@ export default defineComponent({
 
 <template>
   <div class="progress-slider relative-position" data-cy="progress-slider">
-    <div class="row q-col-gutter-lg">
+    <div class="row q-col-gutter-lg q-mb-lg">
       <!-- Title -->
-      <section-heading class="col-sm-5">
+      <section-heading
+        class="col-12 col-sm-auto"
+        data-cy="progress-slider-section-title"
+      >
         {{ title }}
       </section-heading>
       <!-- List of statistics -->
-      <q-list
-        class="col-sm-7 flex flex-wrap items-center justify-end q-pr-md gap-x-40"
-      >
-        <q-item
-          v-for="item in stats"
-          :key="item.icon"
-          data-cy="progress-slider-stats-item"
-          class="text-grey-10 q-p-none"
-        >
-          <!-- Icon -->
-          <q-icon :name="item.icon" color="blue-grey-3" size="18px" />&nbsp;
-          <!-- Value -->
-          <strong>{{ item.value }}</strong
-          >&nbsp;
-          <!-- Label -->
-          <span>{{ item.label }}</span>
-        </q-item>
-      </q-list>
+      <div class="col-12 col-sm" data-cy="progress-slider-section-stats">
+        <stats-bar
+          v-if="stats"
+          :stats="stats"
+          data-cy="progress-slider-stats"
+        />
+      </div>
     </div>
     <swiper-container
+      v-if="cards.length > 0"
       :navigation="true"
       :slides-per-view="1"
       :space-between="24"
@@ -138,7 +135,7 @@ export default defineComponent({
         rounded
         unelevated
         outline
-        color="grey-10"
+        color="primary"
         :to="button.url"
         :label="button.title"
         :style="{ width: buttonWidth }"
@@ -147,9 +144,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.gap-x-40 {
-  column-gap: 40px;
-}
-</style>
