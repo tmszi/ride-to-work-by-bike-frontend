@@ -60,3 +60,10 @@ defaultDistanceZero = "0.00"
 entryFeePaymentMin = "390"
 entryFeePaymentMax = "2000"
 entryFeePaymentOptions = "500,700"
+
+# API CONFIGURATION
+
+apiBase = "https://test.dopracenakole.cz/rest/"
+apiVersion = "1.0"
+
+urlApiLogin = "auth/login"

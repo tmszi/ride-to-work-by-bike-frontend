@@ -404,6 +404,11 @@ buttonAllPrizes = "Všechny výhry"
 textListPrizes = "Výherci se losují z těch, co byli ve výzvě nejúspěšnější."
 titleListPrizes = "Možné výhry"
 
+[login]
+apiMessageSuccess = "Přihlášení bylo úspěšné"
+apiMessageError = "Přihlášení se nezdařilo. Prosím, zkuste to znovu později. {error}"
+apiMessageErrorWithMessage = "Přihlášení se nezdařilo. Prosím, zkuste to znovu později. Chyba: {error}"
+
 [login.form]
 titleLogin = "Přihlášení"
 titlePasswordReset = "Zapomenuté heslo"

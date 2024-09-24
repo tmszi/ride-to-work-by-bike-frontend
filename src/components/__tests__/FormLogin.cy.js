@@ -1,24 +1,40 @@
 import { colors } from 'quasar';
 import { createPinia, setActivePinia } from 'pinia';
-import { emptyUser, useLoginStore } from 'src/stores/login';
 
+import { useLoginStore } from 'src/stores/login';
 import FormLogin from '../login/FormLogin.vue';
 import { i18n } from '../../boot/i18n';
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+import {
+  httpSuccessfullStatus,
+  httpInternalServerErrorStatus,
+} from '../../../test/cypress/support/commonTests';
 
 // colors
 const { getPaletteColor } = colors;
 const white = getPaletteColor('white');
 const grey10 = getPaletteColor('grey-10');
 
-const rideToWorkByBikeConfig = JSON.parse(
-  process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
-);
 const colorPrimary = rideToWorkByBikeConfig.colorPrimary;
 const contactEmail = rideToWorkByBikeConfig.contactEmail;
 
+// selectors
+const classSelectorQNotificationMessage = '.q-notification__message';
+
 // variables
-const email = 'test@example.com';
+const username = 'test@example.com';
 const password = 'example123';
+const tokenAccess = '1234567890';
+const tokenRefresh = '0987654321';
+const user = {
+  pk: 1,
+  username: 'foobar',
+  email: 'foo@bar.org',
+  first_name: 'Foo',
+  last_name: 'Bar',
+};
+const { apiBase, urlApiLogin } = rideToWorkByBikeConfig;
+const apiLoginUrl = `${apiBase}${urlApiLogin}`;
 
 describe('<FormLogin>', () => {
   it('has translation for all strings', () => {
@@ -249,24 +265,83 @@ describe('<FormLogin>', () => {
       cy.viewport('macbook-16');
     });
 
-    it('uses the login store', () => {
-      const loginStore = useLoginStore();
-      // initial state
-      expect(loginStore.user.email).to.equal(emptyUser.email);
-      expect(loginStore.user.password).to.equal(emptyUser.password);
-      // type email
-      cy.dataCy('form-login-email').find('input').clear();
-      cy.dataCy('form-login-email').find('input').type(email);
-      // check email in store
-      cy.dataCy('form-login-email').then(() => {
-        expect(loginStore.user.email).to.equal(email);
+    it('allows to save tokens and user into store', () => {
+      const store = useLoginStore();
+      store.setAccessToken(tokenAccess);
+      store.setRefreshToken(tokenRefresh);
+      store.setUser(user);
+      expect(store.getAccessToken).to.equal(tokenAccess);
+      expect(store.getRefreshToken).to.equal(tokenRefresh);
+      expect(store.getUser).to.deep.equal(user);
+    });
+
+    it('shows error if login is called and username is not set', () => {
+      const store = useLoginStore();
+      cy.wrap(store.login({ username: '', password })).then((result) => {
+        expect(result).to.equal(null);
+        cy.get(classSelectorQNotificationMessage)
+          .should('be.visible')
+          .and('contain', i18n.global.t('login.form.messageEmailReqired'));
       });
-      // type password
-      cy.dataCy('form-login-password').find('input').clear();
-      cy.dataCy('form-login-password').find('input').type(password);
-      // check password in store
-      cy.dataCy('form-login-password').then(() => {
-        expect(loginStore.user.password).to.equal(password);
+    });
+
+    it('shows error if login is called and password is not set', () => {
+      const store = useLoginStore();
+      cy.wrap(store.login({ username, password: '' })).then((result) => {
+        expect(result).to.equal(null);
+        cy.get(classSelectorQNotificationMessage)
+          .should('be.visible')
+          .and('contain', i18n.global.t('login.form.messageEmailReqired'));
+      });
+    });
+
+    it('shows error if API call fails (error has message)', () => {
+      const store = useLoginStore();
+      cy.intercept('POST', apiLoginUrl, {
+        statusCode: httpInternalServerErrorStatus,
+      }).then(() => {
+        cy.wrap(store.login({ username, password })).then((result) => {
+          expect(result).to.equal(null);
+          cy.get(classSelectorQNotificationMessage)
+            .should('be.visible')
+            .and('contain', i18n.global.t('login.apiMessageErrorWithMessage'))
+            .and('contain', httpInternalServerErrorStatus);
+        });
+      });
+    });
+
+    it('calls API and set token on successful login', () => {
+      // intercept login API call
+      cy.intercept('POST', apiLoginUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: { access_token: tokenAccess, refresh_token: tokenRefresh, user },
+      }).then(() => {
+        const store = useLoginStore();
+        cy.wrap(store.login({ username, password })).then((response) => {
+          console.log(response);
+          expect(response).to.deep.equal({
+            access_token: tokenAccess,
+            refresh_token: tokenRefresh,
+            user,
+          });
+          expect(store.getAccessToken).to.equal(tokenAccess);
+          expect(store.getRefreshToken).to.equal(tokenRefresh);
+          expect(store.getUser).to.deep.equal(user);
+        });
+      });
+    });
+
+    it('calls API and shows error if login fails', () => {
+      const store = useLoginStore();
+      // intercept login API call
+      cy.intercept('POST', apiLoginUrl, {
+        statusCode: httpInternalServerErrorStatus,
+      }).then(() => {
+        cy.wrap(store.login({ username, password })).then(() => {
+          cy.get(classSelectorQNotificationMessage)
+            .should('be.visible')
+            .and('contain', i18n.global.t('login.apiMessageError'));
+        });
       });
     });
   });

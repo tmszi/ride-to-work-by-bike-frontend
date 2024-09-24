@@ -22,7 +22,7 @@
  */
 
 // libraries
-import { defineComponent, ref, reactive, watch } from 'vue';
+import { defineComponent, ref, reactive } from 'vue';
 
 // components
 import BannerAppButtons from './BannerAppButtons.vue';
@@ -48,15 +48,11 @@ export default defineComponent({
   emits: ['formSubmit'],
   setup() {
     const loginStore = useLoginStore();
-    const user = reactive(loginStore.getUser);
-
-    watch(
-      user,
-      (newVal) => {
-        loginStore.setUser(newVal);
-      },
-      { deep: true },
-    );
+    const formLogin = reactive({
+      username: '',
+      password: '',
+    });
+    const loginLoading = ref(false);
 
     const formPasswordReset = reactive({
       email: '',
@@ -72,8 +68,12 @@ export default defineComponent({
 
     const { isEmail, isFilled } = useValidation();
 
-    const onSubmitLogin = () => {
-      // noop
+    const onSubmitLogin = async () => {
+      loginLoading.value = true;
+
+      await loginStore.login(formLogin);
+
+      loginLoading.value = false;
     };
 
     const onSubmitPasswordReset = () => {
@@ -91,9 +91,10 @@ export default defineComponent({
       formPasswordReset,
       formState,
       isPassword,
+      loginLoading,
+      formLogin,
       isEmail,
       isFilled,
-      user,
       onClickFormPasswordResetBtn,
       onSubmitLogin,
       onSubmitPasswordReset,
@@ -117,7 +118,7 @@ export default defineComponent({
     <q-form @submit.prevent="onSubmitLogin">
       <!-- Input: email -->
       <form-field-email
-        v-model="user.email"
+        v-model="formLogin.username"
         bg-color="white"
         data-cy="form-login-email"
       />
@@ -133,7 +134,7 @@ export default defineComponent({
           outlined
           hide-bottom-space
           bg-color="grey-1"
-          v-model="user.password"
+          v-model="formLogin.password"
           id="form-login-password"
           :type="isPassword ? 'password' : 'text'"
           :rules="[
@@ -173,6 +174,7 @@ export default defineComponent({
         class="full-width"
         type="submit"
         color="primary q-mt-lg"
+        :loading="loginLoading"
         :label="$t('login.form.submitLogin')"
         data-cy="form-login-submit-login"
       />
