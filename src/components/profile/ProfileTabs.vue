@@ -8,6 +8,7 @@
  * @components
  * - `ProfileDetails`: Component to display a ProfileDetails section.
  * - `TableNotifications`: Component to display a table of notifications.
+ * - `ProfileQuestionnaires`: Component to display a table of questionnaires.
  *
  * @example
  * <profile-tabs />
@@ -21,13 +22,14 @@ import { defineComponent, ref } from 'vue';
 // components
 import ProfileDetails from './ProfileDetails.vue';
 import TableNotifications from './TableNotifications.vue';
+import ProfileQuestionnaires from './ProfileQuestionnaires.vue';
 
 // routes
 import { routesConf } from '../../router/routes_conf';
 
 enum tabsProfile {
   details = 'details',
-  forms = 'forms',
+  questionnaires = 'questionnaires',
   newsletter = 'newsletter',
   notifications = 'notifications',
   none = '',
@@ -38,6 +40,7 @@ export default defineComponent({
   components: {
     ProfileDetails,
     TableNotifications,
+    ProfileQuestionnaires,
   },
   setup() {
     const activeTab = ref(tabsProfile.none);
@@ -71,9 +74,9 @@ export default defineComponent({
       />
       <q-route-tab
         :to="routesConf['profile_forms'].path"
-        :name="tabsProfile.forms"
+        :name="tabsProfile.questionnaires"
         :label="$t('profile.tabForms')"
-        data-cy="profile-tabs-button-forms"
+        data-cy="profile-tabs-button-questionnaires"
       />
       <q-route-tab
         :to="routesConf['profile_newsletter'].path"
@@ -100,9 +103,12 @@ export default defineComponent({
       >
         <profile-details />
       </q-tab-panel>
-      <!-- Panel: Forms -->
-      <q-tab-panel :name="tabsProfile.forms" data-cy="profile-tabs-panel-forms">
-        <!-- <profile-forms /> -->
+      <!-- Panel: Questionnaires -->
+      <q-tab-panel
+        :name="tabsProfile.questionnaires"
+        data-cy="profile-tabs-panel-questionnaires"
+      >
+        <profile-questionnaires />
       </q-tab-panel>
       <!-- Panel: Newsletter -->
       <q-tab-panel
