@@ -11,6 +11,7 @@
  *
  * @props
  * - `showLogo` (Boolean, default: true): Determines if the logo should be displayed.
+ * - `mobile` (Boolean, default: false): Determines if the component is rendered on mobile.
  *
  * @components
  * - `ButtonNotifications` Component to render notifications.
@@ -43,12 +44,11 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
-    modelValue: {
+    mobile: {
       type: Boolean,
       default: false,
     },
   },
-  emits: ['update:modelValue'],
   setup(props) {
     const classes = computed((): string => {
       return props.showLogo ? 'justify-between' : 'justify-end';
@@ -101,7 +101,12 @@ export default defineComponent({
       <!-- Notification icon link -->
       <button-notifications />
       <!-- User menu dropdown -->
-      <user-select variant="mobile" class="lt-md" />
+      <user-select
+        v-if="mobile"
+        variant="mobile"
+        class="lt-md"
+        data-cy="user-select-mobile"
+      />
     </div>
   </div>
 </template>

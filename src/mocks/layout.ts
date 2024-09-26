@@ -2,7 +2,8 @@ import { Link, User } from 'src/components/types';
 import { i18n } from 'src/boot/i18n';
 
 export const user: User = {
-  label: 'User 1',
+  label: 'Jana Anonymní',
+  email: 'jana.anonymni@dopracenakole.cz',
   value: '1',
   image: {
     src: 'https://picsum.photos/id/40/300/300',
@@ -67,36 +68,6 @@ export const menuBottom: Link[] = [
     icon: 'svguse:icons/drawer_menu/icons.svg#lucide-gift',
     name: 'donate',
     title: 'donate',
-  },
-];
-
-export const userMenuTop: Link[] = [
-  {
-    title: 'Vaše údaje',
-    url: '#',
-  },
-  {
-    title: 'Odebírat newsletter',
-    url: '#',
-  },
-  {
-    title: 'Propojit aplikace',
-    url: '#',
-  },
-  {
-    title: 'Historie notifikací',
-    url: '#',
-  },
-];
-
-export const userMenuBottom: Link[] = [
-  {
-    title: 'Stát se firemním koordinátorem',
-    url: '#',
-  },
-  {
-    title: 'Odhlásit se',
-    url: '#',
   },
 ];
 

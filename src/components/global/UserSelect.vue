@@ -24,7 +24,17 @@
 import { defineComponent } from 'vue';
 
 // mocks
-import { user, userMenuTop, userMenuBottom } from '../../mocks/layout';
+import { user } from '../../mocks/layout';
+
+// composables
+import { i18n } from '../../boot/i18n';
+
+// config
+import { routesConf } from '../../router/routes_conf';
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
+// types
+import type { Link } from '../types/Link';
 
 export default defineComponent({
   name: 'UserSelect',
@@ -36,13 +46,48 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const size = props.variant === 'mobile' ? '32px' : '56px';
+    const menuTop: Link[] = [
+      {
+        title: i18n.global.t('userSelect.profileDetails'),
+        url: routesConf['profile_details']['children']['fullPath'],
+      },
+      {
+        title: i18n.global.t('userSelect.newsletter'),
+        url: routesConf['profile_newsletter']['children']['fullPath'],
+      },
+      {
+        title: i18n.global.t('userSelect.connectApps'),
+        url: routesConf['routes_app']['children']['fullPath'],
+      },
+      {
+        title: i18n.global.t('userSelect.notifications'),
+        url: routesConf['profile_notifications']['children']['fullPath'],
+      },
+    ];
+
+    const menuBottom: Link[] = [
+      {
+        title: i18n.global.t('userSelect.companyCoordinator'),
+        url: routesConf['company_coordinator']['children']['fullPath'],
+      },
+    ];
+
+    const onLogout = () => {
+      // TODO: add logout logic
+    };
+
+    const size = props.variant === 'mobile' ? '32px' : '40px';
+    const { borderRadiusCard: borderRadius, colorWhite } =
+      rideToWorkByBikeConfig;
 
     return {
+      borderRadius,
+      colorWhite,
+      menuBottom,
+      menuTop,
+      onLogout,
       size,
       user,
-      menuTop: userMenuTop,
-      menuBottom: userMenuBottom,
     };
   },
 });
@@ -52,46 +97,65 @@ export default defineComponent({
   <div class="user-select" data-cy="user-select">
     <!-- User dropdown -->
     <q-btn-dropdown
+      dark
       rounded
-      flat
-      class="bg-blue-grey-2 q-px-none q-py-none"
+      outline
+      color="white"
       :class="[
-        variant === 'mobile' ? 'dropdown-arrow-hidden' : 'q-pr-md full-width',
+        variant === 'mobile'
+          ? 'dropdown-arrow-hidden transparent q-px-none q-py-none'
+          : 'bg-primary q-px-sm q-py-sm full-width',
       ]"
+      content-class="transparent"
+      :content-style="[
+        variant === 'mobile'
+          ? { borderRadius }
+          : { borderRadius, border: `1px solid ${colorWhite}` },
+      ]"
+      :style="[variant === 'mobile' ? {} : { borderRadius }]"
+      :menu-offset="[0, 8]"
+      dropdown-icon="svguse:icons/user_select/icons.svg#chevron-down"
       data-cy="user-select-input"
     >
       <template v-slot:label>
         <!-- User image -->
         <q-avatar :size="size" data-cy="avatar">
-          <q-img :src="user.image.src" :alt="user.image.alt" :size="size" />
+          <q-img
+            :src="user.image.src"
+            :alt="user.image.alt"
+            :size="size"
+            data-cy="avatar-image"
+          />
         </q-avatar>
         <!-- User name -->
-        <span
-          v-if="variant !== 'mobile'"
-          class="col-grow inline-block text-left q-ml-md"
-        >
-          {{ user.label }}
-        </span>
+        <div v-if="variant !== 'mobile'" class="col text-left q-ml-md ellipsis">
+          {{ user.email }}
+        </div>
       </template>
       <!-- User menu: Top -->
-      <q-list bordered>
+      <q-list
+        dark
+        bordered
+        :style="{ borderRadius }"
+        class="bg-primary"
+        data-cy="user-select-menu"
+      >
         <q-item
+          dark
           v-for="option in menuTop"
           :key="option.title"
           tag="a"
           :to="option.url"
+          active-class="menu-active-item"
           clickable
           v-close-popup
-          class="text-grey-10"
+          data-cy="menu-item"
         >
           <q-item-label class="flex items-center">{{
             option.title
           }}</q-item-label>
         </q-item>
-      </q-list>
-      <q-separator color="blue-grey-2" />
-      <!-- User menu: Bottom -->
-      <q-list>
+        <q-separator color="blue-grey-2 q-my-sm" />
         <q-item
           v-for="option in menuBottom"
           :key="option.title"
@@ -99,11 +163,26 @@ export default defineComponent({
           :to="option.url"
           clickable
           v-close-popup
-          class="text-grey-10"
+          active-class="menu-active-item"
+          data-cy="menu-item"
         >
           <q-item-label class="flex items-center">{{
             option.title
           }}</q-item-label>
+        </q-item>
+        <!-- Item logout -->
+        <!-- TODO: add conditional display -->
+        <q-item
+          key="user-logout"
+          tag="a"
+          clickable
+          v-close-popup
+          @click="onLogout"
+          data-cy="menu-item"
+        >
+          <q-item-label class="flex items-center">
+            {{ $t('userSelect.logout') }}
+          </q-item-label>
         </q-item>
       </q-list>
     </q-btn-dropdown>
@@ -111,12 +190,15 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
-// hide button edges overlapping the avatar (when height = 32px)
-.q-btn-dropdown {
-  min-height: 0;
-}
 // hide dropdown arrow for mobile variant
 .dropdown-arrow-hidden :deep(.q-btn-dropdown__arrow) {
   display: none;
+}
+:deep(.q-btn-dropdown__arrow) {
+  width: 18px;
+  height: 18px;
+}
+.menu-active-item {
+  font-weight: 700;
 }
 </style>
