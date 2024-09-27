@@ -301,20 +301,20 @@ export const cardsProgress: CardProgress[] = [
 export const newsletterItems: NewsletterItem[] = [
   {
     title: i18n.global.t('index.newsletterFeature.aboutChallenges'),
-    icon: 'ion-bicycle',
-    url: '#',
+    icon: 'svguse:icons/newsletter_item/icons.svg#lucide-bike',
+    url: 'https://ecomail.cz/',
     following: true,
   },
   {
     title: i18n.global.t('index.newsletterFeature.aboutEvents'),
-    icon: 'people',
-    url: '#',
+    icon: 'svguse:icons/newsletter_item/icons.svg#tabler-calendar',
+    url: 'https://ecomail.cz/',
     following: true,
   },
   {
     title: i18n.global.t('index.newsletterFeature.aboutMobility'),
-    icon: 'mdi-leaf',
-    url: '#',
+    icon: 'svguse:icons/newsletter_item/icons.svg#tabler-leaf',
+    url: 'https://ecomail.cz/',
     following: false,
   },
 ];
