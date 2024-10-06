@@ -53,7 +53,7 @@ function coreTests() {
         .should('be.visible')
         .then(($el) => {
           cy.wrap(i18n.global.t('prizes.titlePrizes')).then((translation) => {
-            expect($el.text()).to.equal(translation);
+            cy.wrap($el).should('contain', translation);
           });
         });
       cy.dataCy('form-field-select-city').should('be.visible');

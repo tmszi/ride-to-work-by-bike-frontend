@@ -69,12 +69,12 @@ export default defineComponent({
 
 <template>
   <q-breadcrumbs
-    class="text-h5 text-gray-7 text-weight-regular"
-    active-color="gray-10"
+    class="text-h4 text-weight-bold"
+    active-color="black"
     data-cy="breadcrumb-title"
   >
     <template v-slot:separator>
-      <q-icon size="24px" name="chevron_right" />
+      <q-icon size="32px" color="primary" name="chevron_right" />
     </template>
 
     <q-breadcrumbs-el
@@ -83,12 +83,9 @@ export default defineComponent({
       :label="$t(`breadcrumb.${page.name}`)"
       :icon="page.icon"
       :to="page.path"
+      class="text-primary"
       data-cy="breadcrumb-title-el"
     />
-    <q-breadcrumbs-el
-      class="text-weight-bold"
-      :label="title"
-      data-cy="breadcrumb-title-current"
-    />
+    <q-breadcrumbs-el :label="title" data-cy="breadcrumb-title-current" />
   </q-breadcrumbs>
 </template>
