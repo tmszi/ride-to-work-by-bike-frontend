@@ -41,7 +41,9 @@ export interface ConfigGlobal {
   notifyMessagePosition: string;
   apiBase: string;
   apiVersion: string;
+  apiDefaultLang: string;
   urlApiLogin: string;
+  urlApiRefresh: string;
   urlLoginRegisterBackgroundImage: string;
 }
 

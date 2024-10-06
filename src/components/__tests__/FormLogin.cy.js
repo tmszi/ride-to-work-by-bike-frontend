@@ -9,6 +9,7 @@ import {
   httpSuccessfullStatus,
   httpInternalServerErrorStatus,
 } from '../../../test/cypress/support/commonTests';
+import { getApiBaseUrlWithLang } from '../../../src/utils/get_api_base_url_with_lang';
 
 // colors
 const { getPaletteColor } = colors;
@@ -22,23 +23,29 @@ const contactEmail = rideToWorkByBikeConfig.contactEmail;
 const classSelectorQNotificationMessage = '.q-notification__message';
 
 // variables
+const { apiBase, apiDefaultLang, urlApiLogin, urlApiRefresh } =
+  rideToWorkByBikeConfig;
+
 const username = 'test@example.com';
 const password = 'example123';
-const tokenAccess = '1234567890';
-const tokenRefresh = '0987654321';
-const user = {
-  pk: 1,
-  username: 'foobar',
-  email: 'foo@bar.org',
-  first_name: 'Foo',
-  last_name: 'Bar',
-};
-const { apiBase, urlApiLogin } = rideToWorkByBikeConfig;
-const apiLoginUrl = `${apiBase}${urlApiLogin}`;
+
+// access token expiration time: Tuesday 24. September 2024 22:36:03
+const fixtureTokenExpiration = new Date('2024-09-24T20:36:03Z');
+const fixtureTokenExpirationTime = fixtureTokenExpiration.getTime();
+const fixtureTokenExpirationTimeSeconds = fixtureTokenExpirationTime / 1000;
+// refresh token expiration time: Tuesday 24. September 2024 22:37:41
+const fixtureTokenRefreshExpiration = new Date('2024-09-24T20:37:41Z');
+const fixtureTokenRefreshExpirationTime =
+  fixtureTokenRefreshExpiration.getTime() / 1000;
+const timeUntilRefresh = 60 * 1000; // miliseconds (because used in cy.tick)
+const timeUntilExpiration = timeUntilRefresh * 2;
+const timeUntilExpirationSeconds = timeUntilExpiration / 1000;
+// 2 min before JWT expires - this needs to be miliseconds!
+const systemTime = fixtureTokenExpirationTime - timeUntilExpiration;
 
 describe('<FormLogin>', () => {
   it('has translation for all strings', () => {
-    // Not testing form labels since they are the same in all languages
+    // not testing form labels since they are the same in all languages
     cy.testLanguageStringsInContext(
       [
         'titleLogin',
@@ -63,6 +70,17 @@ describe('<FormLogin>', () => {
         props: {},
       });
       cy.viewport('macbook-16');
+      // intercept login API call
+      const apiBaseUrl = getApiBaseUrlWithLang(
+        null,
+        apiBase,
+        apiDefaultLang,
+        i18n,
+      );
+      const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
+      cy.intercept('POST', apiLoginUrl, {
+        statusCode: httpInternalServerErrorStatus,
+      }).as('loginRequest');
     });
 
     it('renders title', () => {
@@ -254,25 +272,17 @@ describe('<FormLogin>', () => {
         .should('be.visible')
         .and('contain', i18n.global.t('login.form.messagePasswordRequired'));
     });
-  });
-
-  context('desktop - login store', () => {
-    beforeEach(() => {
-      setActivePinia(createPinia());
-      cy.mount(FormLogin, {
-        props: {},
-      });
-      cy.viewport('macbook-16');
-    });
 
     it('allows to save tokens and user into store', () => {
-      const store = useLoginStore();
-      store.setAccessToken(tokenAccess);
-      store.setRefreshToken(tokenRefresh);
-      store.setUser(user);
-      expect(store.getAccessToken).to.equal(tokenAccess);
-      expect(store.getRefreshToken).to.equal(tokenRefresh);
-      expect(store.getUser).to.deep.equal(user);
+      cy.fixture('loginResponse.json').then((loginResponse) => {
+        const store = useLoginStore();
+        store.setAccessToken(loginResponse.access);
+        store.setRefreshToken(loginResponse.refresh);
+        store.setUser(loginResponse.user);
+        expect(store.getAccessToken).to.equal(loginResponse.access);
+        expect(store.getRefreshToken).to.equal(loginResponse.refresh);
+        expect(store.getUser).to.deep.equal(loginResponse.user);
+      });
     });
 
     it('shows error if login is called and username is not set', () => {
@@ -297,50 +307,159 @@ describe('<FormLogin>', () => {
 
     it('shows error if API call fails (error has message)', () => {
       const store = useLoginStore();
-      cy.intercept('POST', apiLoginUrl, {
-        statusCode: httpInternalServerErrorStatus,
-      }).then(() => {
-        cy.wrap(store.login({ username, password })).then((result) => {
-          expect(result).to.equal(null);
-          cy.get(classSelectorQNotificationMessage)
-            .should('be.visible')
-            .and('contain', i18n.global.t('login.apiMessageErrorWithMessage'))
-            .and('contain', httpInternalServerErrorStatus);
-        });
-      });
-    });
-
-    it('calls API and set token on successful login', () => {
-      // intercept login API call
-      cy.intercept('POST', apiLoginUrl, {
-        statusCode: httpSuccessfullStatus,
-        body: { access_token: tokenAccess, refresh_token: tokenRefresh, user },
-      }).then(() => {
-        const store = useLoginStore();
-        cy.wrap(store.login({ username, password })).then((response) => {
-          console.log(response);
-          expect(response).to.deep.equal({
-            access_token: tokenAccess,
-            refresh_token: tokenRefresh,
-            user,
-          });
-          expect(store.getAccessToken).to.equal(tokenAccess);
-          expect(store.getRefreshToken).to.equal(tokenRefresh);
-          expect(store.getUser).to.deep.equal(user);
-        });
+      cy.wrap(store.login({ username, password })).then((result) => {
+        expect(result).to.equal(null);
+        cy.get(classSelectorQNotificationMessage)
+          .should('be.visible')
+          .and('contain', i18n.global.t('login.apiMessageErrorWithMessage'));
       });
     });
 
     it('calls API and shows error if login fails', () => {
       const store = useLoginStore();
       // intercept login API call
-      cy.intercept('POST', apiLoginUrl, {
-        statusCode: httpInternalServerErrorStatus,
-      }).then(() => {
-        cy.wrap(store.login({ username, password })).then(() => {
-          cy.get(classSelectorQNotificationMessage)
-            .should('be.visible')
-            .and('contain', i18n.global.t('login.apiMessageError'));
+      cy.wrap(store.login({ username, password })).then(() => {
+        cy.get(classSelectorQNotificationMessage)
+          .should('be.visible')
+          .and('contain', i18n.global.t('login.apiMessageError'));
+      });
+    });
+  });
+
+  context('desktop - timed login', () => {
+    beforeEach(() => {
+      setActivePinia(createPinia());
+      cy.mount(FormLogin, {
+        props: {},
+      });
+      cy.viewport('macbook-16');
+      cy.clock().then((clock) => {
+        cy.wrap(clock).as('clock');
+        clock.setSystemTime(systemTime);
+      });
+      // intercept login API call
+      const apiBaseUrl = getApiBaseUrlWithLang(
+        null,
+        apiBase,
+        apiDefaultLang,
+        i18n,
+      );
+      const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
+      cy.fixture('loginResponse.json').then((loginResponse) => {
+        cy.intercept('POST', apiLoginUrl, {
+          statusCode: httpSuccessfullStatus,
+          body: loginResponse,
+        }).as('loginRequest');
+      });
+    });
+
+    it('performs login and refreshes token 1 min before expiration', () => {
+      cy.fixture('loginResponse.json').then((loginResponse) => {
+        cy.get('@clock').then((clock) => {
+          const store = useLoginStore();
+          cy.wrap(store.login({ username, password })).then((response) => {
+            expect(response).to.deep.equal(loginResponse);
+            expect(store.getAccessToken).to.equal(loginResponse.access);
+            expect(store.getRefreshToken).to.equal(loginResponse.refresh);
+            expect(store.getUser).to.deep.equal(loginResponse.user);
+            expect(store.getJwtExpiration).to.equal(
+              fixtureTokenExpirationTimeSeconds,
+            );
+            expect(store.getTimeUntilExpiration()).to.equal(
+              timeUntilExpirationSeconds, // time until expiration in seconds
+            );
+            expect(store.isJwtExpired()).to.equal(false);
+            cy.fixture('refreshTokensResponse.json').then(
+              (refreshTokensResponse) => {
+                // intercept refresh token API call
+                const apiBaseUrl = getApiBaseUrlWithLang(
+                  null,
+                  apiBase,
+                  apiDefaultLang,
+                  i18n,
+                );
+                const apiRefreshUrl = `${apiBaseUrl}${urlApiRefresh}`;
+                cy.intercept('POST', apiRefreshUrl, {
+                  statusCode: httpSuccessfullStatus,
+                  body: refreshTokensResponse,
+                })
+                  .as('refreshTokens')
+                  .then(() => {
+                    // set time to when JWT should be expired + 1 second
+                    clock.tick(timeUntilExpiration);
+                    // intercepted function apiRefreshUrl should be called
+                    cy.wait('@refreshTokens')
+                      .its('response.statusCode')
+                      .should('eq', httpSuccessfullStatus)
+                      .then(() => {
+                        // new JWT
+                        expect(store.getAccessToken).to.equal(
+                          refreshTokensResponse.access,
+                        );
+                        // JWT not be expired
+                        expect(store.isJwtExpired()).to.equal(false);
+                        expect(store.getJwtExpiration).to.equal(
+                          fixtureTokenRefreshExpirationTime,
+                        );
+                      });
+                  });
+              },
+            );
+          });
+        });
+      });
+    });
+
+    it('performs login and sets token and expiration time', () => {
+      cy.fixture('loginResponse.json').then((loginResponse) => {
+        cy.get('@clock').then((clock) => {
+          const store = useLoginStore();
+          cy.wrap(store.login({ username, password })).then((response) => {
+            expect(response).to.deep.equal(loginResponse);
+            expect(store.getAccessToken).to.equal(loginResponse.access);
+            expect(store.getRefreshToken).to.equal(loginResponse.refresh);
+            expect(store.getUser).to.deep.equal(loginResponse.user);
+            expect(store.getJwtExpiration).to.equal(
+              fixtureTokenExpirationTimeSeconds,
+            );
+            expect(store.getTimeUntilExpiration()).to.equal(
+              timeUntilExpirationSeconds,
+            );
+            expect(store.isJwtExpired()).to.equal(false);
+            cy.fixture('refreshTokensResponse.json').then(
+              (refreshTokensResponse) => {
+                // intercept refresh token API call
+                const apiBaseUrl = getApiBaseUrlWithLang(
+                  null,
+                  apiBase,
+                  apiDefaultLang,
+                  i18n,
+                );
+                const apiRefreshUrl = `${apiBaseUrl}${urlApiRefresh}`;
+                cy.intercept('POST', apiRefreshUrl, {
+                  statusCode: httpSuccessfullStatus,
+                  body: refreshTokensResponse,
+                }).then(() => {
+                  // set time to when JWT should be expired + 1 second
+                  clock.tick(timeUntilExpiration + 1000);
+                  expect(store.getTimeUntilExpiration()).to.be.lessThan(0);
+                  expect(store.isJwtExpired()).to.equal(true);
+                  // refresh tokens
+                  cy.wrap(store.refreshTokens()).then(() => {
+                    // new JWT
+                    expect(store.getAccessToken).to.equal(
+                      refreshTokensResponse.access,
+                    );
+                    // JWT not be expired
+                    expect(store.isJwtExpired()).to.equal(false);
+                    expect(store.getJwtExpiration).to.equal(
+                      fixtureTokenRefreshExpirationTime,
+                    );
+                  });
+                });
+              },
+            );
+          });
         });
       });
     });
