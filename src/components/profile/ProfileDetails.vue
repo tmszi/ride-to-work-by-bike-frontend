@@ -13,6 +13,7 @@
  * - `FormUpdateGender`: Component to render a form for updating gender.
  * - `FormUpdateNickname`: Component to render a form for updating nickname.
  * - `LanguageSwitcher`: Component to render a language switcher.
+ * - `SectionHeading`: Component to render a section heading.
  *
  * @example
  * <profile-details />
@@ -31,6 +32,7 @@ import FormUpdateGender from '../form/FormUpdateGender.vue';
 import FormUpdateNickname from '../form/FormUpdateNickname.vue';
 import LanguageSwitcher from '../global/LanguageSwitcher.vue';
 import ProfileCoordinatorContact from './ProfileCoordinatorContact.vue';
+import SectionHeading from '../global/SectionHeading.vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
@@ -54,6 +56,7 @@ export default defineComponent({
     FormUpdateNickname,
     LanguageSwitcher,
     ProfileCoordinatorContact,
+    SectionHeading,
   },
   setup() {
     const iconSize = '18px';
@@ -109,12 +112,9 @@ export default defineComponent({
 <template>
   <div data-cy="profile-details">
     <!-- Title -->
-    <h2
-      class="text-h6 text-grey-10 q-my-none"
-      data-cy="profile-title-personal-details"
-    >
+    <section-heading data-cy="profile-title-personal-details">
       {{ $t('profile.titlePersonalDetails') }}
-    </h2>
+    </section-heading>
     <!-- Personal info -->
     <div class="q-mt-lg">
       <!-- Nickname -->
@@ -198,12 +198,9 @@ export default defineComponent({
     </div>
 
     <!-- Title -->
-    <h2
-      class="text-h6 text-grey-10 q-mb-none q-mt-xl"
-      data-cy="profile-title-challenge-details"
-    >
+    <section-heading class="q-mt-xl" data-cy="profile-title-challenge-details">
       {{ $t('profile.titleChallengeDetails') }}
-    </h2>
+    </section-heading>
     <!-- Challenge details -->
     <div class="q-mt-lg">
       <div class="row q-col-gutter-lg">
@@ -242,12 +239,9 @@ export default defineComponent({
     </div>
 
     <!-- Title -->
-    <h2
-      class="text-h6 text-grey-10 q-mb-none q-mt-xl"
-      data-cy="profile-title-starter-package"
-    >
+    <section-heading class="q-mt-xl" data-cy="profile-title-starter-package">
       {{ $t('profile.titleStarterPackage') }}
-    </h2>
+    </section-heading>
     <!-- Starter package -->
     <div class="q-mt-lg">
       <div class="row q-col-gutter-lg">
@@ -309,12 +303,12 @@ export default defineComponent({
     </div>
 
     <!-- Title -->
-    <h2
-      class="text-h6 text-grey-10 q-mb-none q-mt-xl"
+    <section-heading
+      class="q-mt-xl"
       data-cy="profile-title-registration-details"
     >
       {{ $t('profile.titleRegistrationDetails') }}
-    </h2>
+    </section-heading>
     <!-- Registration details -->
     <div class="q-mt-lg">
       <div class="row q-col-gutter-lg">

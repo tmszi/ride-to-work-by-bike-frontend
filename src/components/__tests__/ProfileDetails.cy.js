@@ -3,8 +3,8 @@ import ProfileDetails from 'components/profile/ProfileDetails.vue';
 import { i18n } from '../../boot/i18n';
 import { PaymentState } from '../../../src/components/types/Profile';
 
+// colors
 const { getPaletteColor } = colors;
-const grey10 = getPaletteColor('grey-10');
 const green = getPaletteColor('green');
 const red = getPaletteColor('red');
 
@@ -131,10 +131,11 @@ function coreTests() {
       // page title
       cy.dataCy(selectorTitlePersonalDetails)
         .should('be.visible')
-        .and('have.css', 'font-size', '20px')
-        .and('have.css', 'font-weight', '500')
-        .and('have.color', grey10)
-        .and('contain', i18n.global.t('profile.titlePersonalDetails'));
+        .within(() => {
+          cy.dataCy('section-heading-title')
+            .should('be.visible')
+            .and('contain', i18n.global.t('profile.titlePersonalDetails'));
+        });
       // row nickname
       cy.dataCy(selectorNickname).should('be.visible');
       // row email
@@ -148,10 +149,11 @@ function coreTests() {
       // title challenge details
       cy.dataCy(selectorTitleChallengeDetails)
         .should('be.visible')
-        .and('have.css', 'font-size', '20px')
-        .and('have.css', 'font-weight', '500')
-        .and('have.color', grey10)
-        .and('contain', i18n.global.t('profile.titleChallengeDetails'));
+        .within(() => {
+          cy.dataCy('section-heading-title')
+            .should('be.visible')
+            .and('contain', i18n.global.t('profile.titleChallengeDetails'));
+        });
       // row organizationType
       cy.dataCy(selectorOrganizationType)
         .find(dataSelectorLabel)
@@ -191,10 +193,11 @@ function coreTests() {
       // title challenge details
       cy.dataCy(selectorTitleStarterPackage)
         .should('be.visible')
-        .and('have.css', 'font-size', '20px')
-        .and('have.css', 'font-weight', '500')
-        .and('have.color', grey10)
-        .and('contain', i18n.global.t('profile.titleStarterPackage'));
+        .within(() => {
+          cy.dataCy('section-heading-title')
+            .should('be.visible')
+            .and('contain', i18n.global.t('profile.titleStarterPackage'));
+        });
       // row package
       cy.dataCy(selectorPackage)
         .find(dataSelectorLabel)
@@ -492,10 +495,11 @@ function coreTests() {
       // title
       cy.dataCy(selectorTitleRegistrationDetails)
         .should('be.visible')
-        .and('have.css', 'font-size', '20px')
-        .and('have.css', 'font-weight', '500')
-        .and('have.color', grey10)
-        .and('contain', i18n.global.t('profile.titleRegistrationDetails'));
+        .within(() => {
+          cy.dataCy('section-heading-title')
+            .should('be.visible')
+            .and('contain', i18n.global.t('profile.titleRegistrationDetails'));
+        });
       // payment state
       cy.dataCy(selectorPaymentState)
         .find(dataSelectorLabel)
