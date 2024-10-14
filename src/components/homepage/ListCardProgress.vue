@@ -15,7 +15,6 @@
  *   progress cards.
  * - `cards` (Array of CardProgressType, required): An array of card items to
  *   be displayed, each representing progress statistics.
- * - `stats` (Array of ItemStatisticsType): An array of statistical items.
  * - `button` (Object of Link type): An object defining the button properties.
  *
  * @components
@@ -35,16 +34,23 @@
  */
 
 // libraries
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 
-// types
-import { CardProgress as CardProgressType, Link } from '../types';
-import type { ItemStatistics } from '../types/Statistics';
+// fixtures
+import memberResultsFixture from '../../../test/cypress/fixtures/memberResults.json';
 
 // components
 import CardProgress from './CardProgress.vue';
 import SectionHeading from '../global/SectionHeading.vue';
 import StatsBar from '../global/StatsBar.vue';
+
+// composables
+import { useStatsBar } from 'src/composables/useStatsBar';
+
+// types
+import type { ItemStatistics } from '../types/Statistics';
+import type { MemberResults } from '../types/Results';
+import { CardProgress as CardProgressType, Link } from '../types';
 
 export default defineComponent({
   name: 'ListCardProgress',
@@ -57,9 +63,6 @@ export default defineComponent({
       type: Array as () => CardProgressType[],
       required: true,
     },
-    stats: {
-      type: Array as () => ItemStatistics[],
-    },
     button: {
       type: Object as () => Link,
       required: false,
@@ -69,6 +72,17 @@ export default defineComponent({
     CardProgress,
     SectionHeading,
     StatsBar,
+  },
+  setup() {
+    const memberResults = memberResultsFixture as MemberResults;
+    const { getMemberResultStats } = useStatsBar();
+    const stats = computed<ItemStatistics[]>(() =>
+      getMemberResultStats(memberResults.results),
+    );
+
+    return {
+      stats,
+    };
   },
 });
 </script>
