@@ -6,18 +6,20 @@ import FormLogin from '../login/FormLogin.vue';
 import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 import {
+  fixtureTokenExpirationTime,
   httpSuccessfullStatus,
   httpInternalServerErrorStatus,
+  systemTime,
+  timeUntilExpiration,
 } from '../../../test/cypress/support/commonTests';
 import { getApiBaseUrlWithLang } from '../../../src/utils/get_api_base_url_with_lang';
 
 // colors
-const { getPaletteColor } = colors;
+const { getPaletteColor, changeAlpha } = colors;
 const white = getPaletteColor('white');
-const grey10 = getPaletteColor('grey-10');
-
-const colorPrimary = rideToWorkByBikeConfig.colorPrimary;
-const contactEmail = rideToWorkByBikeConfig.contactEmail;
+const primary = getPaletteColor('primary');
+const secondary = getPaletteColor('secondary');
+const whiteOpacity20 = changeAlpha(white, 0.2);
 
 // selectors
 const classSelectorQNotificationMessage = '.q-notification__message';
@@ -25,25 +27,28 @@ const selectorLoginPromptNoAccount = 'login-prompt-no-account';
 const selectorLoginLinkRegister = 'login-link-register';
 
 // variables
-const { apiBase, apiDefaultLang, urlApiLogin, urlApiRefresh } =
-  rideToWorkByBikeConfig;
+const {
+  apiBase,
+  apiDefaultLang,
+  urlApiLogin,
+  urlApiRefresh,
+  urlApiResetPassword,
+} = rideToWorkByBikeConfig;
+const resetPasswordResponse = {
+  detail: 'Request to reset password was successful.',
+};
+const resetPasswordEmail = 'qw123@qw.com';
 
 const username = 'test@example.com';
 const password = 'example123';
 
 // access token expiration time: Tuesday 24. September 2024 22:36:03
-const fixtureTokenExpiration = new Date('2024-09-24T20:36:03Z');
-const fixtureTokenExpirationTime = fixtureTokenExpiration.getTime();
 const fixtureTokenExpirationTimeSeconds = fixtureTokenExpirationTime / 1000;
 // refresh token expiration time: Tuesday 24. September 2024 22:37:41
 const fixtureTokenRefreshExpiration = new Date('2024-09-24T20:37:41Z');
 const fixtureTokenRefreshExpirationTime =
   fixtureTokenRefreshExpiration.getTime() / 1000;
-const timeUntilRefresh = 60 * 1000; // miliseconds (because used in cy.tick)
-const timeUntilExpiration = timeUntilRefresh * 2;
 const timeUntilExpirationSeconds = timeUntilExpiration / 1000;
-// 2 min before JWT expires - this needs to be miliseconds!
-const systemTime = fixtureTokenExpirationTime - timeUntilExpiration;
 
 describe('<FormLogin>', () => {
   it('has translation for all strings', () => {
@@ -64,6 +69,11 @@ describe('<FormLogin>', () => {
       'login.form',
       i18n,
     );
+    cy.testLanguageStringsInContext(
+      ['apiMessageError', 'apiMessageErrorWithMessage', 'apiMessageSuccess'],
+      'resetPassword',
+      i18n,
+    );
   });
 
   context('desktop', () => {
@@ -72,23 +82,30 @@ describe('<FormLogin>', () => {
         props: {},
       });
       cy.viewport('macbook-16');
-      // intercept login API call
+      // get API base URL
       const apiBaseUrl = getApiBaseUrlWithLang(
         null,
         apiBase,
         apiDefaultLang,
         i18n,
       );
+      // intercept login API call
       const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
       cy.intercept('POST', apiLoginUrl, {
         statusCode: httpInternalServerErrorStatus,
       }).as('loginRequest');
+      // intercept reset password API call
+      const apiResetPasswordUrl = `${apiBaseUrl}${urlApiResetPassword}`;
+      cy.intercept('POST', apiResetPasswordUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: resetPasswordResponse,
+      }).as('resetPasswordRequest');
     });
 
     it('renders title', () => {
       cy.dataCy('form-title-login')
         .should('be.visible')
-        .and('have.color', grey10)
+        .and('have.color', white)
         .and('have.css', 'font-size', '24px')
         .and('have.css', 'font-weight', '700')
         .and('contain', i18n.global.t('login.form.titleLogin'));
@@ -117,7 +134,7 @@ describe('<FormLogin>', () => {
     it('renders password show/hide icon', () => {
       cy.dataCy('form-login-password-icon')
         .should('contain', 'visibility')
-        .and('have.color', `${colorPrimary}`);
+        .and('have.color', white);
       cy.dataCy('form-login-password-icon')
         .invoke('height')
         .should('be.equal', 18);
@@ -143,7 +160,7 @@ describe('<FormLogin>', () => {
     it('renders forgotten password link', () => {
       cy.dataCy('form-login-forgotten-password')
         .should('be.visible')
-        .and('have.color', `${colorPrimary}`)
+        .and('have.color', white)
         .and('have.css', 'text-decoration-line', 'underline')
         .and('have.css', 'font-size', '12px')
         .and('have.css', 'font-weight', '400')
@@ -153,8 +170,8 @@ describe('<FormLogin>', () => {
     it('renders a submit button', () => {
       cy.dataCy('form-login-submit-login')
         .should('be.visible')
-        .and('have.color', white)
-        .and('have.backgroundColor', `${colorPrimary}`)
+        .and('have.color', primary)
+        .and('have.backgroundColor', secondary)
         .and('have.css', 'border-radius', '28px')
         .and('have.css', 'text-transform', 'uppercase')
         .and('have.text', i18n.global.t('login.form.submitLogin'));
@@ -202,7 +219,7 @@ describe('<FormLogin>', () => {
       cy.dataCy('form-password-reset').should('be.visible');
       cy.dataCy('form-password-reset-title')
         .should('be.visible')
-        .and('have.color', grey10)
+        .and('have.color', white)
         .and('have.css', 'font-size', '24px')
         .and('have.css', 'font-weight', '700')
         .and('contain', i18n.global.t('login.form.titlePasswordReset'));
@@ -213,7 +230,7 @@ describe('<FormLogin>', () => {
       cy.dataCy('form-password-reset').should('be.visible');
       cy.dataCy('form-password-reset-description')
         .should('be.visible')
-        .and('have.color', grey10)
+        .and('have.color', white)
         .and('have.css', 'font-size', '14px')
         .and('have.css', 'font-weight', '400')
         .and('contain', i18n.global.t('login.form.descriptionPasswordReset'));
@@ -229,26 +246,38 @@ describe('<FormLogin>', () => {
       cy.dataCy('form-password-reset').should('be.visible');
       cy.dataCy('form-password-reset-submit')
         .should('be.visible')
-        .and('have.color', white)
-        .and('have.backgroundColor', `${colorPrimary}`)
+        .and('have.color', primary)
+        .and('have.backgroundColor', secondary)
         .and('have.css', 'border-radius', '28px')
         .and('have.css', 'text-transform', 'uppercase')
         .and('have.text', i18n.global.t('login.form.submitPasswordReset'));
     });
 
     it('renders final screen on password reset', () => {
+      // click on forgotten password
       cy.dataCy('form-login-forgotten-password').should('be.visible').click();
+      // type email
       cy.dataCy('form-password-reset-email')
         .find('input')
         .should('be.visible')
-        .type('qw123@qw.com');
+        .type(resetPasswordEmail);
+      // click on submit
       cy.dataCy('form-password-reset-submit').should('be.visible').click();
+      // wait for reset password API call
+      cy.wait('@resetPasswordRequest').then((interception) => {
+        expect(interception.request.body.email).to.equal(resetPasswordEmail);
+        expect(interception.response.statusCode).to.equal(
+          httpSuccessfullStatus,
+        );
+        expect(interception.response.body).to.deep.equal(resetPasswordResponse);
+      });
+      // final screen
       cy.dataCy('form-reset-finished').should('be.visible');
       // icon wrapper
       cy.dataCy('form-reset-finished-icon-wrapper')
         .should('be.visible')
-        .and('have.backgroundColor', 'rgba(255, 255, 255, 0.5)')
-        .and('have.css', 'border-radius', '9999px');
+        .and('have.backgroundColor', whiteOpacity20)
+        .and('have.css', 'border-radius', '50%');
       // icon
       cy.dataCy('form-reset-finished-icon')
         .invoke('height')
@@ -256,11 +285,11 @@ describe('<FormLogin>', () => {
       cy.dataCy('form-reset-finished-icon')
         .invoke('width')
         .should('be.equal', 40);
-      cy.dataCy('form-reset-finished-icon').should('have.color', colorPrimary);
+      cy.dataCy('form-reset-finished-icon').should('have.color', white);
       // title
       cy.dataCy('form-reset-finished-title')
         .should('be.visible')
-        .and('have.color', grey10)
+        .and('have.color', white)
         .and('have.css', 'font-size', '24px')
         .and('have.css', 'font-weight', '700')
         .and('have.css', 'margin-top', '24px')
@@ -268,29 +297,33 @@ describe('<FormLogin>', () => {
       // description
       cy.dataCy('form-reset-finished-description')
         .should('be.visible')
-        .and('have.color', grey10)
+        .and('have.color', white)
         .and('have.css', 'font-size', '16px')
         .and('have.css', 'font-weight', '400')
         .and(
           'contain',
           i18n.global.t('login.form.descriptionResetFinished', {
-            contactEmail,
+            contactEmail: resetPasswordEmail,
           }),
         );
-      // prompt
+      // final screen prompt
       cy.dataCy('form-reset-finished-prompt')
         .should('be.visible')
-        .and('have.color', grey10)
+        .and('have.color', white)
         .and('have.css', 'font-size', '16px')
         .and('have.css', 'font-weight', '400')
         .and('contain', i18n.global.t('login.form.promptWrongEmail'));
-      // button
+      // final screen button
       cy.dataCy('form-reset-finished-submit')
         .should('be.visible')
-        .and('have.color', colorPrimary)
+        .and('have.color', white)
         .and('have.css', 'border-radius', '28px')
         .and('have.css', 'text-transform', 'uppercase')
         .and('have.text', i18n.global.t('login.form.submitNewPassword'));
+      // click on submit new password button
+      cy.dataCy('form-reset-finished-submit').click();
+      // moves back to "reset password" form
+      cy.dataCy('form-password-reset-email').should('be.visible');
     });
 
     it('validates login form user inputs', () => {

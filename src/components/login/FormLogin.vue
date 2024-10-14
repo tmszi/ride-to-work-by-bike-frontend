@@ -22,7 +22,8 @@
  */
 
 // libraries
-import { defineComponent, ref, reactive } from 'vue';
+import { colors } from 'quasar';
+import { computed, defineComponent, ref, reactive } from 'vue';
 
 // components
 import BannerAppButtons from './BannerAppButtons.vue';
@@ -31,6 +32,9 @@ import LoginRegisterButtons from '../global/LoginRegisterButtons.vue';
 
 // composables
 import { useValidation } from '../../composables/useValidation';
+
+// enums
+import { LoginFormState } from '../../stores/login';
 
 // stores
 import { useLoginStore } from '../../stores/login';
@@ -59,12 +63,13 @@ export default defineComponent({
     });
 
     const isPassword = ref(true);
-    const formState = ref<'login' | 'password-reset' | 'reset-finished'>(
-      'login',
-    );
+    const formState = computed(() => loginStore.getLoginFormState);
+    const setFormState = (state: LoginFormState) => {
+      loginStore.setLoginFormState(state);
+    };
 
     const backgroundColor = rideToWorkByBikeConfig.colorWhiteOpacity;
-    const contactEmail = rideToWorkByBikeConfig.contactEmail;
+    const contactEmail = computed(() => loginStore.getPasswordResetEmail);
 
     const { isEmail, isFilled } = useValidation();
 
@@ -77,13 +82,13 @@ export default defineComponent({
     };
 
     const onSubmitPasswordReset = () => {
-      // noop
+      loginStore.resetPassword(formPasswordReset.email);
     };
 
-    const onClickFormPasswordResetBtn = (): void => {
-      if (isFilled(formPasswordReset.email) && isEmail(formPasswordReset.email))
-        formState.value = 'reset-finished';
-    };
+    // colors
+    const { getPaletteColor, changeAlpha } = colors;
+    const white = getPaletteColor('white');
+    const whiteOpacity20 = changeAlpha(white, 0.2);
 
     return {
       backgroundColor,
@@ -91,13 +96,15 @@ export default defineComponent({
       formPasswordReset,
       formState,
       isPassword,
+      LoginFormState,
       loginLoading,
       formLogin,
+      whiteOpacity20,
       isEmail,
       isFilled,
-      onClickFormPasswordResetBtn,
       onSubmitLogin,
       onSubmitPasswordReset,
+      setFormState,
     };
   },
 });
@@ -105,12 +112,13 @@ export default defineComponent({
 
 <template>
   <!-- State: Login -->
-  <div v-if="formState === 'login'" class="text-grey-10" data-cy="form-login">
-    <div class="q-my-lg">
-      <h1
-        class="text-h5 text-bold grey-10 q-my-none"
-        data-cy="form-title-login"
-      >
+  <div
+    v-if="formState === LoginFormState.login"
+    class="bg-primary text-white"
+    data-cy="form-login"
+  >
+    <div class="q-mb-lg">
+      <h1 class="text-h5 text-bold q-my-none" data-cy="form-title-login">
         {{ $t('login.form.titleLogin') }}
       </h1>
     </div>
@@ -118,8 +126,10 @@ export default defineComponent({
     <q-form @submit.prevent="onSubmitLogin">
       <!-- Input: email -->
       <form-field-email
+        dark
+        color="white"
+        bg-color="transparent"
         v-model="formLogin.username"
-        bg-color="white"
         data-cy="form-login-email"
       />
       <!-- Input: password -->
@@ -130,10 +140,12 @@ export default defineComponent({
         </label>
         <!-- Input -->
         <q-input
+          dark
           dense
           outlined
           hide-bottom-space
-          bg-color="grey-1"
+          bg-color="transparent"
+          color="white"
           v-model="formLogin.password"
           id="form-login-password"
           :type="isPassword ? 'password' : 'text'"
@@ -146,7 +158,7 @@ export default defineComponent({
           <!-- Icon: show password -->
           <template v-slot:append>
             <q-icon
-              color="primary"
+              color="white"
               :name="isPassword ? 'visibility_off' : 'visibility'"
               class="cursor-pointer"
               size="18px"
@@ -159,8 +171,8 @@ export default defineComponent({
         <div class="flex justify-end q-mt-sm">
           <a
             href="#"
-            class="text-primary text-caption"
-            @click.prevent="formState = 'password-reset'"
+            class="text-white text-caption"
+            @click.prevent="setFormState(LoginFormState.passwordReset)"
             data-cy="form-login-forgotten-password"
           >
             {{ $t('login.form.forgottenPassword') }}
@@ -171,16 +183,17 @@ export default defineComponent({
       <q-btn
         unelevated
         rounded
-        class="full-width"
+        class="full-width q-mt-lg"
         type="submit"
-        color="primary q-mt-lg"
+        color="secondary"
+        text-color="primary"
         :loading="loginLoading"
         :label="$t('login.form.submitLogin')"
         data-cy="form-login-submit-login"
       />
     </q-form>
     <!-- Separator -->
-    <q-separator color="grey-2" class="q-my-lg" />
+    <q-separator :style="{ backgroundColor: whiteOpacity20 }" class="q-my-lg" />
     <!-- Buttons: Login with 3rd party -->
     <login-register-buttons variant="login" />
     <!-- Link: Register -->
@@ -203,17 +216,17 @@ export default defineComponent({
   </div>
   <!-- State: Forgotten password -->
   <div
-    v-else-if="formState === 'password-reset'"
-    class="text-grey-10"
+    v-else-if="formState === LoginFormState.passwordReset"
+    class="bg-primary text-white"
     data-cy="form-password-reset"
   >
     <div class="q-my-lg">
       <q-btn
         round
         outline
-        color="primary"
+        color="white"
         size="13px"
-        @click.prevent="formState = 'login'"
+        @click.prevent="setFormState(LoginFormState.login)"
         data-cy="form-password-reset-button-back"
       >
         <q-icon name="arrow_back" size="24px" />
@@ -221,7 +234,7 @@ export default defineComponent({
     </div>
     <div class="q-my-sm">
       <h1
-        class="text-h5 text-bold grey-10 q-my-none"
+        class="text-h5 text-bold q-my-none"
         data-cy="form-password-reset-title"
       >
         {{ $t('login.form.titlePasswordReset') }}
@@ -236,8 +249,11 @@ export default defineComponent({
     <q-form @submit.prevent="onSubmitPasswordReset">
       <!-- Input: email -->
       <form-field-email
+        dark
+        outlined
         v-model="formPasswordReset.email"
-        bg-color="white"
+        color="white"
+        bg-color="transparent"
         data-cy="form-password-reset-email"
       />
       <!-- Button: submit -->
@@ -246,35 +262,35 @@ export default defineComponent({
         rounded
         class="full-width q-mt-lg"
         type="submit"
-        color="primary"
+        color="secondary"
+        text-color="primary"
         :label="$t('login.form.submitPasswordReset')"
-        @click="onClickFormPasswordResetBtn"
         data-cy="form-password-reset-submit"
       />
     </q-form>
   </div>
   <!-- State: Password reset finished -->
   <div
-    v-else-if="formState === 'reset-finished'"
-    class="text-grey-10"
+    v-else-if="formState === LoginFormState.resetFinished"
+    class="bg-primary text-white"
     data-cy="form-reset-finished"
   >
     <div class="q-my-lg">
       <!-- Icon: Email -->
       <div class="flex">
-        <div
-          class="q-pa-sm round"
-          :style="{ 'background-color': backgroundColor }"
+        <q-avatar
+          size="64px"
+          :style="{ backgroundColor: whiteOpacity20 }"
           data-cy="form-reset-finished-icon-wrapper"
         >
           <q-icon
             name="mdi-email-outline"
             size="40px"
-            color="primary"
+            color="white"
             class="q-ma-xs"
             data-cy="form-reset-finished-icon"
           />
-        </div>
+        </q-avatar>
       </div>
       <!-- Title -->
       <h2
@@ -302,23 +318,12 @@ export default defineComponent({
         outline
         class="full-width q-mt-lg"
         type="submit"
-        color="primary"
+        color="white"
+        text-color="white"
         :label="$t('login.form.submitNewPassword')"
-        @click="formState = 'password-reset'"
+        @click="setFormState(LoginFormState.passwordReset)"
         data-cy="form-reset-finished-submit"
       />
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-:deep(.q-field__control) {
-  &:before {
-    border-color: transparent;
-  }
-}
-
-.round {
-  border-radius: 9999px;
-}
-</style>
