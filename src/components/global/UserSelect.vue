@@ -21,10 +21,7 @@
  */
 
 // libraries
-import { defineComponent } from 'vue';
-
-// mocks
-import { user } from '../../mocks/layout';
+import { computed, defineComponent } from 'vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
@@ -32,6 +29,9 @@ import { i18n } from '../../boot/i18n';
 // config
 import { routesConf } from '../../router/routes_conf';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
+// stores
+import { useLoginStore } from '../../stores/login';
 
 // types
 import type { Link } from '../types/Link';
@@ -46,6 +46,9 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const loginStore = useLoginStore();
+    const user = computed(() => loginStore.getUser);
+
     const menuTop: Link[] = [
       {
         title: i18n.global.t('userSelect.profileDetails'),
@@ -73,10 +76,10 @@ export default defineComponent({
     ];
 
     const onLogout = () => {
-      // TODO: add logout logic
+      loginStore.logout();
     };
 
-    const size = props.variant === 'mobile' ? '32px' : '40px';
+    const size = computed(() => (props.variant === 'mobile' ? '32px' : '40px'));
     const { borderRadiusCard: borderRadius, colorWhite } =
       rideToWorkByBikeConfig;
 
@@ -119,11 +122,14 @@ export default defineComponent({
     >
       <template v-slot:label>
         <!-- User image -->
-        <q-avatar :size="size" data-cy="avatar">
+        <q-avatar :size="size" color="white" data-cy="avatar">
           <q-img
-            :src="user.image.src"
-            :alt="user.image.alt"
-            :size="size"
+            :src="user?.image?.src"
+            :alt="user?.first_name + ' ' + user?.last_name"
+            :width="size"
+            :height="size"
+            img-class="object-contain"
+            placeholder-src="~assets/svg/profile-placeholder.svg"
             data-cy="avatar-image"
           />
         </q-avatar>
