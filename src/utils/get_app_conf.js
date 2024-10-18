@@ -15,8 +15,6 @@ const getAppConfig = (process) => {
     config['colorPrimaryOpacity'] = process.env.COLOR_PRIMARY_OPACITY;
   } else if (process.env.COLOR_SECONDARY) {
     config['secondaryColor'] = process.env.COLOR_SECONDARY;
-  } else if (process.env.COLOR_SECONDARY_OPACITY) {
-    config['colorSecondaryOpacity'] = process.env.COLOR_SECONDARY_OPACITY;
   } else if (process.env.COLOR_GRAY) {
     config['colorGray'] = process.env.COLOR_GRAY;
   } else if (process.env.COLOR_GRAY_LIGHT) {
@@ -31,6 +29,9 @@ const getAppConfig = (process) => {
     config['colorBlack'] = process.env.COLOR_BLACK;
   } else if (process.env.COLOR_RED) {
     config['colorRed'] = process.env.COLOR_RED;
+  } else if (process.env.COLOR_SECONDARY_BACKGROUND_OPACITY) {
+    config['colorSecondaryBackgroundOpacity'] =
+      process.env.OPACITY_SECONDARY_BACKGROUND;
   } else if (process.env.IMAGE) {
     config['image'] = process.env.IMAGE;
   } else if (process.env.WIDTH) {

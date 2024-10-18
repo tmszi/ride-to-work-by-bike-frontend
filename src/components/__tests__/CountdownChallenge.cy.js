@@ -1,14 +1,19 @@
 import { colors } from 'quasar';
 import CountdownChallenge from '../homepage/CountdownChallenge.vue';
 import { i18n } from '../../boot/i18n';
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
-const { getPaletteColor } = colors;
-const black = getPaletteColor('black');
-
-const rideToWorkByBikeConfig = JSON.parse(
-  process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
+// colors
+const { getPaletteColor, changeAlpha } = colors;
+const grey10 = getPaletteColor('grey-10');
+const secondary = getPaletteColor('secondary');
+const secondaryOpacity = changeAlpha(
+  secondary,
+  rideToWorkByBikeConfig.colorSecondaryBackgroundOpacity,
 );
-const colorInfo = rideToWorkByBikeConfig.colorGrayLight;
+
+// variables
+const { borderRadiusCard } = rideToWorkByBikeConfig;
 
 describe('<CountdownChallenge>', () => {
   const currentTime = new Date('2023-10-24T12:00:00');
@@ -36,6 +41,23 @@ describe('<CountdownChallenge>', () => {
       cy.viewport('macbook-16');
     });
 
+    coreTests();
+  });
+
+  context('mobile', () => {
+    beforeEach(() => {
+      cy.mount(CountdownChallenge, {
+        props: {
+          dateEnd,
+        },
+      });
+      cy.viewport('iphone-6');
+    });
+
+    coreTests();
+  });
+
+  function coreTests() {
     it('renders title', () => {
       cy.window().then(() => {
         cy.dataCy('countdown-challenge-title')
@@ -43,20 +65,15 @@ describe('<CountdownChallenge>', () => {
           .and('have.css', 'font-weight', '700')
           .and('have.css', 'margin-top', '16px')
           .and('have.css', 'margin-bottom', '16px')
-          .and('have.color', black);
+          .and('have.color', grey10);
       });
     });
 
     it('renders wrapper with padding', () => {
       cy.dataCy('countdown-challenge')
         .should('have.css', 'padding', '24px')
-        .and('have.backgroundColor', colorInfo);
-    });
-
-    it('renders gray background', () => {
-      cy.dataCy('countdown-challenge')
-        .should('have.class', 'bg-info')
-        .and('have.backgroundColor', colorInfo);
+        .and('have.css', 'border-radius', borderRadiusCard)
+        .and('have.backgroundColor', secondaryOpacity);
     });
 
     it('counts down correctly', () => {
@@ -86,39 +103,5 @@ describe('<CountdownChallenge>', () => {
         cy.dataCy('countdown-seconds').should('have.text', '59');
       });
     });
-  });
-
-  context('mobile', () => {
-    beforeEach(() => {
-      cy.mount(CountdownChallenge, {
-        props: {
-          dateEnd,
-        },
-      });
-      cy.viewport('iphone-6');
-    });
-
-    it('renders title', () => {
-      cy.window().then(() => {
-        cy.dataCy('countdown-challenge-title')
-          .should('have.css', 'font-size', '20px')
-          .and('have.css', 'font-weight', '700')
-          .and('have.css', 'margin-top', '16px')
-          .and('have.css', 'margin-bottom', '16px')
-          .and('have.color', black);
-      });
-
-      it('renders wrapper with padding', () => {
-        cy.dataCy('countdown-challenge')
-          .should('have.css', 'padding', '24px')
-          .and('have.backgroundColor', colorInfo);
-      });
-
-      it('renders gray background', () => {
-        cy.dataCy('countdown-challenge')
-          .should('have.class', 'bg-info')
-          .and('have.backgroundColor', colorInfo);
-      });
-    });
-  });
+  }
 });

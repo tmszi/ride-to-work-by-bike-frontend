@@ -3,7 +3,6 @@ export interface ConfigGlobal {
   colorPrimaryDark: string;
   colorPrimaryOpacity: string;
   colorSecondary: string;
-  colorSecondaryOpacity: string;
   colorGray: string;
   colorGrayLight: string;
   colorGrayMiddle: string;
@@ -11,6 +10,7 @@ export interface ConfigGlobal {
   colorWhiteOpacity: string;
   colorBlack: string;
   colorRed: string;
+  colorSecondaryBackgroundOpacity: number;
   image: string;
   width: string;
   title: string;
