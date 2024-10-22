@@ -73,13 +73,14 @@ export default defineComponent({
 
     // colors
     const { getPaletteColor, changeAlpha } = colors;
-    const white = getPaletteColor('white');
-    const whiteOpacity20 = changeAlpha(white, 0.2);
+    const whiteOpacity = changeAlpha(
+      getPaletteColor('white'),
+      rideToWorkByBikeConfig.colorWhiteBackgroundOpacity,
+    );
 
     return {
       email,
-      white,
-      whiteOpacity20,
+      whiteOpacity,
     };
   },
 });
@@ -91,8 +92,7 @@ export default defineComponent({
     <div class="q-mb-lg" data-cy="email-verification-graphics">
       <q-avatar
         size="64px"
-        :style="{ backgroundColor: whiteOpacity20 }"
-        :color="white"
+        :style="{ backgroundColor: whiteOpacity, color: 'white' }"
         data-cy="email-verification-avatar"
       >
         <!-- Icon -->

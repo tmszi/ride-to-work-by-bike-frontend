@@ -16,6 +16,7 @@
  */
 
 // libraries
+import { colors } from 'quasar';
 import { defineComponent } from 'vue';
 
 // config
@@ -24,16 +25,20 @@ import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 export default defineComponent({
   name: 'BannerAppButtons',
   setup() {
-    const backgroundColor = rideToWorkByBikeConfig.colorWhiteOpacity;
+    const { getPaletteColor, changeAlpha } = colors;
+    const whiteOpacity = changeAlpha(
+      getPaletteColor('white'),
+      rideToWorkByBikeConfig.colorWhiteBackgroundOpacity,
+    );
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
     const urlGooglePlay = rideToWorkByBikeConfig.urlGooglePlay;
     const urlAppStore = rideToWorkByBikeConfig.urlAppStore;
 
     return {
-      backgroundColor,
       borderRadius,
       urlGooglePlay,
       urlAppStore,
+      whiteOpacity,
     };
   },
 });
@@ -41,9 +46,9 @@ export default defineComponent({
 
 <template>
   <div
-    class="q-pa-md text-grey-10"
+    class="q-pa-md text-white"
     :style="{
-      'background-color': backgroundColor,
+      'background-color': whiteOpacity,
       'border-radius': borderRadius,
     }"
     data-cy="banner-app-buttons"
