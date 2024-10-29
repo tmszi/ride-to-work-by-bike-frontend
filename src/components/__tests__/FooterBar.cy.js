@@ -8,6 +8,7 @@ import {
   httpSuccessfullStatus,
   httpTooManyRequestsStatus,
   httpTooManyRequestsStatusMessage,
+  userAgentHeader,
 } from '../../../test/cypress/support/commonTests';
 
 // colors
@@ -48,12 +49,6 @@ const displayFlex = 'flex';
 const flexWrap = 'wrap';
 const fontSize = '14px';
 const fontWeight = '400';
-
-// Fix make request user-agent header on the macOS with Google Chrome web browser
-const urlTwitterUserAgentHeader =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) \
-AppleWebKit/537.36 (KHTML, like Gecko) \
-Chrome/119.0.0.0 Safari/537.36';
 
 describe('<FooterBar>', () => {
   it('has translation for all strings', () => {
@@ -238,6 +233,7 @@ function coreTests() {
     cy.request({
       url: rideToWorkByBikeConfig.urlFacebook,
       failOnStatusCode: failOnStatusCode,
+      headers: { ...userAgentHeader },
     }).then((resp) => {
       if (resp.status === httpTooManyRequestsStatus) {
         cy.log(httpTooManyRequestsStatusMessage);
@@ -257,7 +253,7 @@ function coreTests() {
     });
     cy.request({
       url: rideToWorkByBikeConfig.urlTwitter,
-      headers: { 'user-agent': urlTwitterUserAgentHeader },
+      headers: { ...userAgentHeader },
       failOnStatusCode: failOnStatusCode,
     }).then((resp) => {
       if (resp.status === httpTooManyRequestsStatus) {
