@@ -415,6 +415,11 @@ apiMessageSuccess = "Login was successful"
 apiMessageError = "Login failed. Please try again later. {error}"
 apiMessageErrorWithMessage = "Login failed. Please try again later. Error: {error}"
 
+[loginRegisterMobileMenu]
+labelHelp = "Help"
+labelLanguage = "Language"
+labelLoggedInAs = "You are logged in as"
+
 [login.form]
 titleLogin = "Login"
 titlePasswordReset = "Forgotten password"
@@ -706,7 +711,7 @@ title = "Follow us on social media"
 [userSelect]
 companyCoordinator = "Become a company coordinator"
 connectApps = "Connect apps"
-logout = "Logout"
+logout = "Log out"
 newsletter = "Subscribe to newsletter"
 notifications = "Notification history"
 profileDetails = "Your profile"
