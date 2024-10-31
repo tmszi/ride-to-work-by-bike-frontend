@@ -1,10 +1,5 @@
-import { colors } from 'quasar';
 import { routesConf } from '../../../src/router/routes_conf';
 import { getApiBaseUrlWithLang } from '../../../src/utils/get_api_base_url_with_lang';
-
-// colors
-const { getPaletteColor } = colors;
-const grey10 = getPaletteColor('grey-10');
 
 // selectors
 const layoutBackgroundImageSelector = 'layout-background-image';
@@ -128,75 +123,83 @@ export const testDesktopSidebar = (): void => {
   testUserSelect(selectorUserSelectDesktop);
 
   it('renders user email in UserSelect after login', () => {
-    cy.fixture('loginResponse.json').then((loginResponse) => {
-      cy.fixture('refreshTokensResponse.json').then((refreshTokensResponse) => {
-        cy.get('@config').then((config: unknown) => {
-          cy.clock().then((clock) => {
-            clock.setSystemTime(systemTime);
-            let i18n: I18n | undefined;
-            cy.window().should('have.property', 'i18n');
-            cy.window()
-              .then((win: AUTWindow) => {
-                i18n = win.i18n;
-              })
-              .then(() => {
-                cy.visit('#' + routesConf['login']['path']);
-                const { apiBase, apiDefaultLang, urlApiLogin, urlApiRefresh } =
-                  config as ConfigGlobal;
-                const apiBaseUrl = getApiBaseUrlWithLang(
-                  null,
-                  apiBase,
-                  apiDefaultLang,
-                  i18n as I18n,
-                );
-                const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
-                const apiRefreshUrl = `${apiBaseUrl}${urlApiRefresh}`;
-                // intercept API login request
-                cy.intercept('POST', apiLoginUrl, {
-                  statusCode: httpSuccessfullStatus,
-                  body: loginResponse,
-                }).as('loginRequest');
-                // intercept API refresh token request
-                cy.intercept('POST', apiRefreshUrl, {
-                  statusCode: httpSuccessfullStatus,
-                  body: refreshTokensResponse,
-                }).as('refreshTokens');
-                cy.dataCy('form-login-email')
-                  .find('input')
-                  .type('test@example.com');
-                cy.dataCy('form-login-password')
-                  .find('input')
-                  .type('password123');
-                // submit form
-                cy.dataCy('form-login-submit-login').click();
-                // check if user is redirected to the home page
-                cy.url().should('include', routesConf['home']['path']);
-                cy.dataCy(selectorUserSelectDesktop).within(() => {
-                  cy.dataCy(selectorUserSelectInput)
-                    .should('be.visible')
-                    .and('contain', loginResponse.user.email);
-                });
-                // click on user select
-                cy.dataCy(selectorUserSelectDesktop).within(() => {
-                  cy.dataCy(selectorUserSelectInput)
-                    .should('be.visible')
-                    .click();
-                });
-                // tick to render animated component
-                cy.tick(1000).then(() => {
-                  // logout
-                  cy.dataCy('menu-item')
-                    .contains(i18n?.global.t('userSelect.logout'))
-                    .click();
-                  cy.dataCy(selectorUserSelectDesktop).should('not.exist');
-                  // redirected to login page
-                  cy.url().should('include', routesConf['login']['path']);
-                });
+    cy.fixture('loginRegisterResponseChallengeActive.json').then(
+      (loginResponse) => {
+        cy.fixture('refreshTokensResponseChallengeActive.json').then(
+          (refreshTokensResponse) => {
+            cy.get('@config').then((config: unknown) => {
+              cy.clock().then((clock) => {
+                clock.setSystemTime(systemTimeLoggedIn);
+                let i18n: I18n | undefined;
+                cy.window().should('have.property', 'i18n');
+                cy.window()
+                  .then((win: AUTWindow) => {
+                    i18n = win.i18n;
+                  })
+                  .then(() => {
+                    cy.visit('#' + routesConf['login']['path']);
+                    const {
+                      apiBase,
+                      apiDefaultLang,
+                      urlApiLogin,
+                      urlApiRefresh,
+                    } = config as ConfigGlobal;
+                    const apiBaseUrl = getApiBaseUrlWithLang(
+                      null,
+                      apiBase,
+                      apiDefaultLang,
+                      i18n as I18n,
+                    );
+                    const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
+                    const apiRefreshUrl = `${apiBaseUrl}${urlApiRefresh}`;
+                    // intercept API login request
+                    cy.intercept('POST', apiLoginUrl, {
+                      statusCode: httpSuccessfullStatus,
+                      body: loginResponse,
+                    }).as('loginRequest');
+                    // intercept API refresh token request
+                    cy.intercept('POST', apiRefreshUrl, {
+                      statusCode: httpSuccessfullStatus,
+                      body: refreshTokensResponse,
+                    }).as('refreshTokens');
+                    cy.dataCy('form-login-email')
+                      .find('input')
+                      .type('test@example.com');
+                    cy.dataCy('form-login-password')
+                      .find('input')
+                      .type('password123');
+                    // submit form
+                    cy.dataCy('form-login-submit-login').click();
+                    // check if user is redirected to the home page
+                    cy.url().should('include', routesConf['home']['path']);
+                    cy.dataCy(selectorUserSelectDesktop).within(() => {
+                      cy.dataCy(selectorUserSelectInput)
+                        .should('be.visible')
+                        .and('contain', loginResponse.user.email);
+                    });
+                    // click on user select
+                    cy.dataCy(selectorUserSelectDesktop).within(() => {
+                      cy.dataCy(selectorUserSelectInput)
+                        .should('be.visible')
+                        .click();
+                    });
+                    // tick to render animated component
+                    cy.tick(1000).then(() => {
+                      // logout
+                      cy.dataCy('menu-item')
+                        .contains(i18n?.global.t('userSelect.logout'))
+                        .click();
+                      cy.dataCy(selectorUserSelectDesktop).should('not.exist');
+                      // redirected to login page
+                      cy.url().should('include', routesConf['login']['path']);
+                    });
+                  });
               });
-          });
-        });
-      });
-    });
+            });
+          },
+        );
+      },
+    );
   });
 };
 
@@ -252,13 +255,131 @@ export const testUserSelect = (selector: string): void => {
  * Test styles for title in route list
  * Used in `RouteListDisplay.cy.js` and `RouteListEdit.cy.js`
  */
-export const testRouteListDayDate = (): void => {
+export const testRouteListDayDate = (color: string): void => {
   it('renders route list day and date', () => {
     cy.dataCy('route-list-day-date')
       .should('be.visible')
       .and('have.css', 'font-size', '18px')
       .and('have.css', 'font-weight', '400')
-      .and('have.color', grey10);
+      .and('have.color', color);
+  });
+};
+
+export const loginWithUI = (): void => {
+  cy.dataCy('form-email-input').type('test@test.com');
+  cy.dataCy('form-login-password-input').type('test1234');
+  cy.dataCy('form-login-submit-login').click();
+};
+
+export const setupApiChallengeActive = (
+  config: ConfigGlobal,
+  i18n: I18n,
+  verifiedEmail: boolean,
+): void => {
+  const {
+    apiBase,
+    apiDefaultLang,
+    urlApiLogin,
+    urlApiRefresh,
+    urlApiRegister,
+    urlApiHasUserVerifiedEmail,
+  } = config;
+  const apiBaseUrl = getApiBaseUrlWithLang(null, apiBase, apiDefaultLang, i18n);
+  // intercept register API call
+  const apiRegisterUrl = `${apiBaseUrl}${urlApiRegister}`;
+  cy.fixture('loginRegisterResponseChallengeActive.json').then(
+    (registerResponse) => {
+      cy.intercept('POST', apiRegisterUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: registerResponse,
+      }).as('registerRequest');
+    },
+  );
+  // intercept login API call
+  const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
+  cy.fixture('loginRegisterResponseChallengeActive.json').then(
+    (loginResponse) => {
+      cy.intercept('POST', apiLoginUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: loginResponse,
+      }).as('loginRequest');
+    },
+  );
+  // intercept refresh token API call
+  const apiRefreshUrl = `${apiBaseUrl}${urlApiRefresh}`;
+  cy.fixture('refreshTokensResponseChallengeActive.json').then(
+    (refreshTokensResponse) => {
+      cy.intercept('POST', apiRefreshUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: refreshTokensResponse,
+      }).as('refreshTokens');
+    },
+  );
+  // intercept verify email API call
+  const apiHasUserVerifiedEmailUrl = `${apiBaseUrl}${urlApiHasUserVerifiedEmail}`;
+  cy.intercept('GET', apiHasUserVerifiedEmailUrl, {
+    statusCode: httpSuccessfullStatus,
+    body: { has_user_verified_email_address: verifiedEmail },
+  }).as('verifyEmail');
+  // set system time to "during challenge"
+  cy.clock().then((clock) => {
+    clock.setSystemTime(systemTimeLoggedIn);
+  });
+};
+
+export const setupApiChallengeInactive = (
+  config: ConfigGlobal,
+  i18n: I18n,
+  verifiedEmail: boolean,
+): void => {
+  const {
+    apiBase,
+    apiDefaultLang,
+    urlApiLogin,
+    urlApiRefresh,
+    urlApiRegister,
+    urlApiHasUserVerifiedEmail,
+  } = config;
+  const apiBaseUrl = getApiBaseUrlWithLang(null, apiBase, apiDefaultLang, i18n);
+  // intercept register API call
+  const apiRegisterUrl = `${apiBaseUrl}${urlApiRegister}`;
+  cy.fixture('loginRegisterResponseChallengeInactive.json').then(
+    (registerResponse) => {
+      cy.intercept('POST', apiRegisterUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: registerResponse,
+      }).as('registerRequest');
+    },
+  );
+  // intercept login API call
+  const apiLoginUrl = `${apiBaseUrl}${urlApiLogin}`;
+  cy.fixture('loginRegisterResponseChallengeInactive.json').then(
+    (loginResponse) => {
+      cy.intercept('POST', apiLoginUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: loginResponse,
+      }).as('loginRequest');
+    },
+  );
+  // intercept refresh token API call
+  const apiRefreshUrl = `${apiBaseUrl}${urlApiRefresh}`;
+  cy.fixture('refreshTokensResponseChallengeInactive.json').then(
+    (refreshTokensResponse) => {
+      cy.intercept('POST', apiRefreshUrl, {
+        statusCode: httpSuccessfullStatus,
+        body: refreshTokensResponse,
+      }).as('refreshTokens');
+    },
+  );
+  // intercept verify email API call
+  const apiHasUserVerifiedEmailUrl = `${apiBaseUrl}${urlApiHasUserVerifiedEmail}`;
+  cy.intercept('GET', apiHasUserVerifiedEmailUrl, {
+    statusCode: httpSuccessfullStatus,
+    body: { has_user_verified_email_address: verifiedEmail },
+  }).as('verifyEmail');
+  // set system time to "before challenge"
+  cy.clock().then((clock) => {
+    clock.setSystemTime(systemTimeChallengeInactive);
   });
 };
 
@@ -277,4 +398,10 @@ const fixtureTokenExpiration = new Date('2024-09-24T20:36:03Z');
 const timeUntilRefresh = 60 * 1000; // miliseconds (because used in cy.tick)
 export const fixtureTokenExpirationTime = fixtureTokenExpiration.getTime();
 export const timeUntilExpiration = timeUntilRefresh * 2;
-export const systemTime = fixtureTokenExpirationTime - timeUntilExpiration; // 2 min before JWT expires
+// 2 min before JWT expires
+export const systemTimeLoggedIn =
+  fixtureTokenExpirationTime - timeUntilExpiration;
+// time before challenge starts
+export const systemTimeChallengeInactive = new Date('2024-08-14T23:59:00.000Z');
+// time after challenge starts
+export const systemTimeChallengeActive = new Date('2024-09-16T00:01:00.000Z');

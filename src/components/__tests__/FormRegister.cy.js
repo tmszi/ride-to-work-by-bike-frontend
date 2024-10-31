@@ -11,8 +11,11 @@ import { useLoginStore } from '../../stores/login';
 import {
   httpSuccessfullStatus,
   httpInternalServerErrorStatus,
+  systemTimeChallengeActive,
+  systemTimeChallengeInactive,
 } from '../../../test/cypress/support/commonTests';
 import { getApiBaseUrlWithLang } from '../../../src/utils/get_api_base_url_with_lang';
+import { PhaseType } from '../types/Challenge';
 
 // colors
 const { getPaletteColor, changeAlpha } = colors;
@@ -61,7 +64,6 @@ const { apiBase, apiDefaultLang, borderRadiusCardSmall, urlApiRegister } =
 const defaultLoginUserEmailStoreValue = '';
 
 const compareRegisterResponseWithStore = (registerResponse) => {
-  cy.contains(i18n.global.t('register.apiMessageSuccess')).should('be.visible');
   const registerStore = useRegisterStore();
   const loginStore = useLoginStore();
   expect(registerStore.getIsEmailVerified).to.equal(false);
@@ -346,6 +348,10 @@ describe('<FormRegister>', () => {
           cy.contains(
             i18n.global.t('register.apiMessageErrorWithMessage'),
           ).should('be.visible');
+          // wait for error to disappear
+          cy.contains(
+            i18n.global.t('register.apiMessageErrorWithMessage'),
+          ).should('not.exist');
         },
       );
     });
@@ -364,32 +370,46 @@ describe('<FormRegister>', () => {
         i18n,
       );
       const apiRegisterUrl = `${apiBaseUrl}${urlApiRegister}`;
-      cy.fixture('registerResponse.json').then((registerResponse) => {
-        // intercept registration API call
-        cy.intercept('POST', apiRegisterUrl, {
-          statusCode: httpSuccessfullStatus,
-          body: registerResponse,
-        }).then(() => {
-          // register
-          cy.wrap(registerStore.register(testEmail, testPassword)).then(
-            (response) => {
-              // test function return value
-              expect(response).to.deep.equal(registerResponse);
-              // store state
-              expect(loginStore.getUserEmail).to.equal(
-                registerResponse.user.email,
-              );
-              expect(registerStore.getIsEmailVerified).to.equal(false);
-            },
-          );
-        });
-      });
+      cy.fixture('loginRegisterResponseChallengeActive.json').then(
+        (registerResponse) => {
+          // intercept registration API call
+          cy.intercept('POST', apiRegisterUrl, {
+            statusCode: httpSuccessfullStatus,
+            body: registerResponse,
+          }).then(() => {
+            // register
+            cy.wrap(registerStore.register(testEmail, testPassword)).then(
+              (response) => {
+                cy.contains(i18n.global.t('register.apiMessageSuccess')).should(
+                  'be.visible',
+                );
+                // wait for success message to disappear
+                cy.contains(i18n.global.t('register.apiMessageSuccess')).should(
+                  'not.exist',
+                );
+                // test function return value
+                expect(response).to.deep.equal(registerResponse);
+                // store state
+                expect(loginStore.getUserEmail).to.equal(
+                  registerResponse.user.email,
+                );
+                expect(registerStore.getIsEmailVerified).to.equal(false);
+              },
+            );
+          });
+        },
+      );
     });
   });
 
   context('no active challenge', () => {
     beforeEach(() => {
       setActivePinia(createPinia());
+      cy.clock()
+        .as('clock')
+        .then((clock) => {
+          clock.setSystemTime(systemTimeChallengeInactive);
+        });
       cy.mount(FormRegister, {
         props: {},
       });
@@ -398,8 +418,9 @@ describe('<FormRegister>', () => {
 
     it('shows a text with no active challenge', () => {
       const challengeStore = useChallengeStore();
-      challengeStore.setIsChallengeActive(false);
-      expect(challengeStore.getIsChallengeActive).to.equal(false);
+      expect(
+        challengeStore.getIsChallengeInPhase(PhaseType.competition),
+      ).to.equal(false);
       cy.dataCy(selectorFormRegisterTextNoActiveChallenge)
         .should('be.visible')
         .and('have.css', 'font-size', `${fontSizeText}px`)
@@ -439,36 +460,45 @@ describe('<FormRegister>', () => {
         i18n,
       );
       const apiRegisterUrl = `${apiBaseUrl}${urlApiRegister}`;
-      cy.fixture('registerResponse.json').then((registerResponse) => {
-        // intercept registration API call
-        cy.intercept('POST', apiRegisterUrl, {
-          statusCode: httpSuccessfullStatus,
-          body: registerResponse,
-        }).as('registerRequest');
-        // fill in form
-        cy.dataCy(selectorFormRegisterEmail).find('input').type(testEmail);
-        cy.dataCy(selectorFormRegisterPasswordInput).type(testPassword);
-        cy.dataCy(selectorFormRegisterPasswordConfirmInput).type(testPassword);
-        // accept privacy policy
-        cy.dataCy(selectorFormRegisterPrivacyConsent)
-          .should('be.visible')
-          .click('topLeft');
-        // submit form
-        cy.dataCy(selectorFormRegisterSubmit).should('be.visible').click();
-        // check that form is submitted
-        cy.wait('@registerRequest')
-          .its('response.statusCode')
-          .should('be.equal', httpSuccessfullStatus)
-          .then(() => {
-            compareRegisterResponseWithStore(registerResponse);
-          });
-      });
+      cy.fixture('loginRegisterResponseChallengeActive.json').then(
+        (registerResponse) => {
+          // intercept registration API call
+          cy.intercept('POST', apiRegisterUrl, {
+            statusCode: httpSuccessfullStatus,
+            body: registerResponse,
+          }).as('registerRequest');
+          // fill in form
+          cy.dataCy(selectorFormRegisterEmail).find('input').type(testEmail);
+          cy.dataCy(selectorFormRegisterPasswordInput).type(testPassword);
+          cy.dataCy(selectorFormRegisterPasswordConfirmInput).type(
+            testPassword,
+          );
+          // accept privacy policy
+          cy.dataCy(selectorFormRegisterPrivacyConsent)
+            .should('be.visible')
+            .click('topLeft');
+          // submit form
+          cy.dataCy(selectorFormRegisterSubmit).should('be.visible').click();
+          // check that form is submitted
+          cy.wait('@registerRequest')
+            .its('response.statusCode')
+            .should('be.equal', httpSuccessfullStatus)
+            .then(() => {
+              compareRegisterResponseWithStore(registerResponse);
+            });
+        },
+      );
     });
   });
 
   context('active challenge', () => {
     beforeEach(() => {
       setActivePinia(createPinia());
+      cy.clock()
+        .as('clock')
+        .then((clock) => {
+          clock.setSystemTime(systemTimeChallengeActive);
+        });
       cy.mount(FormRegister, {
         props: {},
       });
@@ -477,23 +507,26 @@ describe('<FormRegister>', () => {
 
     it('does not show a text with no active challenge', () => {
       const challengeStore = useChallengeStore();
-      challengeStore.setIsChallengeActive(true);
-      expect(challengeStore.getIsChallengeActive).to.equal(true);
+      expect(
+        challengeStore.getIsChallengeInPhase(PhaseType.competition),
+      ).to.equal(true);
       cy.dataCy(selectorFormRegisterTextNoActiveChallenge).should('not.exist');
     });
 
     it('does not show checkboxes for privacy policy and newsletter subscription', () => {
       const challengeStore = useChallengeStore();
-      challengeStore.setIsChallengeActive(true);
-      expect(challengeStore.getIsChallengeActive).to.equal(true);
+      expect(
+        challengeStore.getIsChallengeInPhase(PhaseType.competition),
+      ).to.equal(true);
       cy.dataCy(selectorFormRegisterPrivacyConsent).should('not.exist');
       cy.dataCy(selectorFormRegisterNewsletterSubscription).should('not.exist');
     });
 
     it('allows to submit form after filling fields and accepting privacy policy', () => {
       const challengeStore = useChallengeStore();
-      challengeStore.setIsChallengeActive(true);
-      expect(challengeStore.getIsChallengeActive).to.equal(true);
+      expect(
+        challengeStore.getIsChallengeInPhase(PhaseType.competition),
+      ).to.equal(true);
       // variables
       const apiBaseUrl = getApiBaseUrlWithLang(
         null,
@@ -502,26 +535,30 @@ describe('<FormRegister>', () => {
         i18n,
       );
       const apiRegisterUrl = `${apiBaseUrl}${urlApiRegister}`;
-      cy.fixture('registerResponse.json').then((registerResponse) => {
-        // intercept registration API call
-        cy.intercept('POST', apiRegisterUrl, {
-          statusCode: httpSuccessfullStatus,
-          body: registerResponse,
-        }).as('registerRequest');
-        // fill in form
-        cy.dataCy(selectorFormRegisterEmail).find('input').type(testEmail);
-        cy.dataCy(selectorFormRegisterPasswordInput).type(testPassword);
-        cy.dataCy(selectorFormRegisterPasswordConfirmInput).type(testPassword);
-        // submit form
-        cy.dataCy(selectorFormRegisterSubmit).should('be.visible').click();
-        // check that form is submitted
-        cy.wait('@registerRequest')
-          .its('response.statusCode')
-          .should('be.equal', httpSuccessfullStatus)
-          .then(() => {
-            compareRegisterResponseWithStore(registerResponse);
-          });
-      });
+      cy.fixture('loginRegisterResponseChallengeActive.json').then(
+        (registerResponse) => {
+          // intercept registration API call
+          cy.intercept('POST', apiRegisterUrl, {
+            statusCode: httpSuccessfullStatus,
+            body: registerResponse,
+          }).as('registerRequest');
+          // fill in form
+          cy.dataCy(selectorFormRegisterEmail).find('input').type(testEmail);
+          cy.dataCy(selectorFormRegisterPasswordInput).type(testPassword);
+          cy.dataCy(selectorFormRegisterPasswordConfirmInput).type(
+            testPassword,
+          );
+          // submit form
+          cy.dataCy(selectorFormRegisterSubmit).should('be.visible').click();
+          // check that form is submitted
+          cy.wait('@registerRequest')
+            .its('response.statusCode')
+            .should('be.equal', httpSuccessfullStatus)
+            .then(() => {
+              compareRegisterResponseWithStore(registerResponse);
+            });
+        },
+      );
     });
   });
 });
