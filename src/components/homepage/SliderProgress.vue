@@ -42,13 +42,13 @@ import SectionHeading from '../global/SectionHeading.vue';
 import StatsBar from '../global/StatsBar.vue';
 
 // composables
-import { useStatsBar } from 'src/composables/useStatsBar';
+import { useStats } from '../../composables/useStats';
 
 // fixtures
 import memberResultsFixture from '../../../test/cypress/fixtures/memberResults.json';
 
 // types
-import type { MemberResults } from '../types/Results';
+import type { MemberResponse } from '../types/Results';
 import { CardProgress, Link } from '../types';
 import type { ItemStatistics } from '../types/Statistics';
 
@@ -74,10 +74,10 @@ export default defineComponent({
     },
   },
   setup() {
-    const memberResults = memberResultsFixture as MemberResults;
-    const { getMemberResultStats } = useStatsBar();
+    const memberResults = memberResultsFixture as MemberResponse;
+    const { getResultStatistics } = useStats();
     const stats = computed<ItemStatistics[]>(() =>
-      getMemberResultStats(memberResults.results),
+      getResultStatistics(memberResults.results),
     );
 
     const isLargeScreen = computed((): boolean => {

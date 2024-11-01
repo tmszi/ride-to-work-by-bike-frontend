@@ -1,6 +1,12 @@
 totalQuestions = "Total questions"
 lang = "Language"
 
+[cardStats]
+labelPersonal = "You"
+labelTeam = "Your team"
+labelOrganization = "Your organization"
+labelCity = "Your city"
+
 [header]
 siteTitle = "Ride to Work by Bike"
 
@@ -45,6 +51,7 @@ free = "free"
 from = "from"
 man = "Man"
 male = "Male"
+percentageUnit = "%"
 to = "to"
 woman = "Woman"
 routeLengthUnit = "km"
@@ -702,6 +709,7 @@ titleRoutes = "Routes"
 titleTabApp = "Automatic logging"
 
 [statsBar]
+labelFrequency = "regularity"
 labelSustainableRoutes = "sustainable routes"
 labelSaved = "saved"
 

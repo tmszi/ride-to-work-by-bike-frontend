@@ -45,11 +45,11 @@ import SectionHeading from '../global/SectionHeading.vue';
 import StatsBar from '../global/StatsBar.vue';
 
 // composables
-import { useStatsBar } from 'src/composables/useStatsBar';
+import { useStats } from 'src/composables/useStats';
 
 // types
 import type { ItemStatistics } from '../types/Statistics';
-import type { MemberResults } from '../types/Results';
+import type { MemberResponse } from '../types/Results';
 import { CardProgress as CardProgressType, Link } from '../types';
 
 export default defineComponent({
@@ -74,10 +74,10 @@ export default defineComponent({
     StatsBar,
   },
   setup() {
-    const memberResults = memberResultsFixture as MemberResults;
-    const { getMemberResultStats } = useStatsBar();
+    const memberResults = memberResultsFixture as MemberResponse;
+    const { getResultStatistics } = useStats();
     const stats = computed<ItemStatistics[]>(() =>
-      getMemberResultStats(memberResults.results),
+      getResultStatistics(memberResults.results),
     );
 
     return {

@@ -25,8 +25,8 @@ import { defineComponent } from 'vue';
 import SectionColumns from './SectionColumns.vue';
 import CardStats from './CardStats.vue';
 
-// mocks
-import { cardsStats } from 'src/mocks/homepage';
+// enums
+import { StatisticsCategoryId } from '../../components/types/Statistics';
 
 export default defineComponent({
   name: 'SectionColumnsTest',
@@ -41,6 +41,13 @@ export default defineComponent({
     },
   },
   setup() {
+    const cardsStats: StatisticsCategoryId[] = [
+      StatisticsCategoryId.personal,
+      StatisticsCategoryId.team,
+      StatisticsCategoryId.organization,
+      StatisticsCategoryId.city,
+    ];
+
     return {
       cardsStats,
     };
@@ -50,6 +57,6 @@ export default defineComponent({
 
 <template>
   <section-columns :columns="columns" class="q-col-gutter-lg q-pt-xl q-pb-xl">
-    <card-stats v-for="card in cardsStats" :key="card.title" :card="card" />
+    <card-stats v-for="card in cardsStats" :key="card" :category="card" />
   </section-columns>
 </template>
