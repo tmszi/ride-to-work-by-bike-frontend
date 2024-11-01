@@ -62,6 +62,7 @@ export default route(function (/* { store, ssrContext } */) {
       logger?.debug(`Router is authenticated <${isAuthenticated}>.`);
       logger?.debug(`Router is email verified <${isEmailVerified}>.`);
       logger?.debug(`Router is challenge active <${isChallengeActive}>.`);
+      // TODO: Add condition isRegistrationComplete
 
       // if authenticated and not verified email, redirect to confirm email page
       if (
@@ -144,11 +145,9 @@ export default route(function (/* { store, ssrContext } */) {
         );
         next({ path: routesConf['challenge_inactive']['path'] });
       }
-      // if not authenticated and not on login or register or confirm email page, redirect to login page
+      // if not authenticated and not on pages: login, register, redirect to login page.
       else if (
         !isAuthenticated &&
-        isEmailVerified &&
-        // only these pages are accessible when not authenticated
         !to.matched.some(
           (record) =>
             record.path === routesConf['login']['path'] ||
@@ -158,48 +157,13 @@ export default route(function (/* { store, ssrContext } */) {
         logger?.debug(
           `Router user is not authenticated <${!isAuthenticated}>.`,
         );
-        logger?.debug(`Router user email is verified <${isEmailVerified}>.`);
         logger?.debug(
           `Router path <${routesConf['login']['path']}>,` +
             ` <${routesConf['register']['path']}>` +
-            ` is not  matched <${!to.matched.some(
-              (record) =>
-                record.path === routesConf['login']['path'] ||
-                record.path === routesConf['register']['path'],
-            )}>`,
-        );
-        logger?.debug(
-          `Router path redirect to page URL <${routesConf['verify_email']['path']}>.`,
-        );
-        next({ path: routesConf['login']['path'] });
-      }
-      // if is not awaiting confirmation, and user navigates to confirm email page, redirect based on login status
-      else if (
-        !isAuthenticated &&
-        !isEmailVerified &&
-        // only these pages are accessible when not authenticated and awaiting confirmation
-        !to.matched.some(
-          (record) =>
-            record.path === routesConf['login']['path'] ||
-            record.path === routesConf['register']['path'] ||
-            record.path === routesConf['verify_email']['path'],
-        )
-      ) {
-        logger?.debug(
-          `Router user is not authenticated <${!isAuthenticated}>.`,
-        );
-        logger?.debug(
-          `Router user email is not verified <${!isEmailVerified}>.xs`,
-        );
-        logger?.debug(
-          `Router path <${routesConf['login']['path']}>,` +
-            ` <${routesConf['register']['path']}>` +
-            ` <${routesConf['verify_email']['path']}>` +
             ` is not matched <${!to.matched.some(
               (record) =>
                 record.path === routesConf['login']['path'] ||
-                record.path === routesConf['register']['path'] ||
-                record.path === routesConf['verify_email']['path'],
+                record.path === routesConf['register']['path'],
             )}>.`,
         );
         logger?.debug(

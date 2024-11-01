@@ -6,19 +6,20 @@ import { Router } from 'vue-router';
 import { useApi } from 'src/composables/useApi';
 import { setAccessRefreshTokens } from '../utils/set_access_refresh_tokens';
 
-// stores
-import { useLoginStore } from './login';
-
-// utils
-import { requestDefaultHeader, requestTokenHeader } from 'src/utils';
-
 // config
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 import { routesConf } from '../router/routes_conf';
 
+// stores
+import { useLoginStore } from './login';
+
 // types
 import type { Logger } from '../components/types/Logger';
-import type { LoginResponse as RegisterResponse } from 'src/components/types/Login';
+import type { LoginResponse as RegisterResponse } from '../components/types/Login';
+import type { RegisterCoordinatorRequest } from '../components/types/Register';
+
+// utils
+import { requestDefaultHeader, requestTokenHeader } from 'src/utils';
 
 declare module 'pinia' {
   export interface PiniaCustomProperties {
@@ -35,15 +36,21 @@ export const useRegisterStore = defineStore('register', {
     // property set in pinia.js boot file
     $log: null as Logger | null,
     isEmailVerified: false,
+    // TODO: Get this state from the API
+    isRegistrationComplete: false,
   }),
 
   getters: {
     getIsEmailVerified: (state): boolean => state.isEmailVerified,
+    getIsRegistrationComplete: (state): boolean => state.isRegistrationComplete,
   },
 
   actions: {
     setIsEmailVerified(awaiting: boolean): void {
       this.isEmailVerified = awaiting;
+    },
+    setIsRegistrationComplete(isComplete: boolean): void {
+      this.isRegistrationComplete = isComplete;
     },
     /**
      * Register user
@@ -148,6 +155,54 @@ export const useRegisterStore = defineStore('register', {
         );
       } else {
         this.$log?.warn('Email verification check failed or returned no data.');
+      }
+    },
+    /**
+     * Register coordinator
+     * Sends the coordinator registration request to the API.
+     * This is done AFTER the user is registered.
+     * If successful:
+     *   - sets isRegistrationComplete flag to true
+     *   - redirects to home page
+     * If not successful, returns response data.
+     * @param {RegisterCoordinatorRequest} payload - Register coordinator request payload
+     * @returns {Promise<RegisterResponse | null>} - Register coordinator response or null
+     */
+    async registerCoordinator(
+      payload: RegisterCoordinatorRequest,
+    ): Promise<void> {
+      const { apiFetch } = useApi();
+      this.$log?.debug(
+        `Register coordinator payload <${JSON.stringify(payload, null, 2)}>.`,
+      );
+      // register
+      this.$log?.info('Post API coordinator registration details.');
+      const { success } = await apiFetch<null>({
+        endpoint: rideToWorkByBikeConfig.urlApiRegisterCoordinator,
+        method: 'post',
+        payload,
+        translationKey: 'registerCoordinator',
+        logger: this.$log,
+      });
+
+      if (success) {
+        this.$log?.info('Coordinator registration successful.');
+        // set isRegistrationComplete in store
+        this.$log?.debug(
+          `Register store setting isRegistrationComplete to <${true}>.`,
+        );
+        this.setIsRegistrationComplete(true);
+        this.$log?.debug(
+          `Register store isRegistrationComplete set to <${this.getIsRegistrationComplete}>.`,
+        );
+
+        // redirect to home page
+        if (this.$router) {
+          this.$log?.debug(
+            `Coordinator registration succcesfull, redirect to <${routesConf['home']['path']}> URL.`,
+          );
+          this.$router.push(routesConf['home']['path']);
+        }
       }
     },
   },

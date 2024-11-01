@@ -12,6 +12,7 @@
  * @props
  * - `modelValue` (string, required): The object representing user input.
  *   It should be of type `string`.
+ * - `label` (string, optional): The label for the form field.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
@@ -27,7 +28,7 @@
  */
 
 // libraries
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, inject, ref } from 'vue';
 import { QForm } from 'quasar';
 
 // components
@@ -36,13 +37,30 @@ import FormAddCompany from 'src/components/form/FormAddCompany.vue';
 
 // composables
 import { i18n } from 'src/boot/i18n';
+import { useApi } from 'src/composables/useApi';
 import { useValidation } from 'src/composables/useValidation';
 
-// types
-import type { FormCompanyFields } from 'src/components/types/Form';
+// config
+import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
-// constants
-const stringOptions: string[] = ['Company 1', 'Company 2'];
+// stores
+import { useLoginStore } from 'src/stores/login';
+
+// types
+import type {
+  FormCompanyFields,
+  FormSelectOption,
+} from 'src/components/types/Form';
+import type { Logger } from 'src/components/types/Logger';
+import type {
+  GetOrganizationsResponse,
+  PostOrganizationPayload,
+  PostOrganizationsResponse,
+} from 'src/components/types/Organization';
+
+// utils
+import { requestDefaultHeader, requestTokenHeader } from 'src/utils';
+import { getApiBaseUrlWithLang } from 'src/utils/get_api_base_url_with_lang';
 
 export default defineComponent({
   name: 'FormFieldCompany',
@@ -61,21 +79,103 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const options = ref<string[]>([]);
-    const isDialogOpen = ref<boolean>(false);
-    const formRef = ref<typeof QForm | null>(null);
-
-    const formFieldLabel = computed(
-      () => props.label || i18n.global.t('form.labelCompany'),
+    const logger = inject('vuejs3-logger') as Logger | null;
+    const options = ref<FormSelectOption[]>([]);
+    const optionsDefault = ref<FormSelectOption[]>([]);
+    const isOptionsLoading = ref<boolean>(false);
+    const loginStore = useLoginStore();
+    const { apiFetch } = useApi();
+    // get API base URL
+    const { apiBase, apiDefaultLang, urlApiOrganizations } =
+      rideToWorkByBikeConfig;
+    const apiBaseUrl = getApiBaseUrlWithLang(
+      null,
+      apiBase,
+      apiDefaultLang,
+      i18n,
     );
+    const urlApiOrganizationsLocalized = `${apiBaseUrl}${urlApiOrganizations}`;
+    /**
+     * Load options
+     * Fetches organizations and saves them into default options
+     * @returns {Promise<void>}
+     */
+    const loadOptions = async (): Promise<void> => {
+      logger?.info('Get organizations from the API.');
+      isOptionsLoading.value = true;
+      // append access token into HTTP header
+      const requestTokenHeader_ = { ...requestTokenHeader };
+      requestTokenHeader_.Authorization += loginStore.getAccessToken;
+      // fetch organizations
+      const { data } = await apiFetch<GetOrganizationsResponse>({
+        endpoint: urlApiOrganizationsLocalized,
+        method: 'get',
+        translationKey: 'getOrganizations',
+        showSuccessMessage: false,
+        headers: Object.assign(requestDefaultHeader, requestTokenHeader_),
+        logger,
+      });
+      // save default option array
+      if (data?.results?.length) {
+        logger?.info('Organizations fetched. Saving to default options.');
+        logger?.debug(
+          `Setting default options to <${JSON.stringify(data.results)}>.`,
+        );
+        optionsDefault.value = data.results.map((option) => {
+          return {
+            label: option.name,
+            value: option.id,
+          };
+        });
+        logger?.debug(
+          `Default options set to <${JSON.stringify(optionsDefault.value)}>.`,
+        );
+      }
+      isOptionsLoading.value = false;
+    };
+    // load options on component mount
+    loadOptions();
 
+    // company v-model
     const company = computed({
       get: () => props.modelValue,
       set: (value: string) => {
+        logger?.debug(`Company set to <${value}>.`);
         emit('update:modelValue', value);
       },
     });
 
+    /**
+     * Autocomplete functionality for company select
+     * Upon typing, find strings which contain query entered into the select
+     *
+     * Limitation: does not support fuzzy search
+     *
+     * Quasar types are not implemented yet so we provide custom typing
+     * for update function.
+     * See https://github.com/quasarframework/quasar/issues/8914#issuecomment-1313783889
+     *
+     * See https://quasar.dev/vue-components/select#example--text-autocomplete
+     */
+    const onFilter = (val: string, update: (fn: () => void) => void) => {
+      update(() => {
+        const valLowerCase = val.toLocaleLowerCase();
+        options.value = optionsDefault.value.filter(
+          (option) =>
+            option.label.toLocaleLowerCase().indexOf(valLowerCase) > -1,
+        );
+      });
+    };
+
+    /**
+     * Logic for "Create company" action
+     * Renders dialog for adding a new company
+     * and handles form submission.
+     */
+    const isDialogOpen = ref<boolean>(false);
+    // form ref
+    const formRef = ref<typeof QForm | null>(null);
+    // default form state
     const companyNew: FormCompanyFields = {
       name: '',
       vatId: '',
@@ -90,51 +190,31 @@ export default defineComponent({
         },
       ],
     };
-
-    // handles select input
-    const onInputValue = (val: string) => {
-      company.value = val;
-    };
-
     /**
-     * Provides autocomplete functionality
-     * Upon typing, find strings which contain query entered into the select
-     *
-     * Limitation: does not support fuzzy search
-     *
-     * Quasar types are not implemented yet so we provide custom typing
-     * for update function.
-     * See https://github.com/quasarframework/quasar/issues/8914#issuecomment-1313783889
-     *
-     * See https://quasar.dev/vue-components/select#example--text-autocomplete
+     * Close dialog
+     * Resets form and closes dialog
+     * @returns {void}
      */
-    const onFilter = (val: string, update: (fn: () => void) => void) => {
-      update(() => {
-        const valLowerCase = val.toLocaleLowerCase();
-        options.value = stringOptions.filter(
-          (option) => option.toLocaleLowerCase().indexOf(valLowerCase) > -1,
-        );
-      });
-    };
-
     const onClose = (): void => {
       if (formRef.value) {
         formRef.value.reset();
+        logger?.info('Close add company modal dialog and reset form.');
       }
       isDialogOpen.value = false;
     };
-
     /**
-     * Validates the form.
-     * If form is valid it submits the data.
+     * Submit new company form
+     * Validates form and calls createOrganization API if valid
+     * @returns {Promise<void>}
      */
     const onSubmit = async (): Promise<void> => {
       if (formRef.value) {
         const isFormValid: boolean = await formRef.value.validate();
 
+        logger?.debug(`Form is valid <${isFormValid}>.`);
         if (isFormValid) {
-          // TODO: Submit through API
-          isDialogOpen.value = false;
+          logger?.info('Create organization.');
+          createOrganization();
         } else {
           formRef.value.$el.scrollIntoView({
             behavior: 'smooth',
@@ -142,8 +222,57 @@ export default defineComponent({
         }
       }
     };
+    /**
+     * Create organization
+     * Creates a new organization in database
+     * @returns {Promise<void>}
+     */
+    const createOrganization = async (): Promise<void> => {
+      logger?.info('Post new organization to API.');
+      // append access token into HTTP header
+      const requestTokenHeader_ = { ...requestTokenHeader };
+      requestTokenHeader_.Authorization += loginStore.getAccessToken;
+      // data
+      logger?.debug(`Create organization with name <${companyNew.name}>.`);
+      logger?.debug(`Create organization with vatId <${companyNew.vatId}>.`);
+      const payload: PostOrganizationPayload = {
+        name: companyNew.name,
+        vatId: companyNew.vatId,
+      };
+      // fetch organizations
+      const { data } = await apiFetch<PostOrganizationsResponse>({
+        endpoint: urlApiOrganizationsLocalized,
+        method: 'post',
+        translationKey: 'createOrganization',
+        headers: Object.assign(requestDefaultHeader, requestTokenHeader_),
+        payload: payload,
+        logger,
+      });
+      if (data?.id) {
+        logger?.debug(`Organization created with ID <${data.id}>.`);
+        logger?.debug(`Organization created with name <${data.name}>.`);
+        // close dialog
+        isDialogOpen.value = false;
+        logger?.info('Close add company modal dialog.');
+        // refetch organizations
+        logger?.info('Refetching organizations.');
+        await loadOptions();
+        // set company to new organization
+        logger?.debug(`Setting organization to ID <${data.id}>.`);
+        const newCompanyOption: FormSelectOption = {
+          label: data.name,
+          value: data.id,
+        };
+        options.value.push(newCompanyOption);
+        company.value = newCompanyOption.value;
+      }
+    };
 
     const { isFilled } = useValidation();
+
+    const formFieldLabel = computed(
+      () => props.label || i18n.global.t('form.labelCompany'),
+    );
 
     return {
       company,
@@ -151,11 +280,11 @@ export default defineComponent({
       formFieldLabel,
       formRef,
       isDialogOpen,
-      options,
       isFilled,
+      isOptionsLoading,
+      options,
       onClose,
       onFilter,
-      onInputValue,
       onSubmit,
     };
   },
@@ -179,12 +308,15 @@ export default defineComponent({
           dense
           outlined
           use-input
+          emit-value
+          map-options
           hide-selected
           fill-input
           hide-bottom-space
           input-debounce="0"
           :model-value="company"
           :options="options"
+          :loading="isOptionsLoading"
           class="q-mt-sm"
           id="form-company"
           name="company"
@@ -196,7 +328,7 @@ export default defineComponent({
               }),
           ]"
           @filter="onFilter"
-          @input-value="onInputValue"
+          @update:model-value="company = $event"
           data-cy="form-company-input"
         >
           <!-- Item: No option -->

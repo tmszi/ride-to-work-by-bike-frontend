@@ -11,11 +11,9 @@
  * @components
  * - `FormFieldCheckboxRequired`: Component to render checkbox input.
  * - `FormFieldCompany`: Component to render company input.
- * - `FormFieldEmail`: Component to render email input.
- * - `FormFieldPassword`: Component to render password input.
- * - `FormFieldPasswordConfirm`: Component to render password confirm input.
  * - `FormFieldPhone`: Component to render phone input.
  * - `FormFieldTextRequired`: Component to render required field.
+ * - `FormFieldNewsletter`: Component to render newsletter input.
  *
  * @example
  * <form-register-coordinator />
@@ -24,44 +22,51 @@
  */
 
 // libraries
-import { defineComponent, reactive } from 'vue';
-
-import { i18n } from 'src/boot/i18n';
+import { defineComponent, inject, reactive } from 'vue';
 
 // components
 import FormFieldCheckboxRequired from './../form/FormFieldCheckboxRequired.vue';
 import FormFieldCompany from '../global/FormFieldCompany.vue';
-import FormFieldEmail from './../global/FormFieldEmail.vue';
-import FormFieldPassword from '../global/FormFieldPassword.vue';
-import FormFieldPasswordConfirm from '../global/FormFieldPasswordConfirm.vue';
 import FormFieldPhone from './../global/FormFieldPhone.vue';
 import FormFieldTextRequired from './../global/FormFieldTextRequired.vue';
+import FormFieldNewsletter from '../form/FormFieldNewsletter.vue';
+
+// composables
+import { i18n } from '../../boot/i18n';
+
+// enums
+import { OrganizationType } from '../types/Organization';
+import { NewsletterType } from '../types/Newsletter';
+
+// stores
+import { useRegisterStore } from '../../stores/register';
 
 // types
-import type { FormOption } from 'src/components/types/Form';
+import type { FormOption } from '../types/Form';
+import type { Logger } from '../types/Logger';
+import type { RegisterCoordinatorRequest } from '../types/Register';
 
 export default defineComponent({
   name: 'FormRegisterCoordinator',
   components: {
     FormFieldCheckboxRequired,
     FormFieldCompany,
-    FormFieldEmail,
     FormFieldTextRequired,
-    FormFieldPassword,
-    FormFieldPasswordConfirm,
     FormFieldPhone,
+    FormFieldNewsletter,
   },
   setup() {
+    const logger = inject('vuejs3-logger') as Logger | null;
+    const registerStore = useRegisterStore();
+
     const formRegisterCoordinator = reactive({
       firstName: '',
       lastName: '',
-      institutionType: 'company',
-      company: '',
+      organizationType: OrganizationType.company,
+      organizationId: '',
       jobTitle: '',
-      email: '',
+      newsletter: [] as NewsletterType[],
       phone: '',
-      password: '',
-      passwordConfirm: '',
       responsibility: false,
       terms: false,
     });
@@ -69,16 +74,36 @@ export default defineComponent({
     const optionsInstitutionType: FormOption[] = [
       {
         label: i18n.global.t('form.labelCompanyShort'),
-        value: 'company',
+        value: OrganizationType.company,
       },
       {
         label: i18n.global.t('form.labelSchool'),
-        value: 'school',
+        value: OrganizationType.school,
+      },
+      {
+        label: i18n.global.t('form.labelFamily'),
+        value: OrganizationType.family,
       },
     ];
 
-    const onSubmit = (): void => {
-      // noop
+    const onSubmit = async (): Promise<void> => {
+      // build payload
+      const payload: RegisterCoordinatorRequest = {
+        firstName: formRegisterCoordinator.firstName,
+        jobTitle: formRegisterCoordinator.jobTitle,
+        lastName: formRegisterCoordinator.lastName,
+        newsletter: formRegisterCoordinator.newsletter,
+        organizationId:
+          Number(formRegisterCoordinator.organizationId) ?? undefined,
+        phone: formRegisterCoordinator.phone,
+        responsibility: formRegisterCoordinator.responsibility,
+        terms: formRegisterCoordinator.terms,
+      };
+      logger?.debug(
+        `Register coordinator payload <${JSON.stringify(payload)}>`,
+      );
+      // register coordinator
+      await registerStore.registerCoordinator(payload);
     };
 
     const onReset = (): void => {
@@ -145,15 +170,15 @@ export default defineComponent({
               inline
               dense
               id="form-institution-type"
-              v-model="formRegisterCoordinator.institutionType"
+              v-model="formRegisterCoordinator.organizationType"
               :options="optionsInstitutionType"
               color="primary"
               class="q-mt-sm q-gutter-x-lg"
             />
           </div>
-          <!-- Input: company -->
+          <!-- Input: organization ID -->
           <form-field-company
-            v-model="formRegisterCoordinator.company"
+            v-model="formRegisterCoordinator.organizationId"
             class="col-12"
             data-cy="form-register-coordinator-company"
           />
@@ -163,32 +188,21 @@ export default defineComponent({
             name="form-job-title"
             label="form.labelJobTitle"
             label-short="form.labelJobTitleShort"
-            class="col-12"
+            class="col-sm-6"
             data-cy="form-register-coordinator-job-title"
-          />
-          <!-- Input: email -->
-          <form-field-email
-            v-model="formRegisterCoordinator.email"
-            data-cy="form-register-coordinator-email"
           />
           <!-- Input: phone-->
           <form-field-phone
             v-model="formRegisterCoordinator.phone"
+            class="col-sm-6"
             data-cy="form-register-coordinator-phone"
           />
-          <!-- Input: password -->
-          <form-field-password
-            v-model="formRegisterCoordinator.password"
-            class="col-12 col-sm-6"
-            data-cy="form-register-coordinator-password"
-          />
-          <!-- Input: password confirm -->
-          <form-field-password-confirm
-            v-model="formRegisterCoordinator.passwordConfirm"
-            :compare-value="formRegisterCoordinator.password"
-            class="col-12 col-sm-6"
-            data-cy="form-register-coordinator-password-confirm"
-          />
+          <!-- Input: Newsletter -->
+          <div class="col-12" data-cy="form-personal-details-newsletter">
+            <form-field-newsletter
+              v-model="formRegisterCoordinator.newsletter"
+            />
+          </div>
           <!-- Input: confirm responsibility -->
           <div
             class="col-12"
@@ -199,6 +213,7 @@ export default defineComponent({
               :validation-message="
                 $t('register.coordinator.form.messageResponsibilityRequired')
               "
+              class="q-pt-sm"
             >
               {{ $t('register.coordinator.form.labelResponsibility') }}
             </form-field-checkbox-required>

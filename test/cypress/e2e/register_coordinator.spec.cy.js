@@ -1,4 +1,8 @@
 import {
+  fillFormRegisterCoordinator,
+  httpSuccessfullStatus,
+  interceptOrganizationsApi,
+  interceptRegisterCoordinatorApi,
   testLanguageSwitcher,
   testBackgroundImage,
 } from '../support/commonTests';
@@ -7,11 +11,8 @@ import { routesConf } from '../../../src/router/routes_conf';
 describe('Login page', () => {
   context('desktop', () => {
     beforeEach(() => {
-      // config is defined without hash in the URL
       cy.visit('#' + routesConf['register_coordinator']['path']);
       cy.viewport('macbook-16');
-
-      // load config an i18n objects as aliases
       cy.task('getAppConfig', process).then((config) => {
         // alias config
         cy.wrap(config).as('config');
@@ -24,15 +25,14 @@ describe('Login page', () => {
     });
 
     testBackgroundImage();
+    // switching between languages can only be tested in E2E context
+    testLanguageSwitcher();
 
     it('renders login register header component', () => {
       cy.dataCy('login-register-header').should('be.visible');
       cy.dataCy('button-help').should('be.visible');
       cy.dataCy('language-switcher').should('be.visible');
     });
-
-    // switching between languages can only be tested in E2E context
-    testLanguageSwitcher();
 
     it('renders page title', () => {
       cy.get('@config').then((config) => {
@@ -88,6 +88,111 @@ describe('Login page', () => {
                 },
               );
             });
+        });
+      });
+    });
+  });
+
+  context('desktop with API intercepts', () => {
+    beforeEach(() => {
+      /**
+       * Visit login page so that we can setup the API intercepts.
+       * The setup needs config and i18n objects to be initialized.
+       */
+      cy.task('getAppConfig', process).then((config) => {
+        cy.wrap(config).as('config');
+        // Visit the login page to initialize i18n
+        cy.visit('#' + routesConf['register_coordinator']['path'])
+          .then(() => {
+            cy.window().should('have.property', 'i18n');
+            cy.window().then((win) => {
+              cy.wrap(win.i18n).as('i18n');
+
+              // Set up API intercepts
+              interceptOrganizationsApi(config, win.i18n);
+              interceptRegisterCoordinatorApi(config, win.i18n);
+
+              // Load fixtures and set up request body
+              cy.fixture('formRegisterCoordinator').then(
+                (formRegisterCoordinatorData) => {
+                  cy.fixture('formFieldCompany').then(
+                    (formFieldCompanyResponse) => {
+                      cy.wrap({
+                        firstName: formRegisterCoordinatorData.firstName,
+                        jobTitle: formRegisterCoordinatorData.jobTitle,
+                        lastName: formRegisterCoordinatorData.lastName,
+                        newsletter: formRegisterCoordinatorData.newsletter,
+                        organizationId: formFieldCompanyResponse.results[0].id,
+                        phone: formRegisterCoordinatorData.phone,
+                        responsibility: true,
+                        terms: true,
+                      }).as('registerRequestBody');
+                    },
+                  );
+                },
+              );
+            });
+          })
+          .then(() => {
+            // Reload page to initiate onload API calls
+            cy.reload();
+          });
+      });
+    });
+
+    it('fills in the form, submits it, and redirects to homepage on success', () => {
+      cy.fixture('formFieldCompany').then((formFieldCompanyResponse) => {
+        cy.wait('@getOrganizations').then((interception) => {
+          expect(interception.request.headers.authorization).to.include(
+            'Bearer',
+          );
+          expect(interception.response.statusCode).to.equal(
+            httpSuccessfullStatus,
+          );
+          expect(interception.response.body).to.deep.equal(
+            formFieldCompanyResponse,
+          );
+          // fill in the form
+          fillFormRegisterCoordinator();
+          // check responsibility checkbox
+          cy.dataCy('form-register-coordinator-responsibility')
+            .find('.q-checkbox')
+            .click();
+          // prevent action on link to avoid accidental redirect
+          cy.dataCy('form-register-coordinator-terms')
+            .find('a')
+            .then(($el) => {
+              $el[0].addEventListener('click', (event) => {
+                event.preventDefault();
+              });
+            });
+          // check terms checkbox
+          cy.dataCy('form-register-coordinator-terms')
+            .find('.q-checkbox')
+            .click();
+          // reset the action on link
+          cy.dataCy('form-register-coordinator-terms')
+            .find('a')
+            .then(($el) => {
+              $el[0].removeEventListener('click', (event) => {
+                event.preventDefault();
+              });
+            });
+          // submit form
+          cy.dataCy('form-register-coordinator-submit').click();
+          // wait for the API call to complete
+          cy.wait('@registerCoordinator').then((interception) => {
+            cy.get('@registerRequestBody').then((registerRequestBody) => {
+              expect(interception.request.body).to.deep.equal(
+                registerRequestBody,
+              );
+              expect(interception.response.statusCode).to.equal(
+                httpSuccessfullStatus,
+              );
+              // check if redirected to homepage
+              cy.url().should('include', routesConf['home']['path']);
+            });
+          });
         });
       });
     });

@@ -75,11 +75,21 @@ titleBecomeCoordinator = "Become a company coordinator"
 buttonBannerReminderConfirm = "Yes"
 buttonBannerReminderDismiss = "Not yet"
 buttonExportMembers = "Export members"
-labelBranches = "division | divisions"
+labelBranches = "subsidiary | subsidiaries"
 labelMembers = "member | members"
 labelOrganizationId = "ID"
 labelShowPastTasks = "Show past tasks"
 textBannerReminder = "Have you notified the company that you are a coordinator?"
+
+[createOrganization]
+apiMessageError = "Organization creation failed."
+apiMessageErrorWithMessage = "Organization creation failed. Error: {error}"
+apiMessageSuccess = "Organization was successfully created."
+
+[getOrganizations]
+apiMessageError = "Organizations fetching failed."
+apiMessageErrorWithMessage = "Organizations fetching failed. Error: {error}"
+apiMessageSuccess = "Organizations fetched successfully."
 
 [language]
 cs = "Czech"
@@ -164,6 +174,7 @@ labelConfirmBillingDetails = "I confirm that the billing information above is co
 labelCoordinatorResponsibility = "I will arrange for the company to pay all or part of the entry fee for our employee team(s)."
 labelDonorEntryFee = "My organisation would like to support AutoMat and pay a charity entry fee of 500 CZK excluding VAT per person"
 labelEmail = "Email"
+labelFamily = "Family"
 labelFirstName = "First Name"
 labelGender = "Gender"
 labelHouseNumber = "House number"
@@ -255,22 +266,22 @@ hintPariticipation = "If you plan to compete alone, choose a group from which so
 
 [form.company]
 buttonAddAddress = "Add new"
-buttonAddSubdivision = "Add subdivision"
+buttonAddSubsidiary = "Add subsidiary"
 buttonAddCompany = "Add company"
 hintAddress = "We will deliver a starter pack for your team to this address."
-hintCityChallenge = "Teams from your subdivision will be ranked in the leaderboards in the selected city."
+hintCityChallenge = "Teams from your subsidiary will be ranked in the leaderboards in the selected city."
 hintDepartment = "Only fill in if you need to specify the delivery location for the courier company."
-labelAddress = "Company or subdivision address"
-labelCityChallenge = "City where your subdivision will compete"
+labelAddress = "Company or subsidiary address"
+labelCityChallenge = "City where your subsidiary will compete"
 labelCompany = "Company name"
-labelDepartment = "Department, division, or unit (optional)"
+labelDepartment = "Department, subsidiary, or unit (optional)"
 textCompanyPermission = "Even if the company does not pay you to participate, you do not need its permission."
 textCoordinator = "You will have the opportunity to become a Company Coordinator once you have completed your registration."
-textSubdivisionAddress = "A place where you will ride to work and where we will send your team a start package. It does not have to be the company headquarters."
+textSubsidiaryAddress = "A place where you will ride to work and where we will send your team a start package. It does not have to be the company headquarters."
 textUserExperience = "Have you noticed an incorrect or duplicate record? Please email us at <a class=\"text-primary\" href=\"mailto:{email}\" >{email}</a>."
 titleAddCompany = "Add company"
-titleAddAddress = "Add your subdivision"
-titleSubdivisionAddress = "Your branch address"
+titleAddAddress = "Add your subsidiary"
+titleSubsidiaryAddress = "Your branch address"
 
 [form.team]
 buttonAddTeam = "Add team"
@@ -488,7 +499,7 @@ titleStep2 = "Invite your loved ones to the challenge"
 buttonDownloadInvoice = "Download payment confirmation"
 buttonFillQuestionnaire = "Fill in questionnaire"
 descriptionNickname = "Appears in public results instead of your name"
-labelAddressDivision = "Address / Division:"
+labelAddressSubsidiary = "Address / Subsidiary:"
 labelAllowContactPhone = "I want to know more about sustainable mobility and agree to be contacted by phone about promoting active transport and public space."
 labelDeliveryAddress = "Delivery address:"
 labelEmail = "Email:"
@@ -541,6 +552,11 @@ messageJwtInvalidWithMessage = "Failed to read login token. Error: {error}"
 apiMessageError = "Registration failed. Please try again later."
 apiMessageErrorWithMessage = "Registration failed. Please try again later. Error: {error}"
 apiMessageSuccess = "Registration was successful"
+
+[registerCoordinator]
+apiMessageError = "Coordinator registration failed. Please try again later."
+apiMessageErrorWithMessage = "Coordinator registration failed. Please try again later. Error: {error}"
+apiMessageSuccess = "Coordinator registration was successful"
 
 [register.form]
 hintLogin = "Already have an account?"

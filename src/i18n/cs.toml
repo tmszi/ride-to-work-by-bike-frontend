@@ -81,6 +81,16 @@ labelOrganizationId = "IČO"
 labelShowPastTasks = "Zobrazit uplynulé úkoly"
 textBannerReminder = "Oznámil jste již firmě, že jste kooridnátorem?"
 
+[createOrganization]
+apiMessageError = "Vytvoření organizace selhalo."
+apiMessageErrorWithMessage = "Vytvoření organizace selhalo. Chyba: {error}"
+apiMessageSuccess = "Organizace byla úspěšně vytvořena."
+
+[getOrganizations]
+apiMessageError = "Načítání organizací selhalo."
+apiMessageErrorWithMessage = "Načítání organizací selhalo. Chyba: {error}"
+apiMessageSuccess = "Organizace byly úspěšně načteny."
+
 [language]
 cs = "Čeština"
 sk = "Slovenština"
@@ -165,6 +175,7 @@ labelConfirmBillingDetails = "Potvrzuji, že fakturační údaje výše jsou spr
 labelCoordinatorResponsibility = "Zajistím, aby společnost uhradila startovné nebo část startovného za náš zaměstnanecký tým nebo týmy."
 labelDonorEntryFee = "Moje organizace si přeje podpořit AutoMat a zaplatit benefiční startovné ve výši 500 Kč bez DPH za osobu"
 labelEmail = "E-mail"
+labelFamily = "Rodina"
 labelFirstName = "Jméno"
 labelGender = "Pohlaví"
 labelHouseNumber = "Číslo popisné"
@@ -258,7 +269,7 @@ hintPariticipation = "I pokud plánujete soutěžit sám/sama, zvolte skupinu, z
 
 [form.company]
 buttonAddAddress = "Přidat novou"
-buttonAddSubdivision = "Přidat pobočku"
+buttonAddSubsidiary = "Přidat pobočku"
 buttonAddCompany = "Přidat firmu"
 hintAddress = "Na tuto adresu doručíme startovní balíček pro váš tým."
 hintCityChallenge = "Týmy z vaší pobočky se zařadí do žebříčků ve zvoleném blízkém městě."
@@ -269,11 +280,11 @@ labelCompany = "Název firmy"
 labelDepartment = "Oddělení, divize, či pracoviště (nepovinné)"
 textCompanyPermission = "Ani pokud vám firma účast neplatí, nepotřebujete její svolení."
 textCoordinator = "Příležitost stát se firemním koordinátorem budete mít po dokončení registrace."
-textSubdivisionAddress = "Místo, kam budete jezdit do práce a kam vašemu týmu zašleme startovní balíček. Nemusí jít o sídlo společnosti."
+textSubsidiaryAddress = "Místo, kam budete jezdit do práce a kam vašemu týmu zašleme startovní balíček. Nemusí jít o sídlo společnosti."
 textUserExperience = "Všiml*a jste si chybného nebo opakujícího se záznamu? Napište nám prosím na <a class=\"text-primary\" href=\"mailto:{email}\">{email}</a>."
 titleAddAddress = "Přidat vaši pobočku"
 titleAddCompany = "Přidat firmu"
-titleSubdivisionAddress = "Adresa vaší pobočky"
+titleSubsidiaryAddress = "Adresa vaší pobočky"
 
 [form.team]
 buttonAddTeam = "Přidat tým"
@@ -491,7 +502,7 @@ titleStep2 = "Přizvěte své blízké do výzvy"
 buttonDownloadInvoice = "Stáhnout potvrzení o platbě"
 buttonFillQuestionnaire = "Vyplnit dotazník"
 descriptionNickname = "Zobrazí se ve veřejných výsledcích místo vašeho jména"
-labelAddressDivision = "Adresa / pobočka:"
+labelAddressSubsidiary = "Adresa / pobočka:"
 labelAllowContactPhone = "Chci vědět více o udržitelné mobilitě a souhlasím, že se mi můžete ozvat telefonicky ohledně podpory aktivní dopravy a veřejného prostoru."
 labelDeliveryAddress = "Doručovací adresa:"
 labelEmail = "E-mail:"
@@ -544,6 +555,11 @@ messageJwtInvalidWithMessage = "Nepodařilo se přečíst přihlašovací token.
 apiMessageError = "Registrace se nezdařila. Prosím, zkuste to znovu později."
 apiMessageErrorWithMessage = "Registrace se nezdařila. Prosím, zkuste to znovu později. Chyba: {error}"
 apiMessageSuccess = "Registrace byla úspěšná"
+
+[registerCoordinator]
+apiMessageError = "Registrace koordinátora se nezdařila. Prosím, zkuste to znovu později."
+apiMessageErrorWithMessage = "Registrace koordinátora se nezdařila. Prosím, zkuste to znovu později. Chyba: {error}"
+apiMessageSuccess = "Registrace koordinátora byla úspěšná"
 
 [register.form]
 hintLogin = "Již máte účet?"

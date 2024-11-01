@@ -46,8 +46,10 @@ export interface ConfigGlobal {
   apiDefaultLang: string;
   urlApiHasUserVerifiedEmail: string;
   urlApiLogin: string;
+  urlApiOrganizations: string;
   urlApiRefresh: string;
   urlApiRegister: string;
+  urlApiRegisterCoordinator: string;
   urlApiResetPassword: string;
   urlLoginRegisterBackgroundImage: string;
   urlRTWBBLogo: string;

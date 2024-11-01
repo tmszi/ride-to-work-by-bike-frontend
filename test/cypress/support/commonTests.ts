@@ -36,23 +36,29 @@ export const testLanguageSwitcher = (): void => {
           .find('.q-btn')
           .should('have.class', 'bg-secondary');
 
-        locales?.forEach((locale) => {
-          if (locale !== initialActiveLocale) {
-            // changing the language
-            cy.dataCy('switcher-' + locale)
-              .should('exist')
-              .and('be.visible')
-              .find('.q-btn')
-              .click();
-            // old language becomes inactive
-            cy.dataCy('switcher-' + initialActiveLocale)
-              .find('.q-btn')
-              .should('have.class', 'bg-white');
-            // new language becomes active
-            cy.dataCy('switcher-' + locale)
-              .find('.q-btn')
-              .should('have.class', 'bg-secondary');
-          }
+        locales?.forEach((selectedLocale) => {
+          cy.dataCy('switcher-button-' + selectedLocale).click();
+          locales?.forEach((locale) => {
+            if (locale !== selectedLocale) {
+              // inactive language
+              cy.dataCy('switcher-' + locale)
+                .should('exist')
+                .and('be.visible');
+              cy.dataCy('switcher-button-' + locale).should(
+                'have.class',
+                'bg-white',
+              );
+            } else {
+              // active language
+              cy.dataCy('switcher-' + locale)
+                .should('exist')
+                .and('be.visible');
+              cy.dataCy('switcher-button-' + locale).should(
+                'have.class',
+                'bg-secondary',
+              );
+            }
+          });
         });
       });
   });
@@ -380,6 +386,62 @@ export const setupApiChallengeInactive = (
   // set system time to "before challenge"
   cy.clock().then((clock) => {
     clock.setSystemTime(systemTimeChallengeInactive);
+  });
+};
+
+export const interceptOrganizationsApi = (config: ConfigGlobal, i18n: I18n) => {
+  const { apiBase, apiDefaultLang, urlApiOrganizations } = config;
+  // get API base URL
+  const apiBaseUrl = getApiBaseUrlWithLang(null, apiBase, apiDefaultLang, i18n);
+  const urlApiOrganizationsLocalized = `${apiBaseUrl}${urlApiOrganizations}`;
+  // intercept organizations API call (before mounting component)
+  cy.fixture('formFieldCompany').then((formFieldCompanyResponse) => {
+    cy.intercept('GET', urlApiOrganizationsLocalized, {
+      statusCode: httpSuccessfullStatus,
+      body: formFieldCompanyResponse,
+    }).as('getOrganizations');
+  });
+  // intercept create organization API call (before mounting component)
+  cy.fixture('formFieldCompanyCreate').then(
+    (formFieldCompanyCreateResponse) => {
+      cy.intercept('POST', urlApiOrganizationsLocalized, {
+        statusCode: httpSuccessfullStatus,
+        body: formFieldCompanyCreateResponse,
+      }).as('createOrganization');
+    },
+  );
+};
+
+export const interceptRegisterCoordinatorApi = (
+  config: ConfigGlobal,
+  i18n: I18n,
+) => {
+  const { apiBase, apiDefaultLang, urlApiRegisterCoordinator } = config;
+  // get API base URL
+  const apiBaseUrl = getApiBaseUrlWithLang(null, apiBase, apiDefaultLang, i18n);
+  const urlApiRegisterCoordinatorLocalized = `${apiBaseUrl}${urlApiRegisterCoordinator}`;
+  // intercept register coordinator API call (before mounting component)
+  cy.intercept('POST', urlApiRegisterCoordinatorLocalized, {
+    statusCode: httpSuccessfullStatus,
+  }).as('registerCoordinator');
+};
+
+export const fillFormRegisterCoordinator = (): void => {
+  cy.fixture('formRegisterCoordinator').then((formRegisterCoordinatorData) => {
+    cy.dataCy('form-register-coordinator-first-name')
+      .find('input')
+      .type(formRegisterCoordinatorData.firstName);
+    cy.dataCy('form-register-coordinator-last-name')
+      .find('input')
+      .type(formRegisterCoordinatorData.lastName);
+    cy.dataCy('form-register-coordinator-company').find('input').click();
+    cy.get('.q-menu .q-item').first().click();
+    cy.dataCy('form-register-coordinator-job-title')
+      .find('input')
+      .type(formRegisterCoordinatorData.jobTitle);
+    cy.dataCy('form-register-coordinator-phone')
+      .find('input')
+      .type(formRegisterCoordinatorData.phone);
   });
 };
 

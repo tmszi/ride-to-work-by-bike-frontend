@@ -1,5 +1,10 @@
 import FormFieldTestWrapper from 'components/global/FormFieldTestWrapper.vue';
 import { i18n } from '../../boot/i18n';
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+import {
+  httpSuccessfullStatus,
+  interceptOrganizationsApi,
+} from '../../../test/cypress/support/commonTests';
 
 describe('<FormFieldCompany>', () => {
   it('has translation for all strings', () => {
@@ -28,6 +33,8 @@ describe('<FormFieldCompany>', () => {
 
   context('desktop', () => {
     beforeEach(() => {
+      interceptOrganizationsApi(rideToWorkByBikeConfig, i18n);
+      // mount component
       cy.mount(FormFieldTestWrapper, {
         props: {
           component: 'FormFieldCompany',
@@ -52,6 +59,8 @@ describe('<FormFieldCompany>', () => {
     });
 
     it('allows user to select option', () => {
+      testCompanyApiResponse();
+
       cy.dataCy('form-company').find('input').click();
       // select option
       cy.get('.q-menu')
@@ -67,6 +76,8 @@ describe('<FormFieldCompany>', () => {
     });
 
     it('allows to search through options', () => {
+      testCompanyApiResponse();
+
       // search for option
       cy.dataCy('form-company').find('input').focus();
       cy.dataCy('form-company').find('input').type('2');
@@ -109,26 +120,70 @@ describe('<FormFieldCompany>', () => {
       cy.testElementsSideBySide('col-input', 'col-button');
     });
 
-    it('renders dialog when for adding a new company', () => {
-      cy.dataCy('button-add-company').click();
-      cy.dataCy('dialog-add-company').should('be.visible');
-      cy.dataCy('dialog-add-company')
-        .find('h3')
-        .should('be.visible')
-        .and('have.css', 'font-size', '20px')
-        .and('have.css', 'font-weight', '500')
-        .and('contain', i18n.global.t('form.company.titleAddCompany'));
-      cy.dataCy('dialog-button-cancel')
-        .should('be.visible')
-        .and('have.text', i18n.global.t('navigation.discard'));
-      cy.dataCy('dialog-button-submit')
-        .should('be.visible')
-        .and('have.text', i18n.global.t('form.company.buttonAddCompany'));
+    it('allows to add a new company', () => {
+      cy.fixture('formFieldCompanyCreateRequest').then(
+        (formFieldCompanyCreateRequest) => {
+          cy.fixture('formFieldCompanyCreate').then(
+            (formFieldCompanyCreateResponse) => {
+              cy.dataCy('button-add-company').click();
+              // dialog
+              cy.dataCy('dialog-add-company').should('be.visible');
+              cy.dataCy('dialog-add-company')
+                .find('h3')
+                .should('be.visible')
+                .and('have.css', 'font-size', '20px')
+                .and('have.css', 'font-weight', '500')
+                .and('contain', i18n.global.t('form.company.titleAddCompany'));
+              cy.dataCy('dialog-button-cancel')
+                .should('be.visible')
+                .and('have.text', i18n.global.t('navigation.discard'));
+              cy.dataCy('dialog-button-submit')
+                .should('be.visible')
+                .and(
+                  'have.text',
+                  i18n.global.t('form.company.buttonAddCompany'),
+                );
+              // fill form
+              cy.dataCy('form-add-company-name')
+                .find('input')
+                .type(formFieldCompanyCreateRequest.name);
+              cy.dataCy('form-add-company-vat-id')
+                .find('input')
+                .type(formFieldCompanyCreateRequest.vatId);
+              // submit form
+              cy.dataCy('dialog-button-submit').click();
+              // test response
+              cy.wait('@createOrganization').then((interception) => {
+                expect(interception.request.headers.authorization).to.include(
+                  'Bearer',
+                );
+                expect(interception.response.statusCode).to.equal(
+                  httpSuccessfullStatus,
+                );
+                expect(interception.request.body).to.deep.equal({
+                  name: formFieldCompanyCreateRequest.name,
+                  vatId: formFieldCompanyCreateRequest.vatId,
+                });
+                expect(interception.response.body).to.deep.equal(
+                  formFieldCompanyCreateResponse,
+                );
+              });
+              // test selected option
+              cy.dataCy('form-company')
+                .find('input')
+                .invoke('val')
+                .should('eq', formFieldCompanyCreateResponse.name);
+            },
+          );
+        },
+      );
     });
   });
 
   context('mobile', () => {
     beforeEach(() => {
+      interceptOrganizationsApi(rideToWorkByBikeConfig, i18n);
+      // mount component
       cy.mount(FormFieldTestWrapper, {
         props: {
           component: 'FormFieldCompany',
@@ -142,4 +197,18 @@ describe('<FormFieldCompany>', () => {
       cy.testElementPercentageWidth(cy.dataCy('col-button'), 100);
     });
   });
+
+  function testCompanyApiResponse() {
+    cy.fixture('formFieldCompany').then((formFieldCompanyResponse) => {
+      cy.wait('@getOrganizations').then((interception) => {
+        expect(interception.request.headers.authorization).to.include('Bearer');
+        expect(interception.response.statusCode).to.equal(
+          httpSuccessfullStatus,
+        );
+        expect(interception.response.body).to.deep.equal(
+          formFieldCompanyResponse,
+        );
+      });
+    });
+  }
 });
