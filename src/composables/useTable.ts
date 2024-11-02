@@ -1,81 +1,93 @@
 // librarires
+import { date } from 'quasar';
 import { computed, ref } from 'vue';
 
 // composables
 import { i18n } from 'src/boot/i18n';
+// TODO: import format price
 
 // types
-import type { TableColumn, TableRow } from '../components/types/Table';
+import type { QTableProps } from 'quasar';
+import {
+  TableColumn,
+  TableRow,
+  ResultsTableColumns,
+  FeeApprovalTableColumns,
+} from '../components/types/Table';
 
 type FilterMethodInput = { search: string; filter: string };
 
+const formatPrice = (value: number | string | null) => {
+  return String(value);
+};
+
 export const useTable = () => {
   // Used in the `ResultsDetailPage`
-  const tableResultsColumns: TableColumn[] = [
+  const tableResultsColumns: QTableProps['columns'] = [
     {
-      name: 'rank',
+      name: ResultsTableColumns.rank,
       required: true,
       label: i18n.global.t('results.labelRank'),
       align: 'left',
-      field: 'rank',
+      field: ResultsTableColumns.rank,
       format: (val: number | string | null) => (val ? `${val}.` : ''),
       sortable: true,
     },
     {
-      name: 'consistency',
+      name: ResultsTableColumns.consistency,
       required: true,
       label: i18n.global.t('results.labelConsistency'),
       align: 'left',
-      field: 'consistency',
+      field: ResultsTableColumns.consistency,
       sortable: true,
     },
     {
-      name: 'route-count',
+      name: ResultsTableColumns.routeCount,
       required: true,
       label: i18n.global.t('results.labelRouteCount'),
       align: 'left',
-      field: 'routeCount',
+      field: ResultsTableColumns.routeCount,
       format: (val: number | string | null) => (val ? `${val}%` : ''),
       sortable: true,
     },
     {
-      name: 'name',
+      name: ResultsTableColumns.name,
       required: true,
       label: i18n.global.t('results.labelParticipant'),
       align: 'left',
-      field: 'name',
+      field: ResultsTableColumns.name,
       sortable: true,
     },
     {
-      name: 'team',
+      name: ResultsTableColumns.team,
       required: true,
       label: i18n.global.t('results.labelTeam'),
       align: 'left',
-      field: 'team',
+      field: ResultsTableColumns.team,
       sortable: true,
     },
     {
-      name: 'organization',
+      name: ResultsTableColumns.organization,
       required: true,
       label: i18n.global.t('results.labelOrganization'),
       align: 'left',
-      field: 'organization',
+      field: ResultsTableColumns.organization,
       sortable: true,
     },
     {
-      name: 'category',
+      name: ResultsTableColumns.category,
       required: true,
       label: i18n.global.t('results.labelCategory'),
       align: 'left',
-      field: 'category',
+      field: ResultsTableColumns.category,
       sortable: true,
     },
     {
-      name: 'city',
+      name: ResultsTableColumns.city,
       required: true,
       label: i18n.global.t('results.labelCity'),
       align: 'left',
-      field: 'city',
+      field: ResultsTableColumns.city,
       sortable: true,
     },
   ];
@@ -97,11 +109,11 @@ export const useTable = () => {
    * Provides filter functionality
    * Upon typing, find strings which contain query entered into the filter
    * Function must match QTable filterMethod interface
-   * @param rows TableRow[]
-   * @param terms FilterMethodInput
-   * @param cols TableColumn[]
-   * @param cellValue (col: TableColumn, row: TableRow) => string
-   * @returns TableRow[]
+   * @param {TableRow[]} rows - Table rows
+   * @param {FilterMethodInput} terms - Terms
+   * @param {TableColumn[]} cols - Table columns
+   * @param {(col: TableColumn, row: TableRow) => string} cellValue - Table cell value
+   * @returns {TableRow[]}
    **/
   const filterMethod = (
     rows: readonly TableRow[],
@@ -131,8 +143,8 @@ export const useTable = () => {
 
     /**
      * Default filter function based on QTable source code
-     * @param query string
-     * @returns TableRow[]
+     * @param {string} query - Query
+     * @returns {TableRow[]}
      */
     function defaultFilter(query: string): TableRow[] {
       const lowerTerms = query ? query.toLowerCase() : '';
@@ -141,9 +153,9 @@ export const useTable = () => {
 
     /**
      * Checks if a row matches the search query
-     * @param row TableRow
-     * @param term string
-     * @returns boolean
+     * @param {TableRow} row - Table row
+     * @param {string} term - Term
+     * @returns {boolean}
      */
     function isMatch({
       cols,
@@ -165,11 +177,185 @@ export const useTable = () => {
     }
   };
 
+  /**
+   * Sorts an array of TableRow objects and group them by address.
+   * First uses standard sort, then sorts results by address to create groups.
+   * Finally, marks the first item in each group so we can show group headers.
+   * @param {readonly TableRow[]} rows - The array of TableRows to be sorted.
+   * @param {string} sortBy - The column to sort by.
+   * @param {boolean} descending - Whether to sort in descending order.
+   * @return {readonly TableRow[]} - The sorted array of TableRows.
+   */
+  const sortByAddress = (
+    rows: readonly TableRow[],
+    sortBy: string,
+    descending: boolean,
+  ): readonly TableRow[] => {
+    const data = [...rows];
+    if (!sortBy) return data;
+
+    sortDataByValue(data, sortBy, descending);
+    sortDataByKey(data, FeeApprovalTableColumns.address, descending);
+    markFirstInGroup(data, FeeApprovalTableColumns.address);
+
+    return data;
+  };
+
+  /**
+   * Sorts data array by given column in ascending or descending order.
+   * @param {TableRow[]} data - The array to be sorted.
+   * @param {string} sortBy - The column to sort by.
+   * @param {boolean} descending - Whether to sort in descending order.
+   * @return {void}
+   */
+  function sortDataByValue(
+    data: TableRow[],
+    sortBy: string,
+    descending: boolean,
+  ): void {
+    data.sort((a, b) => {
+      const aVal = a[sortBy] || '';
+      const bVal = b[sortBy] || '';
+      if (!aVal || !bVal) {
+        return 0;
+      } else if (aVal < bVal) {
+        return descending ? 1 : -1;
+      } else if (aVal > bVal) {
+        return descending ? -1 : 1;
+      } else {
+        return 0;
+      }
+    });
+  }
+
+  /**
+   * Sorts data array by given key in ascending or descending order.
+   * This is used to sort data into groups by a key.
+   * Together with `markFirstInGroup`, it can be used to show group headers.
+   * @param {TableRow[]} data - The array of TableRow objects to be sorted.
+   * @param {string} key - The key to sort by.
+   * @param {boolean} descending - Whether to sort in descending order.
+   * @return {void}
+   */
+  function sortDataByKey(
+    data: TableRow[],
+    key: string,
+    descending: boolean,
+  ): void {
+    data.sort((a, b) => {
+      if (!a[key] || !b[key]) {
+        return 0;
+      } else if (a[key] < b[key]) {
+        return descending ? 1 : -1;
+      } else if (a[key] > b[key]) {
+        return descending ? -1 : 1;
+      } else {
+        return 0;
+      }
+    });
+  }
+
+  /**
+   * Loop through items in a list
+   * If you find item with a new value for given key, set isFirst to true.
+   * This is used in combination with grouping by a key to show group header.
+   * @param {TableRow[]} data - The array of items.
+   * @param {string} key - The key to group by.
+   * @return {void}
+   */
+  function markFirstInGroup(data: TableRow[], key: string): void {
+    const seenTeams = new Set();
+    data.forEach((row) => {
+      if (!seenTeams.has(row[key])) {
+        row.isFirst = true;
+        seenTeams.add(row[key]);
+      } else {
+        row.isFirst = false;
+      }
+    });
+  }
+
   return {
     filterCompound,
     filterQuery,
     searchQuery,
     tableResultsColumns,
     filterMethod,
+    sortByAddress,
+    formatPrice,
+  };
+};
+
+export const useTableFeeApproval = () => {
+  const tableFeeApprovalColumns: QTableProps['columns'] = [
+    {
+      align: 'left',
+      field: FeeApprovalTableColumns.amount,
+      format: (val: number | string | null): string => formatPrice(val),
+      label: i18n.global.t('table.labelAmount'),
+      name: FeeApprovalTableColumns.amount,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: FeeApprovalTableColumns.name,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelName'),
+      name: FeeApprovalTableColumns.name,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: FeeApprovalTableColumns.email,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelEmail'),
+      name: FeeApprovalTableColumns.email,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: FeeApprovalTableColumns.nickname,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelNickname'),
+      name: FeeApprovalTableColumns.nickname,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: FeeApprovalTableColumns.address,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelTeam'),
+      name: FeeApprovalTableColumns.address,
+      required: false,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: FeeApprovalTableColumns.dateCreated,
+      format: (val: number | string | null): string =>
+        val ? date.formatDate(new Date(String(val)), 'D. MMM. YYYY') : '',
+      label: i18n.global.t('table.labelDateRegistered'),
+      name: FeeApprovalTableColumns.dateCreated,
+      required: true,
+      sortable: true,
+    },
+  ];
+
+  // hide address column as the table is grouped by the key 'address'
+  const tableFeeApprovalVisibleColumns: string[] = [
+    FeeApprovalTableColumns.amount,
+    FeeApprovalTableColumns.name,
+    FeeApprovalTableColumns.email,
+    FeeApprovalTableColumns.nickname,
+    FeeApprovalTableColumns.dateCreated,
+  ];
+
+  return {
+    columns: tableFeeApprovalColumns,
+    visibleColumns: tableFeeApprovalVisibleColumns,
   };
 };
