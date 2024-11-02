@@ -37,14 +37,20 @@ export default defineComponent({
     const isEmailVerified = computed(() => registerStore.getIsEmailVerified);
 
     const checkIsEmailVerified = async (): Promise<void> => {
-      if (!isEmailVerified.value) {
+      logger?.debug(
+        `Check if email is verified is user logged in <${loginStore.isUserLoggedIn}>.`,
+      );
+      if (!isEmailVerified.value && loginStore.isUserLoggedIn) {
         logger?.info(
           'Check if email is verified by <checkIsEmailVerified()> function.',
         );
         await registerStore.checkEmailVerification();
       } else {
+        const message = loginStore.isUserLoggedIn
+          ? 'Email is verified'
+          : 'User is not logged in';
         logger?.debug(
-          'Email is verified, disable <checkIsEmailVerified()>' +
+          `${message}, disable <checkIsEmailVerified()>` +
             ` function runned in every <${rideToWorkByBikeConfig.checkIsEmailVerifiedInterval}> seconds.`,
         );
         clearTimeout(checkIsEmailVerifiedId);
@@ -80,8 +86,19 @@ export default defineComponent({
       rideToWorkByBikeConfig.colorWhiteBackgroundOpacity,
     );
 
+    const onRegisterAgain = (): void => {
+      logger?.debug(
+        `User clicked register again button, logout user and redirect to <${routesConf['register']['path']}> URL.`,
+      );
+      // logout current user
+      loginStore.logout();
+      // redirect to register page
+      router.push(routesConf['register']['path']);
+    };
+
     return {
       email,
+      onRegisterAgain,
       whiteOpacity,
     };
   },
@@ -128,6 +145,7 @@ export default defineComponent({
         class="text-white"
         to="register"
         data-cy="email-verification-register-link"
+        @click.prevent="onRegisterAgain"
         >{{ $t('register.form.linkRegister') }}</router-link
       >.
     </div>
