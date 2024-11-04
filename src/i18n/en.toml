@@ -509,6 +509,12 @@ titleMessage = "Invitation to join Ride to Work by Bike from {name}"
 titleStep1 = "We're glad you're taking the challenge with us!"
 titleStep2 = "Invite your loved ones to the challenge"
 
+[payment]
+labelOrganization = "Organization"
+labelPaid = "Paid"
+labelRegistration = "At registration"
+labelScheduled = "After challenge"
+
 [profile]
 buttonDownloadInvoice = "Download payment confirmation"
 buttonFillQuestionnaire = "Fill in questionnaire"
@@ -723,10 +729,14 @@ labelSaved = "saved"
 [table]
 buttonFeeApproval = "Approve entry fee payments"
 labelAmount = "Amount"
+labelContact = "Contact"
 labelDateRegistered = "Date registered"
 labelEmail = "Email"
+labelFeeApproved = "Approved entry fee"
 labelName = "Name"
 labelNickname = "Nickname"
+labelPaymentState = "Payment state"
+labelPaymentType = "Payment type"
 labelTeam = "Team"
 textEmptyTable = "No results. Try changing the filter settings."
 titleFeeApproval = "Entry fee payments for approval"

@@ -6,6 +6,10 @@ import { computed, ref } from 'vue';
 import { i18n } from 'src/boot/i18n';
 // TODO: import format price
 
+// enums
+import { AttendanceTablePayColumnIcons } from '../components/types/Table';
+import { PaymentState, PaymentType } from '../components/types/Payment';
+
 // types
 import type { QTableProps } from 'quasar';
 import {
@@ -13,6 +17,7 @@ import {
   TableRow,
   ResultsTableColumns,
   FeeApprovalTableColumns,
+  AttendanceTableColumns,
 } from '../components/types/Table';
 
 type FilterMethodInput = { search: string; filter: string };
@@ -202,6 +207,30 @@ export const useTable = () => {
   };
 
   /**
+   * Sorts an array of TableRow objects and group them by team.
+   * First uses standard sort, then sorts results by team to create groups.
+   * Finally, marks the first item in each group so we can show group headers.
+   * @param {readonly TableRow[]} rows - The array of TableRows to be sorted.
+   * @param {string} sortBy - The column to sort by.
+   * @param {boolean} descending - Whether to sort in descending order.
+   * @return {readonly TableRow[]} - The sorted array of TableRows.
+   */
+  const sortByTeam = (
+    rows: readonly TableRow[],
+    sortBy: string,
+    descending: boolean,
+  ): readonly TableRow[] => {
+    const data = [...rows];
+    if (!sortBy) return data;
+
+    sortDataByValue(data, sortBy, descending);
+    sortDataByKey(data, AttendanceTableColumns.team, descending);
+    markFirstInGroup(data, AttendanceTableColumns.team);
+
+    return data;
+  };
+
+  /**
    * Sorts data array by given column in ascending or descending order.
    * @param {TableRow[]} data - The array to be sorted.
    * @param {string} sortBy - The column to sort by.
@@ -282,6 +311,7 @@ export const useTable = () => {
     tableResultsColumns,
     filterMethod,
     sortByAddress,
+    sortByTeam,
     formatPrice,
   };
 };
@@ -357,5 +387,132 @@ export const useTableFeeApproval = () => {
   return {
     columns: tableFeeApprovalColumns,
     visibleColumns: tableFeeApprovalVisibleColumns,
+  };
+};
+
+export const useTableAttendance = () => {
+  const tableAttendanceColumns: QTableProps['columns'] = [
+    {
+      align: 'left',
+      field: AttendanceTableColumns.name,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelName'),
+      name: AttendanceTableColumns.name,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: AttendanceTableColumns.nickname,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelNickname'),
+      name: AttendanceTableColumns.nickname,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'center',
+      field: AttendanceTableColumns.contact,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelContact'),
+      name: AttendanceTableColumns.contact,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'center',
+      field: AttendanceTableColumns.isFeeApproved,
+      format: (val: boolean): boolean => val,
+      label: i18n.global.t('table.labelFeeApproved'),
+      name: AttendanceTableColumns.isFeeApproved,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: AttendanceTableColumns.paymentType,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelPaymentType'),
+      name: AttendanceTableColumns.paymentType,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: AttendanceTableColumns.paymentState,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelPaymentState'),
+      name: AttendanceTableColumns.paymentState,
+      required: true,
+      sortable: true,
+    },
+    {
+      align: 'left',
+      field: AttendanceTableColumns.team,
+      label: i18n.global.t('table.labelTeam'),
+      name: AttendanceTableColumns.team,
+      required: false,
+      sortable: true,
+    },
+    // Action buttons
+    {
+      align: 'center',
+      field: '',
+      label: '',
+      name: 'actions',
+      required: false,
+      sortable: false,
+    },
+  ];
+
+  const tableAttendanceVisibleColumns: string[] = [
+    AttendanceTableColumns.name,
+    AttendanceTableColumns.nickname,
+    AttendanceTableColumns.contact,
+    AttendanceTableColumns.isFeeApproved,
+    AttendanceTableColumns.paymentType,
+    AttendanceTableColumns.paymentState,
+    AttendanceTableColumns.actions,
+  ];
+
+  const getPaymentStateIcon = (paymentState: PaymentState): string => {
+    switch (paymentState) {
+      case PaymentState.paid:
+        return AttendanceTablePayColumnIcons[PaymentState.paid];
+      case PaymentState.scheduled:
+        return AttendanceTablePayColumnIcons[PaymentState.scheduled];
+      default:
+        return '';
+    }
+  };
+
+  const getPaymentStateLabel = (paymentState: PaymentState): string => {
+    switch (paymentState) {
+      case PaymentState.paid:
+        return i18n.global.t('payment.labelPaid');
+      case PaymentState.scheduled:
+        return i18n.global.t('payment.labelScheduled');
+      default:
+        return '';
+    }
+  };
+
+  const getPaymentTypeLabel = (paymentType: PaymentType): string => {
+    switch (paymentType) {
+      case PaymentType.organization:
+        return i18n.global.t('payment.labelOrganization');
+      case PaymentType.registration:
+        return i18n.global.t('payment.labelRegistration');
+      default:
+        return '';
+    }
+  };
+
+  return {
+    columns: tableAttendanceColumns,
+    visibleColumns: tableAttendanceVisibleColumns,
+    getPaymentStateIcon,
+    getPaymentStateLabel,
+    getPaymentTypeLabel,
   };
 };
