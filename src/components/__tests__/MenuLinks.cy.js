@@ -1,11 +1,15 @@
 import { colors } from 'quasar';
-
 import MenuLinks from '../global/MenuLinks.vue';
 import { i18n } from '../../boot/i18n';
+import { useSocialLinks } from '../../composables/useSocialLinks';
 
+// colors
 const { getPaletteColor } = colors;
 const black = getPaletteColor('black');
 const blueGrey1 = getPaletteColor('blue-grey-1');
+
+// composables
+const { socialLinks } = useSocialLinks();
 
 describe('<MenuLinks>', () => {
   context('social', () => {
@@ -39,15 +43,15 @@ describe('<MenuLinks>', () => {
 
     it('renders social buttons with correct styling (social variant)', () => {
       cy.dataCy('button-menu-links')
-        .should('have.length', 4)
-        .and('contain', i18n.global.t('index.menuLinks.instagram'))
-        // .and('have.attr', 'href', 'https://www.instagram.com/spolekautomat')
-        .and('contain', i18n.global.t('index.menuLinks.facebook'))
-        // .and('have.attr', 'href', 'https://www.facebook.com/spolekautomat')
-        .and('contain', i18n.global.t('index.menuLinks.twitter'))
-        // .and('have.attr', 'href', 'https://twitter.com/spolekautomat')
-        .and('contain', i18n.global.t('index.menuLinks.youtube'))
-        // .and('have.attr', 'href', 'https://www.youtube.com/@spolekautomat')
+        .should('have.length', socialLinks.length)
+        .each(($el, index) => {
+          cy.wrap($el).should(
+            'contain',
+            i18n.global.t(socialLinks[index].title),
+          );
+          cy.wrap($el).should('have.attr', 'href', socialLinks[index].url);
+        });
+      cy.dataCy('button-menu-links')
         .and('have.backgroundColor', blueGrey1)
         .and('have.css', 'border-radius', '28px')
         .and('have.css', 'margin-top', '16px')
@@ -72,7 +76,7 @@ describe('<MenuLinks>', () => {
 
     it('renders link buttons with correct styling (useful links variant)', () => {
       cy.dataCy('button-menu-links')
-        .should('have.length', 4)
+        .should('have.length', socialLinks.length)
         .and('contain', 'Auto-Mat.cz')
         .and('contain', 'Podpořte nás')
         .and('contain', 'Kód projektu')
