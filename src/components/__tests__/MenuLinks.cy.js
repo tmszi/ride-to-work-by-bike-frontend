@@ -1,6 +1,5 @@
 import { colors } from 'quasar';
 import MenuLinks from '../global/MenuLinks.vue';
-import { i18n } from '../../boot/i18n';
 import { useSocialLinks } from '../../composables/useSocialLinks';
 
 // colors
@@ -45,11 +44,9 @@ describe('<MenuLinks>', () => {
       cy.dataCy('button-menu-links')
         .should('have.length', socialLinks.length)
         .each(($el, index) => {
-          cy.wrap($el).should(
-            'contain',
-            i18n.global.t(socialLinks[index].title),
-          );
-          cy.wrap($el).should('have.attr', 'href', socialLinks[index].url);
+          cy.wrap($el)
+            .should('have.attr', 'href', socialLinks[index].url)
+            .and('have.attr', 'title', socialLinks[index].title);
         });
       cy.dataCy('button-menu-links')
         .and('have.backgroundColor', blueGrey1)
