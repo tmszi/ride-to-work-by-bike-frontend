@@ -1,6 +1,7 @@
 import { colors } from 'quasar';
 import MenuLinks from '../global/MenuLinks.vue';
 import { useSocialLinks } from '../../composables/useSocialLinks';
+import { useUsefulLinks } from '../../composables/useUsefulLinks';
 
 // colors
 const { getPaletteColor } = colors;
@@ -9,6 +10,7 @@ const blueGrey1 = getPaletteColor('blue-grey-1');
 
 // composables
 const { socialLinks } = useSocialLinks();
+const { usefulLinks } = useUsefulLinks();
 
 describe('<MenuLinks>', () => {
   context('social', () => {
@@ -73,11 +75,13 @@ describe('<MenuLinks>', () => {
 
     it('renders link buttons with correct styling (useful links variant)', () => {
       cy.dataCy('button-menu-links')
-        .should('have.length', socialLinks.length)
-        .and('contain', 'Auto-Mat.cz')
-        .and('contain', 'Podpořte nás')
-        .and('contain', 'Kód projektu')
-        .and('contain', 'Mobilní aplikace')
+        .should('have.length', usefulLinks.length)
+        .each(($el, index) => {
+          cy.wrap($el)
+            .should('have.attr', 'href', usefulLinks[index].url)
+            .and('contain', i18n.global.t(usefulLinks[index].title));
+        });
+      cy.dataCy('button-menu-links')
         .and('have.backgroundColor', blueGrey1)
         .and('have.css', 'border-radius', '28px')
         .and('have.css', 'margin-top', '16px')

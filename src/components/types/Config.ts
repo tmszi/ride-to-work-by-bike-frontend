@@ -26,6 +26,7 @@ export interface ConfigGlobal {
   urlFacebook: string;
   urlGooglePlay: string;
   urlInstagram: string;
+  urlProjectSourceCode: string;
   urlTwitter: string;
   urlVideoLoggingRoutes: string;
   urlVideoOnboarding: string;
