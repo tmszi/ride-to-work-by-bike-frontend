@@ -57,6 +57,8 @@ describe('<FormFieldNewsletter>', () => {
 
 function coreTests() {
   it('renders component', () => {
+    model.value = [];
+    nextTick();
     cy.dataCy(selectorNewsletterContainer).should('be.visible');
     cy.dataCy(selectorNewsletterLabel).should('be.visible');
     cy.dataCy(selectorNewsletterAll).should('be.visible');
@@ -64,46 +66,55 @@ function coreTests() {
   });
 
   it('renders all newsletter options', () => {
+    model.value = [];
+    nextTick();
     cy.dataCy(selectorNewsletterOption).should('have.length', 3);
   });
 
   it('updates v-model when options are selected', () => {
     model.value = [];
-    nextTick().then(() => {
-      cy.dataCy(selectorNewsletterOption).eq(0).click();
-      cy.wrap(model)
-        .its('value')
-        .should('deep.equal', [NewsletterType.challenge]);
-    });
+    nextTick();
+    cy.dataCy(selectorNewsletterOption).eq(0).click();
+    nextTick();
+    cy.wrap(model)
+      .its('value')
+      .should('deep.equal', [NewsletterType.challenge]);
   });
 
   it('selects all options when "all" is clicked', () => {
     model.value = [];
-    nextTick().then(() => {
-      cy.dataCy(selectorNewsletterAll).click();
-      cy.wrap(model).its('value').should('have.length', 3);
-    });
+    nextTick();
+    cy.dataCy(selectorNewsletterAll).click();
+    cy.wrap(model)
+      .its('value')
+      .should('have.length', Object.keys(NewsletterType).length);
   });
 
   it('deselects all options when "all" is unclicked', () => {
-    model.value = [
-      NewsletterType.challenge,
-      NewsletterType.event,
-      NewsletterType.mobility,
-    ];
-    nextTick().then(() => {
-      cy.dataCy(selectorNewsletterAll).click();
-      cy.wrap(model).its('value').should('have.length', 0);
-    });
+    model.value = [];
+    nextTick();
+    cy.dataCy(selectorNewsletterOption)
+      .should('have.length', 3)
+      .each(($el) => {
+        cy.wrap($el).click();
+      });
+    nextTick();
+    cy.wrap(model)
+      .its('value')
+      .should('have.length', Object.keys(NewsletterType).length);
+    cy.dataCy(selectorNewsletterAll).click();
+    nextTick();
+    cy.wrap(model).its('value').should('have.length', 0);
   });
 
   it('selects "all" when all options are manually selected', () => {
     model.value = [];
-    nextTick().then(() => {
-      cy.dataCy(selectorNewsletterOption).each(($el) => {
+    nextTick();
+    cy.dataCy(selectorNewsletterOption)
+      .should('have.length', Object.keys(NewsletterType).length)
+      .each(($el) => {
         cy.wrap($el).click();
       });
-      cy.dataCy(selectorNewsletterAll).should('be.checked');
-    });
+    cy.dataCy(selectorNewsletterAll).should('be.checked');
   });
 }
