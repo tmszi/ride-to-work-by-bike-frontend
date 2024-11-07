@@ -18,6 +18,7 @@ const selectorFormRegisterPasswordInput = 'form-register-password-input';
 const selectorFormRegisterPasswordConfirmInput =
   'form-register-password-confirm-input';
 const selectorFormRegisterSubmit = 'form-register-submit';
+const selectorLogoutButton = 'logout-button';
 const selectorUserSelectDesktop = 'user-select-desktop';
 const selectorUserSelectInput = 'user-select-input';
 const selectorEmailVerificationRegisterLink =
@@ -268,6 +269,42 @@ describe('Register page', () => {
       });
     });
 
+    it('displays a logout button on the verify email page and allows to logout', () => {
+      // fill form
+      cy.dataCy(selectorFormRegisterEmail).find('input').type(testEmail);
+      cy.dataCy(selectorFormRegisterPasswordInput).type(testPassword);
+      cy.dataCy(selectorFormRegisterPasswordConfirmInput).type(testPassword);
+      cy.dataCy(selectorFormRegisterSubmit).click();
+      // wait for request to complete
+      cy.fixture('loginRegisterResponseChallengeActive.json').then(
+        (registerResponse) => {
+          cy.wait('@registerRequest').then((interception) => {
+            expect(interception.request.body).to.deep.equal(
+              registerRequestBody,
+            );
+            expect(interception.response.body).to.deep.equal(registerResponse);
+          });
+        },
+      );
+      // redirect to verify email page
+      cy.url().should('contain', routesConf['verify_email']['path']);
+      // wait for email verification request to complete
+      cy.wait('@verifyEmail').then((interception) => {
+        expect(interception.response.body).to.deep.equal({
+          has_user_verified_email_address: false,
+        });
+      });
+      // tick to render screen size dependent components
+      cy.tick(1000);
+      // it shows logout button
+      cy.dataCy(selectorLogoutButton).should('be.visible');
+      // click logout button
+      cy.dataCy(selectorLogoutButton).click();
+      // redirected to login page
+      cy.url().should('not.include', routesConf['verify_email']['path']);
+      cy.url().should('include', routesConf['login']['path']);
+    });
+
     it('redirects to home page after registering and verifying email and allows logout', () => {
       cy.get('@i18n').then((i18n) => {
         cy.get('@config').then((config) => {
@@ -370,7 +407,6 @@ describe('Register page', () => {
         .should('be.visible')
         .click();
       // redirected to register page
-      cy.url().should('not.contain', routesConf['verify_email']['path']);
       cy.url().should('contain', routesConf['register']['path']);
     });
   });
