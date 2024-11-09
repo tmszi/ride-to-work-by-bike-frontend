@@ -13,6 +13,7 @@
  * - `modelValue` (string, required): The object representing user input.
  *   It should be of type `string`.
  * - `label` (string, optional): The label for the form field.
+ * - `organizationType` (string['company'|'school'|'family'], optional): Organization type
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
@@ -43,6 +44,9 @@ import { useValidation } from 'src/composables/useValidation';
 // config
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
+// enums
+import { OrganizationType } from '../types/Organization';
+
 // stores
 import { useLoginStore } from 'src/stores/login';
 
@@ -59,8 +63,27 @@ import type {
 } from 'src/components/types/Organization';
 
 // utils
-import { requestDefaultHeader, requestTokenHeader } from 'src/utils';
+import {
+  deepObjectWithSimplePropsCopy,
+  requestDefaultHeader,
+  requestTokenHeader,
+} from 'src/utils';
 import { getApiBaseUrlWithLang } from 'src/utils/get_api_base_url_with_lang';
+
+export const emptyFormCompanyFields: FormCompanyFields = {
+  name: '',
+  vatId: '',
+  address: [
+    {
+      street: '',
+      houseNumber: '',
+      city: '',
+      zip: '',
+      cityChallenge: '',
+      department: '',
+    },
+  ],
+};
 
 export default defineComponent({
   name: 'FormFieldCompany',
@@ -76,6 +99,9 @@ export default defineComponent({
     label: {
       type: String,
       default: '',
+    },
+    organizationType: {
+      type: String as () => OrganizationType,
     },
   },
   setup(props, { emit }) {
@@ -175,21 +201,10 @@ export default defineComponent({
     const isDialogOpen = ref<boolean>(false);
     // form ref
     const formRef = ref<typeof QForm | null>(null);
-    // default form state
-    const companyNew: FormCompanyFields = {
-      name: '',
-      vatId: '',
-      address: [
-        {
-          street: '',
-          houseNumber: '',
-          city: '',
-          zip: '',
-          cityChallenge: '',
-          department: '',
-        },
-      ],
-    };
+    // default form state (make a deep copy of empty state)
+    const companyNew: FormCompanyFields = deepObjectWithSimplePropsCopy(
+      emptyFormCompanyFields,
+    );
     /**
      * Close dialog
      * Resets form and closes dialog
@@ -270,11 +285,89 @@ export default defineComponent({
 
     const { isFilled } = useValidation();
 
-    const formFieldLabel = computed(
-      () => props.label || i18n.global.t('form.labelCompany'),
-    );
+    let organizationTypesTransStrings = {};
+
+    // Company
+    organizationTypesTransStrings[OrganizationType.company] = {
+      form: {
+        label: i18n.global.t('form.labelCompany'),
+        labelShort: 'form.labelCompanyShort', // trans is done in template with $() func
+      },
+      'form.company': {
+        titleAdd: i18n.global.t('form.company.titleAddCompany'),
+        buttonAdd: i18n.global.t('form.company.buttonAddCompany'),
+      },
+    };
+    // School
+    organizationTypesTransStrings[OrganizationType.school] = {
+      form: {
+        label: i18n.global.t('form.labelSchool'),
+        labelShort: 'form.labelSchoolShort', // trans is done in template with $() func
+      },
+      'form.company': {
+        titleAdd: i18n.global.t('form.company.titleAddSchool'),
+        buttonAdd: i18n.global.t('form.company.buttonAddSchool'),
+      },
+    };
+    // Family
+    organizationTypesTransStrings[OrganizationType.family] = {
+      form: {
+        label: i18n.global.t('form.labelFamily'),
+        labelShort: 'form.labelFamilyShort', // trans is done in template with $() func
+      },
+      'form.company': {
+        titleAdd: i18n.global.t('form.company.titleAddFamily'),
+        buttonAdd: i18n.global.t('form.company.buttonAddFamily'),
+      },
+    };
+
+    const formFieldLabel = computed(() => {
+      if (props.label) {
+        return props.label;
+      } else {
+        return organizationTypesTransStrings[props.organizationType]['form'][
+          'label'
+        ];
+      }
+      return '';
+    });
+
+    const addNewOrganizationDialogTitle = computed(() => {
+      if (props.label) {
+        return props.label;
+      } else {
+        return organizationTypesTransStrings[props.organizationType][
+          'form.company'
+        ]['titleAdd'];
+      }
+      return '';
+    });
+
+    const addNewOrganizationDialogBtn = computed(() => {
+      if (props.label) {
+        return props.label;
+      } else {
+        return organizationTypesTransStrings[props.organizationType][
+          'form.company'
+        ]['buttonAdd'];
+      }
+      return '';
+    });
+
+    const organizationFieldValidationTransStrings = computed(() => {
+      if (props.label) {
+        return props.label;
+      } else {
+        return organizationTypesTransStrings[props.organizationType]['form'][
+          'labelShort'
+        ];
+      }
+      return '';
+    });
 
     return {
+      addNewOrganizationDialogTitle,
+      addNewOrganizationDialogBtn,
       company,
       companyNew,
       formFieldLabel,
@@ -286,6 +379,8 @@ export default defineComponent({
       onClose,
       onFilter,
       onSubmit,
+      organizationFieldValidationTransStrings,
+      OrganizationType,
     };
   },
 });
@@ -324,7 +419,7 @@ export default defineComponent({
             (val) =>
               isFilled(val) ||
               $t('form.messageFieldRequired', {
-                fieldName: $t('form.labelCompanyShort'),
+                fieldName: $t(organizationFieldValidationTransStrings),
               }),
           ]"
           @filter="onFilter"
@@ -369,14 +464,14 @@ export default defineComponent({
       data-cy="dialog-add-company"
     >
       <template #title>
-        {{ $t('form.company.titleAddCompany') }}
+        {{ addNewOrganizationDialogTitle }}
       </template>
       <template #content>
         <q-form ref="formRef">
           <form-add-company
-            :form-values="companyNew"
+            v-model="companyNew"
             variant="simple"
-            @update:form-values="companyNew = $event"
+            :organization-type="organizationType"
           ></form-add-company>
         </q-form>
         <!-- Action buttons -->
@@ -399,7 +494,7 @@ export default defineComponent({
               data-cy="dialog-button-submit"
               @click="onSubmit"
             >
-              {{ $t('form.company.buttonAddCompany') }}
+              {{ addNewOrganizationDialogBtn }}
             </q-btn>
           </div>
         </div>

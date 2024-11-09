@@ -10,12 +10,13 @@
  * `FormFieldSelectTable`.
  *
  * @props
- * - `formValues` (Object, required): The object representing the form state.
+ * - `modelValue` (Object, required): The object representing the form state.
+ * - `organizationType` (String as OrganizationType): The type of organization.
  * - `variant` (String as 'default', 'simple'): The variant of the form.
  *   `simple` only shows `name` and `vatId` fields.
  *
  * @events
- * - `update:formValues`: Emitted as a part of v-model structure.
+ * - `update:modelValue`: Emitted as a part of v-model structure.
  *
  * @components
  * - `FormFieldTextRequired`: Component to render required field.
@@ -28,7 +29,7 @@
  */
 
 // libraries
-import { defineComponent, nextTick, ref } from 'vue';
+import { computed, defineComponent, nextTick, ref } from 'vue';
 
 // components
 import FormFieldTextRequired from '../global/FormFieldTextRequired.vue';
@@ -36,6 +37,9 @@ import FormFieldBusinessId from '../form/FormFieldBusinessId.vue';
 
 // composables
 import { useValidation } from '../../composables/useValidation';
+
+// enums
+import { OrganizationType } from '../types/Organization';
 
 // types
 import type { FormCompanyFields, FormOption } from '../types/Form';
@@ -47,18 +51,21 @@ export default defineComponent({
     FormFieldBusinessId,
   },
   props: {
-    formValues: {
+    modelValue: {
       type: Object as () => FormCompanyFields,
       required: true,
+    },
+    organizationType: {
+      type: String as () => OrganizationType,
     },
     variant: {
       type: String as () => 'default' | 'simple',
       default: 'default',
     },
   },
-  emits: ['update:formValues'],
+  emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const company = ref(props.formValues);
+    const company = ref(props.modelValue);
 
     const optionsCityChallenge: FormOption[] = [
       {
@@ -78,7 +85,7 @@ export default defineComponent({
     const onUpdate = (): void => {
       // wait for next tick to emit the value after update
       nextTick((): void => {
-        emit('update:formValues', company.value);
+        emit('update:modelValue', company.value);
       });
     };
 
@@ -86,10 +93,19 @@ export default defineComponent({
 
     const addressIndex = 0;
 
+    const isVatShown = computed((): boolean => {
+      if (!props.organizationType) {
+        return true;
+      }
+      return props.organizationType === OrganizationType.company;
+    });
+
     return {
       addressIndex,
       company,
       optionsCityChallenge,
+      OrganizationType,
+      isVatShown,
       isFilled,
       onUpdate,
     };
@@ -104,7 +120,13 @@ export default defineComponent({
         class="text-body1 text-bold text-black q-my-none"
         data-cy="form-add-company-title"
       >
-        {{ $t('form.labelCompanyShort') }}
+        <span v-if="organizationType === OrganizationType.school">{{
+          $t('form.labelSchoolShort')
+        }}</span>
+        <span v-else-if="organizationType === OrganizationType.family">{{
+          $t('form.labelFamilyShort')
+        }}</span>
+        <span v-else>{{ $t('form.labelCompanyShort') }}</span>
       </h3>
       <p
         v-if="variant === 'default'"
@@ -115,7 +137,7 @@ export default defineComponent({
       </p>
     </div>
     <div class="row q-col-gutter-lg">
-      <div class="col-12 col-sm-6">
+      <div class="col-12" :class="{ 'col-sm-6': isVatShown }">
         <!-- Input: Company name -->
         <form-field-text-required
           v-model="company.name"
@@ -125,9 +147,10 @@ export default defineComponent({
           data-cy="form-add-company-name"
         />
       </div>
-      <div class="col-12 col-sm-6">
+      <div class="col-12" :class="{ 'col-sm-6': isVatShown }">
         <!-- Input: VAT ID -->
         <form-field-business-id
+          v-if="isVatShown"
           v-model="company.vatId"
           name="vatId"
           :label="$t('form.labelBusinessId')"
