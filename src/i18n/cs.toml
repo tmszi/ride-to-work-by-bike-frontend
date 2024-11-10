@@ -453,6 +453,8 @@ titleListPrizes = "Možné výhry"
 apiMessageSuccess = "Přihlášení bylo úspěšné"
 apiMessageError = "Přihlášení se nezdařilo. Prosím, zkuste to znovu později. {error}"
 apiMessageErrorWithMessage = "Přihlášení se nezdařilo. Prosím, zkuste to znovu později. Chyba: {error}"
+messagePopupFailedToOpen = "Nepodařilo se otevřít okno pro přihlášení přes Google."
+messagePopupClosed = "Okno pro přihlášení přes Google bylo zavřeno před dokončením přihlášení."
 
 [loginRegisterMobileMenu]
 labelHelp = "Nápověda"
@@ -470,6 +472,7 @@ labelPassword = "Heslo"
 labelPasswordReset = "E-mail"
 messageEmailReqired = "Prosím vyplňte e-mail"
 messageEmailInvalid = "Prosím vyplňte platný e-mail"
+messageGoogleAuthNotAvailable = "Přihlášení přes Google není momentálně dostupné"
 messagePasswordRequired = "Prosím vyplňte heslo"
 messagePasswordResetReqired = "Prosím vyplňte e-mail"
 forgottenPassword = "Zapomenuté heslo?"
@@ -481,8 +484,8 @@ promptWrongEmail = "Máte špatně e-mail?"
 linkRegister = "Registrujte se."
 
 [login.buttons]
-buttonGoogle = "Přihlásit přes Facebook"
-buttonFacebook = "Přihlásit přes Google"
+buttonGoogle = "Přihlásit přes Google"
+buttonFacebook = "Přihlásit přes Facebook"
 
 [login.bannerAppButtons]
 title = "Zaznamenávejte si jízdy z mobilu!"

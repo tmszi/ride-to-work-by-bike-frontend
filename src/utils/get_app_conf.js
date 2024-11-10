@@ -105,6 +105,8 @@ const getAppConfig = (process) => {
       process.env.URL_API_HAS_USER_VERIFIED_EMAIL;
   } else if (process.env.URL_API_LOGIN) {
     config['urlApiLogin'] = process.env.URL_API_LOGIN;
+  } else if (process.env.URL_API_LOGIN_GOOGLE) {
+    config['urlApiLoginGoogle'] = process.env.URL_API_LOGIN_GOOGLE;
   } else if (process.env.URL_API_ORGANIZATIONS) {
     config['urlApiOrganizations'] = process.env.URL_API_ORGANIZATIONS;
   } else if (process.env.URL_API_REFRESH) {
@@ -130,6 +132,10 @@ const getAppConfig = (process) => {
   } else if (process.env.DATE_TIME_FORMAT_ALL_LOCALES) {
     config['dateTimeFormatsAllLocales'] =
       process.env.DATE_TIME_FORMATS_ALL_LOCALES;
+  } else if (process.env.GOOGLE_LOGIN_APP_ID) {
+    config['googleLoginAppId'] = process.env.GOOGLE_LOGIN_APP_ID;
+  } else if (process.env.secretString) {
+    config['secretString'] = process.env.SECRET_STRING;
   }
   return config;
 };

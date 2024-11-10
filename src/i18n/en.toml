@@ -450,6 +450,8 @@ textListPrizes = "Winners are drawn from those who were most successful in the c
 apiMessageSuccess = "Login was successful"
 apiMessageError = "Login failed. Please try again later. {error}"
 apiMessageErrorWithMessage = "Login failed. Please try again later. Error: {error}"
+messagePopupFailedToOpen = "Failed to open Google login window."
+messagePopupClosed = "Google login window was closed before completing the login."
 
 [loginRegisterMobileMenu]
 labelHelp = "Help"
@@ -467,6 +469,7 @@ labelPassword = "Password"
 labelPasswordReset = "E-mail"
 messageEmailReqired = "Please fill in your e-mail"
 messageEmailInvalid = "Please fill in a valid email"
+messageGoogleAuthNotAvailable = "Login via Google is currently unavailable"
 messagePasswordResetReqired = "Please fill in your e-mail"
 messagePasswordRequired = "Please fill in the password"
 forgottenPassword = "Forgot your password?"

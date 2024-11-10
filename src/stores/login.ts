@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { Notify } from 'quasar';
 import { Router } from 'vue-router';
+import { CallbackTypes } from 'vue3-google-login';
 
 // composables
 import { i18n } from '../boot/i18n';
@@ -150,13 +151,39 @@ export const useLoginStore = defineStore('login', {
         translationKey: 'login',
         logger: this.$log,
       });
-      // set user
+
+      await this.processLoginData(data);
+
+      return data;
+    },
+
+    async authenticateWithGoogle(response: CallbackTypes.CodePopupResponse) {
+      this.$log?.debug(`Google authentication code <${response.code}>.`);
+      const payload = {
+        access_token: '',
+        code: response.code,
+        id_token: '',
+      };
+      this.$log?.info('Get API access/refresh token (Google auth).');
+      const { data } = await apiFetch<LoginResponse>({
+        endpoint: rideToWorkByBikeConfig.urlApiLoginGoogle,
+        method: 'post',
+        payload,
+        translationKey: 'login',
+        logger: this.$log,
+      });
+
+      await this.processLoginData(data);
+
+      return data;
+    },
+    /**
+     * Process data received from login request
+     * Save user and tokens to login store, then redirect to home page.
+     */
+    async processLoginData(data: LoginResponse | null): Promise<void> {
       if (data && data.user) {
-        this.$log?.info('Save user data into login store.');
-        this.setUser(data.user);
-        this.$log?.debug(
-          `Login store saved user data <${JSON.stringify(this.getUser, null, 2)}>.`,
-        );
+        this.setUserAfterLogin(data);
       }
       if (data && data.access && data.refresh) {
         // set tokens
@@ -167,22 +194,40 @@ export const useLoginStore = defineStore('login', {
           $log: this.$log as Logger,
         });
 
-        if (this.$router) {
-          const registerStore = useRegisterStore();
-          /*
-           * Check if user email address is verified before login,
-           * prevent to show confirming your email page.
-           */
-          await registerStore.checkEmailVerification().then(() => {
-            this.$log?.debug(
-              `Login was successfull, redirect to <${routesConf['home']['path']}> URL.`,
-            );
-            this.$router.push(routesConf['home']['path']);
-          });
-        }
+        await this.redirectHomeAfterLogin();
       }
-
-      return data;
+    },
+    /**
+     * Save user value to login store
+     */
+    setUserAfterLogin(data: LoginResponse): void {
+      this.$log?.info('Save user data into login store.');
+      this.setUser(data.user);
+      this.$log?.debug(
+        `Login store saved user data <${JSON.stringify(this.getUser, null, 2)}>.`,
+      );
+    },
+    /**
+     * Redirect home after login
+     * First waits for the email verification check.
+     * Then redirects to home page.
+     * (Possible redirection is handled by router guards.)
+     */
+    async redirectHomeAfterLogin(): Promise<void> {
+      const registerStore = useRegisterStore();
+      /*
+       * Check if user email address is verified before login,
+       * prevent to show confirming your email page.
+       */
+      await registerStore.checkEmailVerification().then(() => {
+        this.$log?.debug(
+          `Login was successfull, redirect to <${routesConf['home']['path']}> URL.`,
+        );
+        // redirect to home page
+        if (this.$router) {
+          this.$router.push(routesConf['home']['path']);
+        }
+      });
     },
     /**
      * Logout user
