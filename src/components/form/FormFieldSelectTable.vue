@@ -10,7 +10,7 @@
  * Note: This component is commonly used in `RegisterChallengePage`.
  *
  * @props
- * - `modelValue` (String, required): The object representing selected
+ * - `modelValue` (Number, required): The ID representing selected
  *   company.
  * - `options` (Array<FormSelectTableOption>, required): The object
  *   representing the options.
@@ -19,6 +19,10 @@
  * - `labelButtonDialog` (string): The translation for the add
  *   button inside the dialog.
  * - `titleDialog` (string): The translation for the dialog title.
+ * - `organizationLevel` (OrganizationLevel, required): The organization
+ *   level - table is used for organization or team selection.
+ * - `organizationType` (OrganizationType,
+ *   default: OrganizationType.organization): The organization type.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
@@ -26,6 +30,7 @@
  * @components
  * - `DialogDefault`: Used to render a dialog window with form as content.
  * - `FormAddCompany`: Used to render form for registering a new company.
+ * - `FormAddTeam`: Used to render form for registering a new team.
  *
  * @example
  * <form-field-select-table />
@@ -48,6 +53,9 @@ import FormAddTeam from '../form/FormAddTeam.vue';
 // composables
 import { useValidation } from '../../composables/useValidation';
 
+// enums
+import { OrganizationType, OrganizationLevel } from '../types/Organization';
+
 // types
 import {
   FormCompanyFields,
@@ -65,7 +73,7 @@ export default defineComponent({
   },
   props: {
     modelValue: {
-      type: String as () => string | null,
+      type: Number as () => number | null,
       required: true,
     },
     options: {
@@ -88,9 +96,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    variant: {
-      type: String as () => 'company' | 'school' | 'group' | 'team',
+    organizationLevel: {
+      type: String as () => OrganizationLevel,
       required: true,
+    },
+    organizationType: {
+      type: String as () => OrganizationType,
+      default: OrganizationType.company,
     },
   },
   emits: ['update:modelValue'],
@@ -132,10 +144,10 @@ export default defineComponent({
 
     // v-model value
     const inputValue = computed({
-      get(): string | null {
+      get(): number | null {
         return props.modelValue;
       },
-      set(value: string | null): void {
+      set(value: number | null): void {
         emit('update:modelValue', value);
       },
     });
@@ -188,6 +200,8 @@ export default defineComponent({
       isFilled,
       onClose,
       onSubmit,
+      OrganizationType,
+      OrganizationLevel,
     };
   },
 });
@@ -310,12 +324,13 @@ export default defineComponent({
           <template #content>
             <q-form ref="formRef">
               <form-add-company
-                v-if="variant === 'company'"
-                class="q-mb-lg"
+                v-if="organizationLevel === OrganizationLevel.organization"
                 v-model="companyNew"
+                :organization-type="organizationType"
+                class="q-mb-lg"
               ></form-add-company>
               <form-add-team
-                v-if="variant === 'team'"
+                v-if="organizationLevel === OrganizationLevel.team"
                 class="q-mb-lg"
                 :form-values="teamNew"
                 @update:form-values="teamNew = $event"
@@ -350,7 +365,7 @@ export default defineComponent({
       </q-card>
     </q-field>
     <div
-      v-if="variant === 'company'"
+      v-if="organizationLevel === OrganizationLevel.organization"
       class="text-caption text-grey-7 q-mt-sm"
       data-cy="form-select-table-user-note"
     >
