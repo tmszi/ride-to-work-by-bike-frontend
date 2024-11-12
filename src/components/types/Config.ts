@@ -49,6 +49,7 @@ export interface ConfigGlobal {
   urlApiLogin: string;
   urlApiLoginGoogle: string;
   urlApiOrganizations: string;
+  urlApiLoginFacebook: string;
   urlApiRefresh: string;
   urlApiRegister: string;
   urlApiRegisterCoordinator: string;
@@ -58,6 +59,10 @@ export interface ConfigGlobal {
   urlRTWBBLogo: string;
   checkIsEmailVerifiedInterval: number;
   googleLoginAppId: string;
+  facebookLoginAppId: string;
+  secretString: string;
+  facebookLoginSdkVersion: string;
+  facebookLoginSdkOptions: string;
 }
 
 export interface ConfigAppVersion {

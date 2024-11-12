@@ -25,20 +25,31 @@ import { Notify } from 'quasar';
 import { defineComponent, inject } from 'vue';
 import { CallbackTypes } from 'vue3-google-login';
 
+// components
+import { VFBLoginScope as VFacebookLoginScope } from 'vue-facebook-login-component-next';
+
 // composables
 import { i18n } from '../../boot/i18n';
+import { useLocale } from '../../composables/useLocale';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
+// enums
+import { FacebookLoginStatus } from '../types/Login';
 
 // stores
 import { useLoginStore } from '../../stores/login';
 
 // types
 import type { Logger } from '../types/Logger';
+import type { FacebookLoginResponse } from '../types/Login';
 
 export default defineComponent({
   name: 'LoginRegisterButtons',
+  components: {
+    VFacebookLoginScope,
+  },
   props: {
     variant: {
       type: String as () => 'login' | 'register',
@@ -46,8 +57,24 @@ export default defineComponent({
     },
   },
   setup() {
-    const logger: Logger | undefined = inject('vuejs3-logger');
     const loginStore = useLoginStore();
+    const logger: Logger | undefined = inject('vuejs3-logger');
+    const facebookLoginAppId = rideToWorkByBikeConfig.facebookLoginAppId;
+
+    /**
+     * Hide Google login button if no client ID is provided.
+     * Client ID is provided in `google_login.js` boot file.
+     */
+    const isGoogleLoginAvailable: boolean =
+      !!rideToWorkByBikeConfig.googleLoginAppId &&
+      rideToWorkByBikeConfig.googleLoginAppId !==
+        rideToWorkByBikeConfig.secretString;
+
+    logger?.debug(
+      'Is Google login button widget available (Google ID' +
+        ` <${rideToWorkByBikeConfig.googleLoginAppId}> is provided)` +
+        ` <${isGoogleLoginAvailable}>.`,
+    );
 
     const onGoogleLogin = async (response: CallbackTypes.CodePopupResponse) => {
       logger?.debug(
@@ -79,24 +106,76 @@ export default defineComponent({
     };
 
     /**
-     * Hide Google login button if no client ID is provided.
-     * Client ID is provided in `google_login.js` boot file.
+     * Hide Facebook login button if no app ID is provided.
+     * In this case, app ID is provided directly in the component.
      */
-    const isGoogleLoginAvailable: boolean =
-      !!rideToWorkByBikeConfig.googleLoginAppId &&
-      rideToWorkByBikeConfig.googleLoginAppId !==
+    const isFacebookLoginAvailable: boolean =
+      !!rideToWorkByBikeConfig.facebookLoginAppId &&
+      rideToWorkByBikeConfig.facebookLoginAppId !==
         rideToWorkByBikeConfig.secretString;
 
     logger?.debug(
-      'Is Google login button widget available (Google ID' +
-        ` <${rideToWorkByBikeConfig.googleLoginAppId}> is provided)` +
-        ` <${isGoogleLoginAvailable}>.`,
+      'Is Facebook login button widget available (Facebook ID' +
+        ` <${rideToWorkByBikeConfig.facebookLoginAppId}> is provided)` +
+        ` <${isFacebookLoginAvailable}>.`,
     );
+
+    const facebookLoginSdkVersion =
+      rideToWorkByBikeConfig.facebookLoginSdkVersion;
+    logger?.debug(`Facebook login SDK version <${facebookLoginSdkVersion}>.`);
+
+    const facebookLoginSdkOptions = JSON.parse(
+      rideToWorkByBikeConfig.facebookLoginSdkOptions,
+    );
+    logger?.debug(
+      `Facebook login SDK options <${JSON.stringify(facebookLoginSdkOptions, null, 2)}>.`,
+    );
+
+    const onFacebookLogin = (response: FacebookLoginResponse) => {
+      logger?.debug(
+        `Facebook login response <${JSON.stringify(response, null, 2)}>.`,
+      );
+      if (!response) {
+        return;
+      }
+      logger?.debug(`Facebook login response status <${response.status}>.`);
+      if (
+        response.status === FacebookLoginStatus.connected &&
+        response.authResponse
+      ) {
+        loginStore.authenticateWithFacebook(response.authResponse);
+      } else if (response.status === FacebookLoginStatus.notAuthorized) {
+        Notify.create({
+          message: i18n.global.t('login.form.messageFacebookAuthNotAuthorized'),
+          color: 'negative',
+        });
+      } else {
+        Notify.create({
+          message: i18n.global.t('login.form.messageFacebookAuthNotAvailable'),
+          color: 'negative',
+        });
+      }
+    };
+
+    const onFacebookLogout = () => {
+      logger?.info('Facebook logout.');
+      loginStore.logout();
+    };
+
+    const { localeWithCountry } = useLocale();
 
     return {
       isGoogleLoginAvailable,
+      isFacebookLoginAvailable,
+      facebookLoginAppId,
+      facebookLoginSdkVersion,
+      facebookLoginSdkOptions,
+      localeWithCountry,
+      logger,
       onGoogleLogin,
       onGoogleLoginError,
+      onFacebookLogin,
+      onFacebookLogout,
     };
   },
 });
@@ -137,29 +216,41 @@ export default defineComponent({
       </q-btn>
     </GoogleLogin>
     <!-- Button: Login Facebook -->
-    <q-btn
-      unelevated
-      rounded
-      outline
-      color="primary"
-      class="full-width"
-      data-cy="login-register-button-facebook"
+    <v-facebook-login-scope
+      v-if="isFacebookLoginAvailable"
+      :app-id="facebookLoginAppId"
+      v-slot="scope"
+      :version="facebookLoginSdkVersion"
+      :login-options="facebookLoginSdkOptions"
+      :sdk-locale="localeWithCountry"
+      @login="onFacebookLogin"
+      @logout="onFacebookLogout"
     >
-      <!-- Icon -->
-      <q-icon
-        name="facebook"
-        size="24px"
-        color="primary"
-        class="q-mr-sm"
-        data-cy="login-register-button-facebook-icon"
-      />
-      <!-- Label -->
-      <span v-if="variant === 'login'">{{
-        $t('login.buttons.buttonFacebook')
-      }}</span>
-      <span v-else-if="variant === 'register'">{{
-        $t('register.buttons.buttonFacebook')
-      }}</span>
-    </q-btn>
+      <q-btn
+        unelevated
+        rounded
+        outline
+        color="white"
+        class="full-width"
+        data-cy="login-register-button-facebook"
+        @click="scope.login"
+      >
+        <!-- Icon -->
+        <q-icon
+          name="facebook"
+          size="24px"
+          color="white"
+          class="q-mr-sm"
+          data-cy="login-register-button-facebook-icon"
+        />
+        <!-- Label -->
+        <span v-if="variant === 'login'">{{
+          $t('login.buttons.buttonFacebook')
+        }}</span>
+        <span v-else-if="variant === 'register'">{{
+          $t('register.buttons.buttonFacebook')
+        }}</span>
+      </q-btn>
+    </v-facebook-login-scope>
   </div>
 </template>
