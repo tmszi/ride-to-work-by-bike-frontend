@@ -38,10 +38,10 @@ describe('<FormFieldCompany>', () => {
 
   context('desktop', () => {
     beforeEach(() => {
-      // reset model
-      model.value = '';
       // intercept api
       interceptOrganizationsApi(rideToWorkByBikeConfig, i18n);
+      // reset model value
+      model.value = '';
       // mount component
       cy.mount(FormFieldCompany, {
         props: {
@@ -68,39 +68,63 @@ describe('<FormFieldCompany>', () => {
     });
 
     it('allows user to select option', () => {
-      testCompanyApiResponse();
-
-      cy.dataCy('form-company').find('input').click();
-      // select option
-      cy.get('.q-menu')
-        .should('be.visible')
-        .within(() => {
-          cy.get('.q-item').first().click();
+      cy.fixture('formFieldCompany').then((formFieldCompany) => {
+        cy.wait('@getOrganizations').then((interception) => {
+          expect(interception.request.headers.authorization).to.include(
+            'Bearer',
+          );
+          expect(interception.response.statusCode).to.equal(
+            httpSuccessfullStatus,
+          );
+          expect(interception.response.body).to.deep.equal(formFieldCompany);
+          cy.dataCy('form-company').find('input').click();
+          // select option
+          cy.get('.q-menu')
+            .should('be.visible')
+            .within(() => {
+              cy.get('.q-item').should(
+                'have.length',
+                formFieldCompany.results.length,
+              );
+              cy.get('.q-item').first().click();
+            });
+          cy.get('.q-menu').should('not.exist');
+          cy.wrap(model)
+            .its('value')
+            .should('eq', formFieldCompany.results[0].id);
         });
-      // test selected option
-      cy.dataCy('form-company')
-        .find('input')
-        .invoke('val')
-        .should('eq', 'Company 1');
+      });
     });
 
     it('allows to search through options', () => {
-      testCompanyApiResponse();
-
       // search for option
-      cy.dataCy('form-company').find('input').focus();
-      cy.dataCy('form-company').find('input').type('2');
-      // select option
-      cy.get('.q-menu')
-        .should('be.visible')
-        .within(() => {
-          cy.get('.q-item').first().click();
+      cy.fixture('formFieldCompany').then((formFieldCompany) => {
+        cy.wait('@getOrganizations').then((interception) => {
+          expect(interception.request.headers.authorization).to.include(
+            'Bearer',
+          );
+          expect(interception.response.statusCode).to.equal(
+            httpSuccessfullStatus,
+          );
+          expect(interception.response.body).to.deep.equal(formFieldCompany);
+          cy.dataCy('form-company').find('input').focus();
+          cy.dataCy('form-company')
+            .find('input')
+            .type(formFieldCompany.results[1].name);
+          // select first option from filtered results
+          cy.get('.q-menu')
+            .should('be.visible')
+            .within(() => {
+              // only shows the one filtered option
+              cy.get('.q-item').should('have.length', 1);
+              cy.get('.q-item').first().click();
+            });
+          cy.get('.q-menu').should('not.exist');
+          cy.wrap(model)
+            .its('value')
+            .should('eq', formFieldCompany.results[1].id);
         });
-      // test selected option
-      cy.dataCy('form-company')
-        .find('input')
-        .invoke('val')
-        .should('eq', 'Company 2');
+      });
     });
 
     it('validates company field correctly', () => {
@@ -192,6 +216,8 @@ describe('<FormFieldCompany>', () => {
   context('mobile', () => {
     beforeEach(() => {
       interceptOrganizationsApi(rideToWorkByBikeConfig, i18n);
+      // reset model value
+      model.value = '';
       // mount component
       cy.mount(FormFieldCompany, {
         props: {
@@ -207,18 +233,4 @@ describe('<FormFieldCompany>', () => {
       cy.testElementPercentageWidth(cy.dataCy('col-button'), 100);
     });
   });
-
-  function testCompanyApiResponse() {
-    cy.fixture('formFieldCompany').then((formFieldCompanyResponse) => {
-      cy.wait('@getOrganizations').then((interception) => {
-        expect(interception.request.headers.authorization).to.include('Bearer');
-        expect(interception.response.statusCode).to.equal(
-          httpSuccessfullStatus,
-        );
-        expect(interception.response.body).to.deep.equal(
-          formFieldCompanyResponse,
-        );
-      });
-    });
-  }
 });
