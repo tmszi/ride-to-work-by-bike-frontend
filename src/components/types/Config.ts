@@ -64,6 +64,13 @@ export interface ConfigGlobal {
   secretString: string;
   facebookLoginSdkVersion: string;
   facebookLoginSdkOptions: string;
+  mapProjection: string;
+  mapCenterLon: string;
+  mapCenterLat: string;
+  mapZoom: string;
+  mapGeocodingApiUrl: string;
+  mapSourceRtwbb: string;
+  mapSourceOsm: string;
 }
 
 export interface ConfigAppVersion {
