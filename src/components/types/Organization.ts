@@ -55,15 +55,19 @@ export interface OrganizationOption {
 }
 
 export interface GetOrganizationsResponse {
+  count: number;
+  next: string;
+  previous: string;
   results: OrganizationOption[];
 }
 
 export interface PostOrganizationPayload {
   name: string;
   vatId: string;
+  organization_type: OrganizationType;
 }
 
 export interface PostOrganizationsResponse {
-  id: string;
+  id: number;
   name: string;
 }

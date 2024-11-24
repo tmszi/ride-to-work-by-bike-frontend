@@ -1,12 +1,19 @@
 import { routesConf } from '../../../src/router/routes_conf';
 import { getApiBaseUrlWithLang } from '../../../src/utils/get_api_base_url_with_lang';
+import { bearerTokeAuth } from 'src/utils';
 
 // selectors
 const layoutBackgroundImageSelector = 'layout-background-image';
 
 // types
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { Interception } from 'cypress/types/net-stubbing';
 import type { I18n } from 'vue-i18n';
 import type { ConfigGlobal } from '../../../src/components/types/Config';
+import type {
+  GetOrganizationsResponse,
+  OrganizationType,
+} from 'src/components/types/Organization';
 
 type AUTWindow = Window & typeof globalThis & ApplicationWindow;
 
@@ -380,17 +387,37 @@ export const setupApiChallengeInactive = (
   cy.clock(systemTimeChallengeInactive, ['Date']);
 };
 
-export const interceptOrganizationsApi = (config: ConfigGlobal, i18n: I18n) => {
+/**
+ * Intercept organizations API call
+ * Provides a `@getOrganizations`, `@getOrganizationsNextPage`
+ * `@createOrganization` alias for the intercepted request.
+ * @param {ConfigGlobal} config - App global config
+ * @param {I18n} i18n - i18n instance
+ * @returns {void}
+ */
+export const interceptOrganizationsApi = (
+  config: ConfigGlobal,
+  i18n: I18n,
+  type: OrganizationType,
+) => {
   const { apiBase, apiDefaultLang, urlApiOrganizations } = config;
   // get API base URL
   const apiBaseUrl = getApiBaseUrlWithLang(null, apiBase, apiDefaultLang, i18n);
   const urlApiOrganizationsLocalized = `${apiBaseUrl}${urlApiOrganizations}`;
-  // intercept organizations API call (before mounting component)
+  const urlApiOrganizationsLocalizedWithType = `${urlApiOrganizationsLocalized}${type}/`;
   cy.fixture('formFieldCompany').then((formFieldCompanyResponse) => {
-    cy.intercept('GET', urlApiOrganizationsLocalized, {
-      statusCode: httpSuccessfullStatus,
-      body: formFieldCompanyResponse,
-    }).as('getOrganizations');
+    cy.fixture('formFieldCompanyNext').then((formFieldCompanyNextResponse) => {
+      // intercept organizations API call (before mounting component)
+      cy.intercept('GET', urlApiOrganizationsLocalizedWithType, {
+        statusCode: httpSuccessfullStatus,
+        body: formFieldCompanyResponse,
+      }).as('getOrganizations');
+      // intercept next page API call
+      cy.intercept('GET', formFieldCompanyResponse.next, {
+        statusCode: httpSuccessfullStatus,
+        body: formFieldCompanyNextResponse,
+      }).as('getOrganizationsNextPage');
+    });
   });
   // intercept create organization API call (before mounting component)
   cy.fixture('formFieldCompanyCreate').then(
@@ -399,6 +426,54 @@ export const interceptOrganizationsApi = (config: ConfigGlobal, i18n: I18n) => {
         statusCode: httpSuccessfullStatus,
         body: formFieldCompanyCreateResponse,
       }).as('createOrganization');
+    },
+  );
+};
+
+/**
+ * Wait for intercept organizations API calls and
+ * comparing request/response object
+ * Wait for a `@getOrganizations`, `@getOrganizationsNextPage`
+ * intercept request.
+ * @param {GetOrganizationsResponse} formFieldCompany - Get organizations API data response
+ * @param {GetOrganizationsRespons} formFieldCompanyNext - Get organizations API data response
+ * @returns {void}
+ */
+export const waitForOrganizationsApi = (
+  formFieldCompany: GetOrganizationsResponse,
+  formFieldCompanyNext: GetOrganizationsResponse,
+) => {
+  cy.wait(['@getOrganizations', '@getOrganizationsNextPage']).spread(
+    (
+      getOrganizations: Interception<
+        AxiosRequestConfig,
+        AxiosResponse<GetOrganizationsResponse>
+      >,
+      getOrganizationsNextPage: Interception<
+        AxiosRequestConfig,
+        AxiosResponse<GetOrganizationsResponse>
+      >,
+    ) => {
+      expect(getOrganizations.request.headers.authorization).to.include(
+        bearerTokeAuth,
+      );
+      if (getOrganizations.response) {
+        expect(getOrganizations.response.statusCode).to.equal(
+          httpSuccessfullStatus,
+        );
+        expect(getOrganizations.response.body).to.deep.equal(formFieldCompany);
+      }
+      expect(getOrganizationsNextPage.request.headers.authorization).to.include(
+        bearerTokeAuth,
+      );
+      if (getOrganizationsNextPage.response) {
+        expect(getOrganizationsNextPage.response.statusCode).to.equal(
+          httpSuccessfullStatus,
+        );
+        expect(getOrganizationsNextPage.response.body).to.deep.equal(
+          formFieldCompanyNext,
+        );
+      }
     },
   );
 };
