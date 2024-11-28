@@ -28,7 +28,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     $log: null as Logger | null,
     personalDetails: emptyFormPersonalDetails,
     payment: null, // TODO: add data type options
-    organizationType: null as OrganizationType | null,
+    organizationType: '' as OrganizationType,
     organizationId: null as number | null,
     subsidiaryId: null as number | null,
     teamId: null as number | null,
@@ -38,8 +38,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
   getters: {
     getPersonalDetails: (state): RegisterChallengePersonalDetailsForm =>
       state.personalDetails,
-    getOrganizationType: (state): OrganizationType | null =>
-      state.organizationType,
+    getOrganizationType: (state): OrganizationType => state.organizationType,
     getOrganizationId: (state): number | null => state.organizationId,
     getSubsidiaryId: (state): number | null => state.subsidiaryId,
     getTeamId: (state): number | null => state.teamId,
