@@ -14,6 +14,8 @@
  * - `FormUpdateNickname`: Component to render a form for updating nickname.
  * - `LanguageSwitcher`: Component to render a language switcher.
  * - `SectionHeading`: Component to render a section heading.
+ * - `DeleteAccount`: Component to render delete account section with
+ * confirmation dialog.
  *
  * @example
  * <profile-details />
@@ -33,6 +35,7 @@ import FormUpdateNickname from '../form/FormUpdateNickname.vue';
 import LanguageSwitcher from '../global/LanguageSwitcher.vue';
 import ProfileCoordinatorContact from './ProfileCoordinatorContact.vue';
 import SectionHeading from '../global/SectionHeading.vue';
+import DeleteAccount from './DeleteAccount.vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
@@ -57,6 +60,7 @@ export default defineComponent({
     LanguageSwitcher,
     ProfileCoordinatorContact,
     SectionHeading,
+    DeleteAccount,
   },
   setup() {
     const iconSize = '18px';
@@ -352,6 +356,9 @@ export default defineComponent({
         </div>
       </div>
     </div>
+
+    <!-- Delete account -->
+    <delete-account data-cy="delete-account" />
 
     <!-- Contact participation -->
     <div class="q-mt-xl">

@@ -32,6 +32,7 @@ const selectorSize = 'profile-details-size';
 const selectorState = 'profile-details-state';
 const selectorTeam = 'profile-details-team';
 const selectorAllowContactPhone = 'profile-allow-contact-phone';
+const selectorDeleteAccount = 'delete-account';
 const selectorTrackingNumber = 'profile-details-tracking-number';
 const selectorTitleChallengeDetails = 'profile-title-challenge-details';
 const selectorTitlePersonalDetails = 'profile-title-personal-details';
@@ -539,5 +540,9 @@ function coreTests() {
         .should('be.visible')
         .and('contain', i18n.global.t('profile.buttonDownloadInvoice'));
     });
+  });
+
+  it('renders delete account section', () => {
+    cy.dataCy(selectorDeleteAccount).should('be.visible');
   });
 }
