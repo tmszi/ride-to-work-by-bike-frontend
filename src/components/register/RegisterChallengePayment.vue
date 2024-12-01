@@ -24,7 +24,7 @@
 
 // libraries
 import { colors, Notify } from 'quasar';
-import { computed, defineComponent, reactive, ref, watch } from 'vue';
+import { computed, defineComponent, inject, reactive, ref, watch } from 'vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
@@ -44,12 +44,14 @@ import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // enums
 import { Currency } from '../../composables/useFormatPrice';
+
 enum PaymentSubject {
   individual = 'individual',
   voucher = 'voucher',
   company = 'company',
   school = 'school',
 }
+
 enum PaymentAmount {
   custom = 'custom',
 }
@@ -69,13 +71,16 @@ export default defineComponent({
     FormFieldVoucher,
   },
   setup() {
+    const logger = inject('vuejs3-logger') as Logger | null;
     // constants
-    const defaultPaymentAmountMax = Number(
+    const defaultPaymentAmountMax = parseInt(
       rideToWorkByBikeConfig.entryFeePaymentMax,
     );
-    const defaultPaymentAmountMin = Number(
+    logger?.debug(`Default max. payement amount <${defaultPaymentAmountMax}>.`);
+    const defaultPaymentAmountMin = parseInt(
       rideToWorkByBikeConfig.entryFeePaymentMin,
     );
+    logger?.debug(`Default min. payement amount <${defaultPaymentAmountMin}>.`);
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
     const { getPaletteColor, lighten } = colors;
     const primaryColor = getPaletteColor('primary');
@@ -101,49 +106,65 @@ export default defineComponent({
         value: PaymentSubject.school,
       },
     ]);
+    logger?.debug(
+      `Default payment subject options <${JSON.stringify(optionsPaymentSubject, null, 2)}>` +
+        ` for <${i18n.global.t('register.challenge.labelPaymentSubject')}>` +
+        'radio button element.',
+    );
 
     const { formatPriceCurrency } = useFormatPrice();
     const defaultPaymentOption = {
       label: formatPriceCurrency(defaultPaymentAmountMin, Currency.CZK),
       value: String(defaultPaymentAmountMin),
     };
+    logger?.debug(
+      `Default payment options <${JSON.stringify(defaultPaymentOption, null, 2)}>` +
+        ` for <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+        ' radio button element.',
+    );
+
     // Build the optionsPaymentAmount array dynamically
     let paymentOptions: FormOption[] = [];
     try {
       paymentOptions = rideToWorkByBikeConfig.entryFeePaymentOptions
         .split(',')
         .map((option) => {
-          if (isNaN(Number(option))) {
-            throw new Error(`Invalid number: ${option}`);
+          if (isNaN(parseInt(option))) {
+            throw new Error(
+              i18n.global.t(
+                'register.challenge.parseEntryFeePaymentOptionsInvalidNumberError',
+                {
+                  value: option,
+                },
+              ),
+            );
           }
           return {
-            label: formatPriceCurrency(Number(option), Currency.CZK),
+            label: formatPriceCurrency(parseInt(option), Currency.CZK),
             value: String(option),
           };
         });
     } catch (error) {
       Notify.create({
-        message: `Error parsing entryFeePaymentOptions: ${error}`,
+        message: i18n.global.t(
+          'register.challenge.parseEntryFeePaymentOptionsError',
+          {
+            error: error,
+          },
+        ),
         type: 'negative',
       });
     }
 
-    const optionsPaymentAmount: FormOption[] = reactive([
-      defaultPaymentOption,
-      ...paymentOptions,
-      {
-        label: i18n.global.t('global.custom'),
-        value: PaymentAmount.custom,
-      },
-    ]);
-
     const activeVoucher = ref<FormPaymentVoucher | null>(null);
+    // Model for 'Entry fee amount' radio button element must be string type (options values '390', ..., 'custom')
     const selectedPaymentAmount = ref<string>(String(defaultPaymentAmountMin));
+    // Model for 'Entry fee amount' radio button element custom option slider element
     const selectedPaymentAmountCustom = ref<number>(defaultPaymentAmountMin);
     const paymentAmountMax = ref<number>(defaultPaymentAmountMax);
     const paymentAmountMin = ref<number>(defaultPaymentAmountMin);
-    const selectedPaymentSubject = ref<string>('individual');
-    const isEntryFeeFree = ref<boolean>(false);
+    //  Model for 'Entry fee payment' radio button element
+    const selectedPaymentSubject = ref<string>(PaymentSubject.individual);
     const selectedCompany = ref<string>('');
     const isRegistrationCoordinator = ref<boolean>(false);
     const formRegisterCoordinator = reactive({
@@ -153,27 +174,14 @@ export default defineComponent({
       terms: false,
     });
 
-    /**
-     * Returns the payment amount based on the selected payment amount
-     * or the custom value.
-     */
-    const paymentAmount = computed((): number => {
-      if (selectedPaymentAmount.value === PaymentAmount.custom) {
-        return selectedPaymentAmountCustom.value;
-      }
-      return parseInt(selectedPaymentAmount.value);
+    const isVoucherValid = computed((): boolean => {
+      return !!activeVoucher.value?.code;
     });
-
-    /**
-     * After selecting a payment amount from the given options,
-     * set it as the default value for custom payment amount.
-     */
-    watch(selectedPaymentAmount, (newValue) => {
-      if (newValue !== PaymentAmount.custom) {
-        selectedPaymentAmountCustom.value = parseInt(
-          selectedPaymentAmount.value,
-        );
-      }
+    const isVoucherFreeEntry = computed((): boolean => {
+      return isVoucherValid.value && !activeVoucher.value?.amount;
+    });
+    const isVoucherDiscountedEntry = computed((): boolean => {
+      return isVoucherValid.value && !!activeVoucher.value?.amount;
     });
 
     /**
@@ -185,26 +193,7 @@ export default defineComponent({
       if (voucher.code) {
         // set active voucher
         activeVoucher.value = voucher;
-      }
-      // amount = discounted price
-      if (voucher.amount) {
-        // discount the lowest price in the price options
-        optionsPaymentAmount.shift();
-        optionsPaymentAmount.unshift({
-          label: formatPriceCurrency(voucher.amount, Currency.CZK),
-          value: String(voucher.amount),
-        });
-        // set min amount for custom amount
-        paymentAmountMin.value = voucher.amount;
-        // if current value is not in new options, set it to discounted value
-        const optionValues = optionsPaymentAmount.map((option) => option.value);
-        if (!optionValues.includes(String(selectedPaymentAmount.value))) {
-          selectedPaymentAmount.value = String(voucher.amount);
-        }
-      }
-      // no amount = free entry
-      else {
-        isEntryFeeFree.value = true;
+        logger?.debug(`Set active voucher code <${activeVoucher.value}>.`);
       }
     };
 
@@ -216,26 +205,198 @@ export default defineComponent({
     const onRemoveVoucher = (): void => {
       // clear active voucher
       activeVoucher.value = null;
-      isEntryFeeFree.value = false;
-      optionsPaymentAmount.shift();
-      optionsPaymentAmount.unshift(defaultPaymentOption);
-      paymentAmountMin.value = defaultPaymentAmountMin;
-      // if current value is not in new options, set it to default value
-      const optionValues = optionsPaymentAmount.map((option) => option.value);
-      if (!optionValues.includes(String(selectedPaymentAmount.value))) {
-        selectedPaymentAmount.value = String(defaultPaymentOption.value);
+      logger?.debug(`Clear active voucher code <${activeVoucher.value}>.`);
+    };
+
+    const optionsPaymentAmountComputed = computed((): FormOption[] => {
+      logger?.debug(
+        'Compute payment amount options for' +
+          ` <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+          ' radio button element.',
+      );
+      let opts = [];
+      if (
+        selectedPaymentSubject.value === PaymentSubject.voucher &&
+        isVoucherFreeEntry.value
+      ) {
+        logger?.debug(
+          `Selected payement subject <${selectedPaymentSubject.value}>,` +
+            ` is voucher free entry <${isVoucherFreeEntry.value}>.`,
+        );
+        opts = [];
+      } else if (
+        selectedPaymentSubject.value === PaymentSubject.voucher &&
+        isVoucherValid.value &&
+        activeVoucher.value?.amount
+      ) {
+        logger?.debug(
+          `Selected payement subject <${selectedPaymentSubject.value}>,` +
+            ` is voucher valid <${isVoucherValid.value}>,` +
+            ` active voucher amount <${activeVoucher.value?.amount}>.`,
+        );
+        opts = [
+          {
+            label: formatPriceCurrency(
+              activeVoucher.value?.amount,
+              Currency.CZK,
+            ),
+            value: String(activeVoucher.value?.amount),
+          },
+          // other options
+          ...paymentOptions,
+          // custom option
+          {
+            label: i18n.global.t('global.custom'),
+            value: PaymentAmount.custom,
+          },
+        ];
+      } else if (selectedPaymentSubject.value !== PaymentSubject.voucher) {
+        logger?.debug(
+          `Selected payement subject <${selectedPaymentSubject.value}>.`,
+        );
+        opts = [
+          // min option
+          defaultPaymentOption,
+          // other options
+          ...paymentOptions,
+          // custom option
+          {
+            label: i18n.global.t('global.custom'),
+            value: PaymentAmount.custom,
+          },
+        ];
       }
+      logger?.debug(
+        `Computed payment amount options <${JSON.stringify(opts, null, 2)}> for` +
+          ` <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+          ' radio button element.',
+      );
+      return opts;
+    });
+
+    watch(optionsPaymentAmountComputed, (options) => {
+      const optsVals = options.map((option) => option.value);
+      logger?.debug(
+        `Computed payment subject option change to <${selectedPaymentSubject.value}>` +
+          ` for <${i18n.global.t('register.challenge.labelPaymentSubject')}> radio element` +
+          ` and amount options changed to <${optsVals}> for` +
+          ` <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+          ' radio button element.',
+      );
+      logger?.debug(
+        `Default payment amount option changed from <${selectedPaymentAmount.value}>` +
+          ` to <${defaultPaymentOption.value}> for` +
+          ` <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+          ' radio button element.',
+      );
+      selectedPaymentAmount.value = defaultPaymentOption.value;
+    });
+
+    /**
+     * Set selected custom payment amount model value
+     * for 'Entry fee amount' radio button element
+     * custom option slider element, must be integer type
+     *
+     * @param {string} val - Input string integer value e.g. '390'
+     *
+     * @returns void
+     */
+    const setSelectedPaymentAmountCustomVal = (val: string): void => {
+      selectedPaymentAmountCustom.value = parseInt(val);
+    };
+
+    /**
+     * After selecting a payment amount from the given options,
+     * set it as the default value for custom payment amount.
+     */
+    watch(selectedPaymentAmount, (newVal, oldVal) => {
+      logger?.debug(
+        `Selected payment amount option changed from <${oldVal}>` +
+          ` to <${newVal}> for <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+          ' radio button element.',
+      );
+      if (newVal !== PaymentAmount.custom) {
+        setSelectedPaymentAmountCustomVal(selectedPaymentAmount.value);
+        logger?.debug(
+          `Set new value <${selectedPaymentAmountCustom.value}> with` +
+            ` type <${typeof selectedPaymentAmountCustom.value}> for` +
+            ` <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
+            ' radio button element custom option slider element.',
+        );
+      }
+    });
+
+    const showVoucherElement = () => {
+      const show = selectedPaymentSubject.value === PaymentSubject.voucher;
+      logger?.debug(`Show voucher element <${show}>.`);
+      return show;
+    };
+
+    const showPaymentAmountOptionsElement = () => {
+      const show = optionsPaymentAmountComputed.value.length > 0;
+      logger?.debug(
+        `Show payment amount options <${show}> element for` +
+          ` <${i18n.global.t('register.challenge.labelPaymentAmount')}> radio button element.`,
+      );
+      return show;
+    };
+
+    const showCompanySchoolElement = () => {
+      const show = [PaymentSubject.company, PaymentSubject.school].includes(
+        selectedPaymentSubject.value,
+      );
+      logger?.debug(
+        `Show <${selectedPaymentSubject.value}> element <${show}> for` +
+          ` selected <${i18n.global.t('register.challenge.labelPaymentSubject')}>` +
+          ` radio button element <${selectedPaymentSubject.value}> option.`,
+      );
+      return show;
+    };
+
+    const showCustomPaymentAmountElement = () => {
+      const show =
+        ((selectedPaymentSubject.value === PaymentSubject.voucher &&
+          isVoucherDiscountedEntry.value) ||
+          selectedPaymentSubject.value !== PaymentSubject.voucher) &&
+        selectedPaymentAmount.value === PaymentAmount.custom;
+      logger?.debug(
+        `Show custom payment amount <${show}> slider element for` +
+          ` <${i18n.global.t('register.challenge.labelPaymentAmount')}>,` +
+          ` radio button element with selected <${selectedPaymentAmount.value}> option.`,
+      );
+      return show;
+    };
+
+    const showDonationElement = () => {
+      const show =
+        (selectedPaymentSubject.value === PaymentSubject.voucher &&
+          isVoucherFreeEntry.value) ||
+        [PaymentSubject.company, PaymentSubject.school].includes(
+          selectedPaymentSubject.value,
+        );
+      logger?.debug(
+        `Show donation element <${show}> for` +
+          ` <${i18n.global.t('register.challenge.labelPaymentSubject')}>,` +
+          ` radio button element with selected <${selectedPaymentSubject.value}> option.`,
+      );
+      return show;
+    };
+
+    const showOrganizationAdminElement = () => {
+      const show = selectedPaymentSubject.value === PaymentSubject.company;
+      logger?.debug(
+        `Show <${selectedPaymentSubject.value}> admin element <${show}>.`,
+      );
+      return show;
     };
 
     return {
       activeVoucher,
       borderRadius,
       formRegisterCoordinator,
-      isEntryFeeFree,
       isRegistrationCoordinator,
-      optionsPaymentAmount,
+      optionsPaymentAmountComputed,
       optionsPaymentSubject,
-      paymentAmount,
       paymentAmountMax,
       paymentAmountMin,
       primaryLightColor,
@@ -243,10 +404,14 @@ export default defineComponent({
       selectedPaymentAmount,
       selectedPaymentAmountCustom,
       selectedPaymentSubject,
-      PaymentSubject,
       onRemoveVoucher,
       onUpdateVoucher,
-      PaymentAmount,
+      showCompanySchoolElement,
+      showCustomPaymentAmountElement,
+      showDonationElement,
+      showOrganizationAdminElement,
+      showPaymentAmountOptionsElement,
+      showVoucherElement,
     };
   },
 });
@@ -287,14 +452,16 @@ export default defineComponent({
         data-cy="form-field-payment-subject"
       />
     </div>
+    <!-- Input: Voucher -->
+    <div v-if="showVoucherElement()">
+      <form-field-voucher
+        :active-voucher="activeVoucher"
+        @update:voucher="onUpdateVoucher"
+        @remove:voucher="onRemoveVoucher"
+      />
+    </div>
     <!-- Input: Payment amount -->
-    <div
-      v-if="
-        selectedPaymentSubject === PaymentSubject.individual ||
-        (selectedPaymentSubject === PaymentSubject.voucher && !isEntryFeeFree)
-      "
-      class="q-my-md"
-    >
+    <div v-if="showPaymentAmountOptionsElement()" class="q-my-md">
       <!-- Label -->
       <label
         for="paymentAmount"
@@ -308,26 +475,13 @@ export default defineComponent({
         inline
         id="paymentAmount"
         v-model="selectedPaymentAmount"
-        :options="optionsPaymentAmount"
+        :options="optionsPaymentAmountComputed"
         class="q-mt-sm"
         data-cy="form-field-payment-amount"
       />
     </div>
-    <!-- Input: Voucher -->
-    <div v-if="selectedPaymentSubject === PaymentSubject.voucher">
-      <form-field-voucher
-        :active-voucher="activeVoucher"
-        @update:voucher="onUpdateVoucher"
-        @remove:voucher="onRemoveVoucher"
-      />
-    </div>
     <!-- Input: Company -->
-    <div
-      v-if="
-        selectedPaymentSubject === PaymentSubject.company ||
-        selectedPaymentSubject === PaymentSubject.school
-      "
-    >
+    <div v-if="showCompanySchoolElement()">
       <q-separator class="q-my-lg" />
       <!-- Input: Company -->
       <form-field-company
@@ -342,9 +496,7 @@ export default defineComponent({
       </p>
     </div>
     <!-- Input: Custom amount -->
-    <div
-      v-if="selectedPaymentAmount === PaymentAmount.custom && !isEntryFeeFree"
-    >
+    <div v-if="showCustomPaymentAmountElement()">
       <form-field-slider-number
         v-model="selectedPaymentAmountCustom"
         :min="paymentAmountMin"
@@ -354,21 +506,12 @@ export default defineComponent({
       />
     </div>
     <!-- Input: Donation -->
-    <div
-      v-if="
-        (selectedPaymentSubject === PaymentSubject.voucher && isEntryFeeFree) ||
-        selectedPaymentSubject === PaymentSubject.company ||
-        selectedPaymentSubject === PaymentSubject.school
-      "
-    >
+    <div v-if="showDonationElement()">
       <form-field-donation class="q-mt-md" data-cy="form-field-donation" />
     </div>
     <!-- Section: Register coordinator -->
     <!-- TODO: Add condition - NO COORDINATOR IN SELECTED COMPANY -->
-    <div
-      v-if="selectedPaymentSubject === PaymentSubject.company"
-      class="q-mt-md"
-    >
+    <div v-if="showOrganizationAdminElement()" class="q-mt-md">
       <!-- Checkbox: Register coordinator -->
       <q-checkbox
         dense
