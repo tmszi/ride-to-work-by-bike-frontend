@@ -37,7 +37,7 @@ import {
   userAgentHeader,
 } from './commonTests';
 import { getApiBaseUrlWithLang } from '../../../src/utils/get_api_base_url_with_lang';
-import { bearerTokeAuth } from 'src/utils';
+import { bearerTokeAuth } from '../../../src/utils';
 
 // Fix for ResizeObserver loop issue in Firefox
 // see https://stackoverflow.com/questions/74947338/i-keep-getting-error-resizeobserver-loop-limit-exceeded-in-cypress
@@ -359,3 +359,81 @@ Cypress.Commands.add('waitForCitiesApi', () => {
     });
   });
 });
+
+/**
+ * Intercept subsidiaries GET API calls
+ * Provides `@getSubsidiaries` and `@getSubsidiariesNextPage` aliases
+ * @param {object} config - App global config
+ * @param {object} i18n - i18n instance
+ * @param {number} organizationId - Organization ID
+ */
+Cypress.Commands.add(
+  'interceptSubsidiariesGetApi',
+  (config, i18n, organizationId) => {
+    const { apiBase, apiDefaultLang, urlApiOrganizations, urlApiSubsidiaries } =
+      config;
+    const apiBaseUrl = getApiBaseUrlWithLang(
+      null,
+      apiBase,
+      apiDefaultLang,
+      i18n,
+    );
+    const urlApiSubsidiariesLocalized = `${apiBaseUrl}${urlApiOrganizations}${organizationId}/${urlApiSubsidiaries}`;
+
+    cy.fixture('apiGetSubsidiariesResponse').then((subsidiariesResponse) => {
+      cy.fixture('apiGetSubsidiariesResponseNext').then(
+        (subsidiariesResponseNext) => {
+          // intercept initial subsidiaries API call
+          cy.intercept('GET', urlApiSubsidiariesLocalized, {
+            statusCode: httpSuccessfullStatus,
+            body: subsidiariesResponse,
+          }).as('getSubsidiaries');
+
+          // intercept next page API call
+          cy.intercept('GET', subsidiariesResponse.next, {
+            statusCode: httpSuccessfullStatus,
+            body: subsidiariesResponseNext,
+          }).as('getSubsidiariesNextPage');
+        },
+      );
+    });
+  },
+);
+
+/**
+ * Wait for intercept subsidiaries API calls and compare request/response object
+ * Wait for `@getSubsidiaries` and `@getSubsidiariesNextPage` intercepts
+ * @param {object} subsidiariesResponse - Get subsidiaries API data response
+ * @param {object} subsidiariesResponseNext - Get subsidiaries API data response next page
+ */
+Cypress.Commands.add(
+  'waitForSubsidiariesApi',
+  (subsidiariesResponse, subsidiariesResponseNext) => {
+    cy.wait(['@getSubsidiaries', '@getSubsidiariesNextPage']).spread(
+      (getSubsidiaries, getSubsidiariesNextPage) => {
+        expect(getSubsidiaries.request.headers.authorization).to.include(
+          bearerTokeAuth,
+        );
+        if (getSubsidiaries.response) {
+          expect(getSubsidiaries.response.statusCode).to.equal(
+            httpSuccessfullStatus,
+          );
+          expect(getSubsidiaries.response.body).to.deep.equal(
+            subsidiariesResponse,
+          );
+        }
+        expect(
+          getSubsidiariesNextPage.request.headers.authorization,
+        ).to.include(bearerTokeAuth);
+        if (getSubsidiariesNextPage.response) {
+          expect(getSubsidiariesNextPage.response.statusCode).to.equal(
+            httpSuccessfullStatus,
+          );
+          expect(getSubsidiariesNextPage.response.body).to.deep.equal(
+            subsidiariesResponseNext,
+          );
+        }
+      },
+    );
+  },
+);

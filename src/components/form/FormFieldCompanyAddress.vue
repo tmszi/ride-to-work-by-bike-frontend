@@ -9,10 +9,8 @@
  * Note: This component is commonly used in `RegisterChallengePage`.
  *
  * @props
- * - `options` (FormOption[], required): Object representing address options.
- *   It should be of type `FormOption[]`.
- * - `modelValue` (object, required): The object representing address.
- *   It should be of type `FormAddressType`.
+ * - `modelValue` (number|null): the number representing address.
+ *
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
@@ -27,21 +25,22 @@
  */
 
 // libraries
-import { computed, defineComponent, inject, ref, watch } from 'vue';
 import { QForm } from 'quasar';
+import { computed, defineComponent, inject, ref, watch } from 'vue';
 
 // components
 import DialogDefault from 'src/components/global/DialogDefault.vue';
 import FormAddSubsidiary from 'src/components/form/FormAddSubsidiary.vue';
 
 // composables
+import { useApiGetSubsidiaries } from 'src/composables/useApiGetSubsidiaries';
 import { useValidation } from 'src/composables/useValidation';
 
+// stores
+import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
+
 // types
-import type {
-  FormCompanyAddressFields,
-  FormOption,
-} from 'src/components/types/Form';
+import type { FormCompanyAddressFields } from 'src/components/types/Form';
 import type { Logger } from 'src/components/types/Logger';
 
 export default defineComponent({
@@ -51,13 +50,10 @@ export default defineComponent({
     DialogDefault,
   },
   props: {
-    options: {
-      type: Array as () => FormOption[],
-      required: true,
-    },
     modelValue: {
-      type: Object as () => FormCompanyAddressFields | null,
-      required: true,
+      type: Number as () => number | null,
+      required: false,
+      default: null,
     },
   },
   emits: ['update:modelValue'],
@@ -65,10 +61,9 @@ export default defineComponent({
     const formRef = ref<typeof QForm | null>(null);
     const logger = inject('vuejs3-logger') as Logger | null;
 
-    const address = computed<FormCompanyAddressFields | null>({
+    const address = computed<number | null>({
       get: () => props.modelValue,
-      set: (value: FormCompanyAddressFields | null) =>
-        emit('update:modelValue', value),
+      set: (value: number | null) => emit('update:modelValue', value),
     });
 
     const addressNew = ref<FormCompanyAddressFields>({
@@ -80,11 +75,29 @@ export default defineComponent({
       department: '',
     });
 
+    const { subsidiaries, isLoading, loadSubsidiaries } =
+      useApiGetSubsidiaries(logger);
+
+    const store = useRegisterChallengeStore();
     watch(
-      () => props.options,
-      () => {
+      () => store.getOrganizationId,
+      (newValue) => {
+        logger?.debug(
+          `Resgister challenge stote organization ID updated to <${newValue}>`,
+        );
         address.value = null;
+        if (newValue) {
+          loadSubsidiaries(newValue);
+        }
       },
+      { immediate: true },
+    );
+
+    const options = computed(() =>
+      subsidiaries.value?.map((subsidiary) => ({
+        label: getAddressString(subsidiary.address),
+        value: subsidiary.id,
+      })),
     );
 
     const { isFilled } = useValidation();
@@ -96,8 +109,31 @@ export default defineComponent({
     };
 
     /**
+     * Get a formatted address string from the provided address object.
+     * @param {FormCompanyAddressFields | undefined} address - The address object.
+     * @returns {string} - Formatted string representation of the address or
+     * empty string.
+     */
+    const getAddressString = (
+      address: FormCompanyAddressFields | undefined,
+    ): string => {
+      if (!address) return '';
+
+      const parts = [
+        address.street,
+        address.houseNumber,
+        address.city,
+        address.zip,
+        address.cityChallenge,
+        address.department,
+      ].filter(Boolean);
+
+      return parts.join(', ');
+    };
+
+    /**
      * Provides dialog behaviour
-     * @returns
+     * @returns {isDialogOpen, onClose}
      * - `isDialogOpen` (boolean): Whether the dialog is open.
      * - `onClose` (function): Runs when the dialog is closed.
      */
@@ -122,8 +158,10 @@ export default defineComponent({
       address,
       addressNew,
       formRef,
+      options,
       isDialogOpen,
       isFilled,
+      isLoading,
       onClose,
       onSubmit,
     };

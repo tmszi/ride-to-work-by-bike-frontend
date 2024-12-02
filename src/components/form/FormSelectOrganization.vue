@@ -57,18 +57,13 @@ export default defineComponent({
         registerChallengeStore.getOrganizationType ?? OrganizationType.company,
     );
 
-    const {
-      selectedAddress,
-      addressOptions,
-      organizationId,
-      organizationOptions,
-    } = useSelectedOrganization(organizations);
+    const { organizationId, organizationOptions, subsidiaryId } =
+      useSelectedOrganization(organizations);
 
     return {
-      selectedAddress,
-      addressOptions,
       organizationId,
       organizationOptions,
+      subsidiaryId,
       OrganizationLevel,
       organizationType,
     };
@@ -87,8 +82,7 @@ export default defineComponent({
       :data-organization-type="organizationType"
     />
     <form-field-company-address
-      v-model="selectedAddress"
-      :options="addressOptions"
+      v-model="subsidiaryId"
       data-cy="form-company-address"
     />
   </div>
