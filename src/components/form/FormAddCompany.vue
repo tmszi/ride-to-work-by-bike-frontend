@@ -11,9 +11,11 @@
  *
  * @props
  * - `modelValue` (Object, required): The object representing the form state.
- * - `organizationType` (String as OrganizationType): The type of organization.
- * - `variant` (String as 'default', 'simple'): The variant of the form.
- *   `simple` only shows `name` and `vatId` fields.
+ * - `organizationType` (String as OrganizationType,
+ *                       default: OrganizationType.company): The type of organization.
+ * - `variant` (String as FormAddCompanyVariantProp,
+ *              default: FormAddCompanyVariantProp.default): The variant of the form.
+ *                                                           `simple` only shows `name` and `vatId` fields.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
@@ -37,10 +39,12 @@ import FormFieldTextRequired from '../global/FormFieldTextRequired.vue';
 import FormFieldBusinessId from '../form/FormFieldBusinessId.vue';
 
 // composables
+import { useOrganizations } from '../../composables/useOrganizations';
 import { useValidation } from '../../composables/useValidation';
 
 // enums
 import { OrganizationType } from '../types/Organization';
+import { FormAddCompanyVariantProp } from '../enums/Form';
 
 // types
 import type { FormCompanyFields } from '../types/Form';
@@ -59,10 +63,11 @@ export default defineComponent({
     },
     organizationType: {
       type: String as () => OrganizationType,
+      default: OrganizationType.company,
     },
     variant: {
-      type: String as () => 'default' | 'simple',
-      default: 'default',
+      type: String as () => FormAddCompanyVariantProp,
+      default: FormAddCompanyVariantProp.default,
     },
   },
   emits: ['update:modelValue'],
@@ -81,19 +86,23 @@ export default defineComponent({
     const addressIndex = 0;
 
     const isVatShown = computed((): boolean => {
-      if (!props.organizationType) {
-        return true;
-      }
       return props.organizationType === OrganizationType.company;
+    });
+
+    const { getOrganizationLabels } = useOrganizations();
+    const titleDialog = computed((): string => {
+      return getOrganizationLabels(props.organizationType).labelShort;
     });
 
     return {
       addressIndex,
       company,
+      titleDialog,
       OrganizationType,
       isVatShown,
       isFilled,
       onUpdate,
+      FormAddCompanyVariantProp,
     };
   },
 });
@@ -106,16 +115,10 @@ export default defineComponent({
         class="text-body1 text-bold text-black q-my-none"
         data-cy="form-add-company-title"
       >
-        <span v-if="organizationType === OrganizationType.school">{{
-          $t('form.labelSchoolShort')
-        }}</span>
-        <span v-else-if="organizationType === OrganizationType.family">{{
-          $t('form.labelFamilyShort')
-        }}</span>
-        <span v-else>{{ $t('form.labelCompanyShort') }}</span>
+        {{ titleDialog }}
       </h3>
       <p
-        v-if="variant === 'default'"
+        v-if="variant === FormAddCompanyVariantProp.default"
         class="q-mt-sm"
         data-cy="form-add-company-permission"
       >
@@ -145,7 +148,7 @@ export default defineComponent({
         />
       </div>
     </div>
-    <div v-if="variant === 'default'" class="q-mt-lg">
+    <div v-if="variant === FormAddCompanyVariantProp.default" class="q-mt-lg">
       <div class="q-mb-md">
         <h3 class="text-body1 text-bold text-black q-my-none">
           {{ $t('form.company.titleSubsidiaryAddress') }}
