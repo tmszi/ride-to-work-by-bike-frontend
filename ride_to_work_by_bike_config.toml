@@ -89,8 +89,10 @@ urlApiResetPassword = "auth/password/reset/"
 urlApiSubsidiaries = "subsidiaries/"
 urlApiChallengeRegistrationUser = "challenge/registration/user/"
 urlApiCities = "cities/"
+urlApiThisCampaign = "this_campaign/"
 
 checkIsEmailVerifiedInterval = 20 # seconds
+checkIsThisCampaignCompetitionPhaseTypeInterval = 20 # seconds
 
 # DATE TIME FORMATS
 

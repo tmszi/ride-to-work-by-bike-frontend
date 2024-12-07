@@ -2,23 +2,18 @@
 import { defineStore } from 'pinia';
 import { PhaseType } from '../components/types/Challenge';
 
+// composables
+import { useApiGetCampaign } from '../composables/useApiGetCampaign';
+
+// utils
 import { timestampToDatetimeString } from 'src/utils';
 
 // enums
-export enum ChallengeStatus {
-  before = 'before',
-  during = 'during',
-  after = 'after',
-}
-
-// fixtures
-import thisCampaignFixture from '../../test/cypress/fixtures/thisCampaign.json';
+import { ChallengeStatus } from '../components/enums/Challenge';
 
 // types
 import type { Logger } from '../components/types/Logger';
 import type { Phase } from '../components/types/Challenge';
-
-const phaseSet = thisCampaignFixture.results[0].phase_set as Phase[] | null;
 
 export const useChallengeStore = defineStore('challenge', {
   state: () => ({
@@ -33,7 +28,7 @@ export const useChallengeStore = defineStore('challenge', {
      * Phase object with id `payment` marks the ability to pay.
      * Phase object with id `invoices` marks the ability to see invoices.
      */
-    phaseSet: phaseSet ? phaseSet : [],
+    phaseSet: [] as Phase[],
   }),
 
   getters: {
@@ -52,9 +47,27 @@ export const useChallengeStore = defineStore('challenge', {
       }
       return ChallengeStatus.after;
     },
+    getPhaseSet(): Phase[] {
+      return this.phaseSet;
+    },
   },
 
   actions: {
+    async loadPhaseSet(): Promise<void> {
+      const { campaigns, loadCampaign } = useApiGetCampaign(this.$log);
+      await loadCampaign();
+      if (campaigns.value.length && campaigns.value[0]?.phase_set) {
+        this.$log?.debug(
+          `Saving phase set <${JSON.stringify(campaigns.value[0].phase_set, null, 2)}>.`,
+        );
+        this.phaseSet = campaigns.value[0].phase_set;
+        this.$log?.debug(
+          `New phase set <${JSON.stringify(this.getPhaseSet, null, 2)}>.`,
+        );
+      } else {
+        this.$log?.debug('No phase set found.');
+      }
+    },
     /**
      * Checks if challenge is in a given phase
      * Returns true if now is within the phase dates

@@ -58,9 +58,11 @@ export interface ConfigGlobal {
   urlApiChallengeRegistrationUser: string;
   urlApiCities: string;
   urlApiSubsidiaries: string;
+  urlApiThisCampaign: string;
   urlLoginRegisterBackgroundImage: string;
   urlRTWBBLogo: string;
   checkIsEmailVerifiedInterval: number;
+  checkIsThisCampaignCompetitionPhaseTypeInterval: string;
   googleLoginAppId: string;
   facebookLoginAppId: string;
   secretString: string;

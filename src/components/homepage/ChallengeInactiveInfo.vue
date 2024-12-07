@@ -13,15 +13,27 @@
  */
 
 // libraries
+import { computed, inject, onMounted, watch } from 'vue';
 import { colors } from 'quasar';
 import { defineComponent } from 'vue';
+
+import { useRouter } from 'vue-router';
+
+import ShowCurrentDatetime from 'components/debug/ShowCurrentDatetime.vue';
+import { routesConf } from '../../router/routes_conf';
+import { useChallengeStore } from '../../stores/challenge';
+
+import { PhaseType } from '../types/Challenge';
+import { Logger } from '../types/Logger';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 export default defineComponent({
   name: 'ChallengeInactiveInfo',
+  components: { ShowCurrentDatetime },
   setup() {
+    const logger = inject('vuejs3-logger') as Logger | null;
     // colors
     const { getPaletteColor, changeAlpha } = colors;
     const white = getPaletteColor('white');
@@ -29,6 +41,56 @@ export default defineComponent({
       white,
       rideToWorkByBikeConfig.colorWhiteBackgroundOpacity,
     );
+    const router = useRouter();
+    const challengeStore = useChallengeStore();
+    const isThisCampaignPhaseTypeCompetition = computed(() =>
+      challengeStore.getIsChallengeInPhase(PhaseType.competition),
+    );
+    const checkIsThisCampaignPhaseTypeCompetition = async (): Promise<void> => {
+      logger?.debug(
+        `Check if this campaign phase type is <${PhaseType.competition}>.`,
+      );
+      if (!isThisCampaignPhaseTypeCompetition.value) {
+        logger?.debug(
+          `This campaign <${PhaseType.competition}> phase type is` +
+            ` <${isThisCampaignPhaseTypeCompetition.value}>,` +
+            ' refresh this campaign data from the API' +
+            ' by <loadPhaseSet()> function.',
+        );
+        await challengeStore.loadPhaseSet();
+      } else {
+        const message =
+          'This campaign phase type' +
+          ` ${isThisCampaignPhaseTypeCompetition.value ? 'is' : 'is not'}` +
+          ` <${PhaseType.competition}>`;
+        logger?.debug(
+          `${message}, disable <checkIsThisCampaignPhaseTypeCompetition()>` +
+            ' function runned in every' +
+            ` <${rideToWorkByBikeConfig.checkIsThisCampaignCompetitionPhaseTypeInterval}> seconds.`,
+        );
+        clearTimeout(checkIsThisCampaignPhaseTypeCompetitionId);
+      }
+    };
+    const checkIsThisCampaignPhaseTypeCompetitionId = setInterval(
+      checkIsThisCampaignPhaseTypeCompetition,
+      parseInt(
+        rideToWorkByBikeConfig.checkIsThisCampaignCompetitionPhaseTypeInterval,
+      ) * 1000,
+    );
+    onMounted(() => {
+      checkIsThisCampaignPhaseTypeCompetition();
+    });
+
+    // once this campaign phase type is competition, redirect to home page
+    watch(isThisCampaignPhaseTypeCompetition, (newValue) => {
+      if (newValue) {
+        logger?.debug(
+          `This campaign phase type is <${PhaseType.competition}>,` +
+            ` redirect to <${routesConf['home']['path']}> URL.`,
+        );
+        router.push(routesConf['home']['path']);
+      }
+    });
 
     return {
       white,
@@ -59,6 +121,10 @@ export default defineComponent({
     </div>
     <!-- Heading -->
     <div class="q-mb-lg">
+      <!-- Show current date time debug message during Cypress tests required
+         to indentify if this campaign competition phase is active/inactive
+      -->
+      <show-current-datetime></show-current-datetime>
       <h1
         class="text-h5 text-bold q-my-none"
         data-cy="challenge-inactive-title"
