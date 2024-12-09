@@ -105,7 +105,7 @@ export default defineComponent({
           houseNumber: '',
           city: '',
           zip: '',
-          cityChallenge: '',
+          cityChallenge: null,
           department: '',
         },
       ],
