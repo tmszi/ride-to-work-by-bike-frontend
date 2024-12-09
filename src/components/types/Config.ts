@@ -43,6 +43,7 @@ export interface ConfigGlobal {
   entryFeePaymentOptions: string;
   notifyMessagePosition: string;
   apiBase: string;
+  apiBaseRtwbbFeed: string;
   apiVersion: string;
   apiDefaultLang: string;
   urlApiHasUserVerifiedEmail: string;

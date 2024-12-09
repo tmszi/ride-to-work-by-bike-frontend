@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 import { Notify } from 'quasar';
 import { api, axios } from '../boot/axios';
 import { i18n } from '../boot/i18n';
+import { ApiBaseUrl } from '../components/enums/Api';
 import { getApiBaseUrlWithLang } from '../utils/get_api_base_url_with_lang';
 
 // utils
@@ -10,7 +11,7 @@ import { requestDefaultHeader } from '../utils';
 
 // config
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
-const { apiDefaultLang, apiBase } = rideToWorkByBikeConfig;
+const { apiDefaultLang, apiBase, apiBaseRtwbbFeed } = rideToWorkByBikeConfig;
 
 // types
 import type { AxiosRequestHeaders, Method } from 'axios';
@@ -60,23 +61,54 @@ const hasReponseDataNonFieldsErrorsKey = ({
 };
 
 /*
+ * Select Axios base API URL endpoint
+ * @param {ApiBaseUrl} baseUrlEndpointType - Base URL endpoint type
+ * @param {(Logger|null)} logger - Logger instance
+ * @returns {string} - Axios base API URL
+ */
+const getAxiosBaseApiUrl = (
+  baseUrlEndpointType: ApiBaseUrl,
+  logger: Logger | null,
+): string => {
+  logger?.debug(`Base API URL endopint type is <${baseUrlEndpointType}>.`);
+  switch (baseUrlEndpointType) {
+    case ApiBaseUrl.rtwbbBackendApi:
+      logger?.debug(`Use base API URL <${apiBase}> endpoint.`);
+      return `${apiBase}`;
+    case ApiBaseUrl.rtwbbFeedApi:
+      logger?.debug(`Use base API URL <${apiBaseRtwbbFeed}> endpoint.`);
+      return `${apiBaseRtwbbFeed}`;
+    default:
+      logger?.debug(`Use default base API URL <${apiBase}> endpoint.`);
+      return `${apiBase}`;
+  }
+};
+
+/*
  * Inject Axios base API URL with lang (internationalization)
+ * @param {string} baseUrl - Axios base API URL
  * @param {(Logger|null)} logger - Logger instance
  * @returns {void}
  */
-const injectAxioBaseApiUrlWithLang = (logger: Logger | null): void => {
+const injectAxioBaseApiUrlWithLang = (
+  baseUrl: string,
+  logger: Logger | null,
+): void => {
   logger?.debug(
-    `Injected base API URL <${api.defaults.baseURL}> with language <${i18n.global.locale}>.`,
+    `Injected base API URL <${baseUrl}> with language <${i18n.global.locale}>.`,
   );
   api.defaults.baseURL = getApiBaseUrlWithLang(
     logger,
-    apiBase,
+    baseUrl,
     apiDefaultLang,
     i18n,
   );
+  logger?.debug(`Injected base API URL <${api.defaults.baseURL}>.`);
 };
 
-export const useApi = () => {
+export const useApi = (
+  baseUrlEndpointType: ApiBaseUrl = ApiBaseUrl.rtwbbBackendApi,
+) => {
   const apiFetch = async <T>({
     endpoint,
     payload,
@@ -104,8 +136,10 @@ export const useApi = () => {
       logger?.debug(
         `<api()> function headers parameter argument <${JSON.stringify(headers)}>.`,
       );
+      // Get Axios base API URL endpoint
+      const baseUrl = getAxiosBaseApiUrl(baseUrlEndpointType, logger);
       // Inject Axios base API URL with lang (internationalization)
-      injectAxioBaseApiUrlWithLang(logger);
+      injectAxioBaseApiUrlWithLang(baseUrl, logger);
       const startTime = performance.now();
       const data: apiData = {
         url: endpoint,
