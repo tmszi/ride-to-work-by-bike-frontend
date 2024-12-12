@@ -45,6 +45,10 @@ import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 // enums
 import { Currency } from '../../composables/useFormatPrice';
 import { PaymentAmount, PaymentSubject } from '../enums/Payment';
+import { OrganizationType } from '../types/Organization';
+
+// stores
+import { useRegisterChallengeStore } from '../../stores/registerChallenge';
 
 // types
 import type { FormOption, FormPaymentVoucher } from '../types/Form';
@@ -165,6 +169,30 @@ export default defineComponent({
       phone: '',
       responsibility: false,
       terms: false,
+    });
+
+    const registerChallengeStore = useRegisterChallengeStore();
+    watch(selectedPaymentSubject, (newVal, oldVal) => {
+      logger?.debug(
+        `Selected payment subject changed from <${oldVal}> to <${newVal}>`,
+      );
+      switch (newVal) {
+        case PaymentSubject.company:
+          registerChallengeStore.setOrganizationType(newVal);
+          break;
+        case PaymentSubject.school:
+          registerChallengeStore.setOrganizationType(newVal);
+          break;
+        default:
+          registerChallengeStore.setOrganizationType(OrganizationType.none);
+      }
+      logger?.debug(
+        'Set store organization type to' +
+          ` <${registerChallengeStore.getOrganizationType}>.`,
+      );
+    });
+    const organizationType = computed<OrganizationType>(() => {
+      return registerChallengeStore.getOrganizationType;
     });
 
     const isVoucherValid = computed((): boolean => {
@@ -401,6 +429,7 @@ export default defineComponent({
       isRegistrationCoordinator,
       optionsPaymentAmountComputed,
       optionsPaymentSubject,
+      organizationType,
       paymentAmountMax,
       paymentAmountMin,
       primaryLightColor,
@@ -490,7 +519,7 @@ export default defineComponent({
       <!-- Input: Company -->
       <form-field-company
         v-model="selectedCompany"
-        :organizationType="selectedPaymentSubject"
+        :organization-type="organizationType"
         class="text-grey-10"
         data-cy="form-field-company"
       />

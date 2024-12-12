@@ -36,4 +36,17 @@ function vModelAdapter<T>(modelRef: Ref<T>, modelName = 'modelValue') {
   };
 }
 
-export { hexToRgb, transparentColor, vModelAdapter, whiteColor };
+/**
+ * Returns the selector for a radio option.
+ * @param {String} val - The value of the radio option.
+ * @returns {String} - The string selector for the radio option.
+ */
+const getRadioOption = (val: string): string => `radio-option-${val}`;
+
+export {
+  getRadioOption,
+  hexToRgb,
+  transparentColor,
+  vModelAdapter,
+  whiteColor,
+};
