@@ -90,6 +90,11 @@ describe('Register Challenge page', () => {
           // setup API intercepts
           cy.fixture('formOrganizationOptions').then(
             (formOrganizationOptions) => {
+              interceptOrganizationsApi(
+                config,
+                win.i18n,
+                OrganizationType.company,
+              );
               cy.interceptSubsidiariesGetApi(
                 config,
                 win.i18n,
@@ -339,7 +344,7 @@ describe('Register Challenge page', () => {
       // not on step 5
       cy.dataCy('step-5').find('.q-stepper__step-content').should('not.exist');
       // select company
-      cy.dataCy('form-select-table-option-group')
+      cy.dataCy('form-select-table-option')
         .find('.q-radio__label')
         .first()
         .click();

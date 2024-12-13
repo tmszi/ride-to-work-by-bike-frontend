@@ -18,24 +18,18 @@
  */
 
 // libraries
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, inject, watch, ref } from 'vue';
 
 // components
 import FormFieldSelectTable from '../form/FormFieldSelectTable.vue';
 import FormFieldCompanyAddress from '../form/FormFieldCompanyAddress.vue';
 
 // composables
-import { useSelectedOrganization } from 'src/composables/useSelectedOrganization';
-
-// fixtures
-import formOrganizationOptions from '../../../test/cypress/fixtures/formOrganizationOptions.json';
+import { useApiGetOrganizations } from 'src/composables/useApiGetOrganizations';
 
 // types
-import {
-  Organization,
-  OrganizationLevel,
-  OrganizationType,
-} from '../types/Organization';
+import { OrganizationLevel, OrganizationType } from '../types/Organization';
+import { Logger } from '../types/Logger';
 
 // stores
 import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
@@ -47,22 +41,50 @@ export default defineComponent({
     FormFieldCompanyAddress,
   },
   setup() {
-    const organizations: Organization[] =
-      formOrganizationOptions as Organization[];
+    const logger = inject('vuejs3-logger') as Logger | null;
+    const opts = ref([]);
+    const { options, isLoading, loadOrganizations } =
+      useApiGetOrganizations(logger);
 
     const registerChallengeStore = useRegisterChallengeStore();
 
     const organizationType = computed(
-      (): OrganizationType =>
-        registerChallengeStore.getOrganizationType ?? OrganizationType.company,
+      (): OrganizationType => registerChallengeStore.getOrganizationType,
     );
 
-    const { organizationId, organizationOptions, subsidiaryId } =
-      useSelectedOrganization(organizations);
+    const organizationId = computed<number | null>({
+      get: (): number | null =>
+        registerChallengeStore.getOrganizationId
+          ? registerChallengeStore.getOrganizationId
+          : null,
+      set: (value: number | null) =>
+        registerChallengeStore.setOrganizationId(value),
+    });
+
+    const subsidiaryId = computed<number | null>({
+      get: (): number | null => registerChallengeStore.getSubsidiaryId,
+      set: (value: number | null) =>
+        registerChallengeStore.setSubsidiaryId(value),
+    });
+    watch(
+      organizationType,
+      (newValue: OrganizationType) => {
+        logger?.debug(`Organization type updated to <${newValue}>`);
+        if (newValue) {
+          loadOrganizations(newValue).then(() => {
+            logger?.info('All organizations data was loaded from the API.');
+            // Lazy loading
+            opts.value = options;
+          });
+        }
+      },
+      { immediate: true },
+    );
 
     return {
+      isLoading,
       organizationId,
-      organizationOptions,
+      opts,
       subsidiaryId,
       OrganizationLevel,
       organizationType,
@@ -75,11 +97,12 @@ export default defineComponent({
   <div data-cy="form-select-organization">
     <form-field-select-table
       v-model="organizationId"
+      :loading="isLoading"
+      :options="opts.value"
       :organization-level="OrganizationLevel.organization"
       :organization-type="organizationType"
-      :options="organizationOptions"
-      data-cy="form-select-table-company"
       :data-organization-type="organizationType"
+      data-cy="form-select-table-company"
     />
     <form-field-company-address
       v-model="subsidiaryId"
