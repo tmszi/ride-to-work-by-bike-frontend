@@ -3,9 +3,6 @@
  */
 
 export interface TeamPostApiResponse {
-  data: {
-    id: number;
-    name: string;
-  } | null;
-  success: boolean;
+  id: number;
+  name: string;
 }
