@@ -219,30 +219,30 @@ describe('<FormFieldCompany>', () => {
       );
     });
   });
-});
 
-context('mobile', () => {
-  beforeEach(() => {
-    interceptOrganizationsApi(
-      rideToWorkByBikeConfig,
-      i18n,
-      OrganizationType.company,
-    );
-    // reset model value
-    model.value = '';
-    // mount component
-    cy.mount(FormFieldCompany, {
-      props: {
-        ...vModelAdapter(model),
-        organizationType: OrganizationType.company,
-      },
+  context('mobile', () => {
+    beforeEach(() => {
+      interceptOrganizationsApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        OrganizationType.company,
+      );
+      // reset model value
+      model.value = '';
+      // mount component
+      cy.mount(FormFieldCompany, {
+        props: {
+          ...vModelAdapter(model),
+          organizationType: OrganizationType.company,
+        },
+      });
+      cy.viewport('iphone-6');
     });
-    cy.viewport('iphone-6');
-  });
 
-  it('renders input and button in a stacked layout', () => {
-    cy.testElementPercentageWidth(cy.dataCy('col-input'), 100);
-    cy.testElementPercentageWidth(cy.dataCy('col-button'), 100);
+    it('renders input and button in a stacked layout', () => {
+      cy.testElementPercentageWidth(cy.dataCy('col-input'), 100);
+      cy.testElementPercentageWidth(cy.dataCy('col-button'), 100);
+    });
   });
 
   context('organization type - company', () => {
@@ -381,6 +381,54 @@ context('mobile', () => {
       cy.contains(
         i18n.global.t('form.messageFieldRequired', {
           fieldName: i18n.global.t('form.labelFamilyShort'),
+        }),
+      ).should('be.visible');
+    });
+  });
+
+  context('custom label', () => {
+    beforeEach(() => {
+      interceptOrganizationsApi(rideToWorkByBikeConfig, i18n);
+      // reset model value
+      model.value = '';
+      // mount component
+      cy.mount(FormFieldCompany, {
+        props: {
+          ...vModelAdapter(model),
+          organizationType: OrganizationType.company,
+          label: i18n.global.t('form.labelCompanyForCoordinator'),
+        },
+      });
+      cy.viewport('macbook-16');
+    });
+
+    it('renders correct labels', () => {
+      // input label
+      cy.dataCy('form-field-company-label')
+        .should('be.visible')
+        .and('contain', i18n.global.t('form.labelCompanyForCoordinator'));
+      // dialog title
+      cy.dataCy('button-add-company').click();
+      cy.dataCy('dialog-add-company')
+        .find('h3')
+        .should('be.visible')
+        .and('contain', i18n.global.t('form.company.titleAddCompany'));
+      // dialog button
+      cy.dataCy('dialog-button-submit')
+        .should('be.visible')
+        .and('have.text', i18n.global.t('form.company.buttonAddCompany'));
+      cy.dataCy('dialog-button-cancel').should('be.visible').click();
+      // empty state message
+      cy.dataCy('form-company-input').closest('input').type(noResultsQuery);
+      // empty state message
+      cy.contains(i18n.global.t('form.messageNoCompany')).should('be.visible');
+      // simulate escape key
+      cy.dataCy('form-company-input').closest('input').type('{esc}');
+      cy.focused().blur();
+      // validation message
+      cy.contains(
+        i18n.global.t('form.messageFieldRequired', {
+          fieldName: i18n.global.t('form.labelCompanyShort'),
         }),
       ).should('be.visible');
     });
