@@ -16,7 +16,7 @@
  */
 
 // libraries
-import { defineComponent, inject, ref, watch } from 'vue';
+import { computed, defineComponent, inject, watch, ref } from 'vue';
 
 // components
 import FormFieldSelectTable from './FormFieldSelectTable.vue';
@@ -32,6 +32,8 @@ import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
 
 // types
 import type { Logger } from '../types/Logger';
+import type { OrganizationTeam } from '../types/Organization';
+import type { TeamPostApiResponse } from '../types/ApiTeam';
 
 export default defineComponent({
   name: 'FormSelectTeam',
@@ -40,10 +42,21 @@ export default defineComponent({
   },
   setup() {
     const logger = inject('vuejs3-logger') as Logger | null;
-    const { options, isLoading, loadTeams } = useApiGetTeams(logger);
 
-    // load teams when subsidiary ID changes
     const registerChallengeStore = useRegisterChallengeStore();
+
+    const team = computed({
+      get: () => {
+        return registerChallengeStore.getTeamId;
+      },
+      set: (value: number | null) => {
+        registerChallengeStore.setTeamId(value);
+      },
+    });
+
+    const { options, isLoading, teams, loadTeams } = useApiGetTeams(logger);
+    const opts = ref([]);
+    // load teams when subsidiary ID changes
     watch(
       () => registerChallengeStore.getSubsidiaryId,
       (newValue: number | null) => {
@@ -52,19 +65,38 @@ export default defineComponent({
         );
         if (newValue) {
           logger?.info('Loading teams.');
-          loadTeams(newValue);
+          // Lazy loading
+          loadTeams(newValue).then(() => {
+            opts.value = options;
+          });
         }
       },
       { immediate: true },
     );
 
-    const team = ref<number | null>(null);
+    /**
+     * Handle option created event
+     * When option is created in the child component, push the result into
+     * the `teams` array (options are computed from `teams` array).
+     * @param {TeamPostApiResponse} data - Team data
+     * @returns {void}
+     */
+    const onOptionCreated = (data: TeamPostApiResponse): void => {
+      const newTeam: OrganizationTeam = {
+        id: data.id,
+        name: data.name,
+        subsidiary: registerChallengeStore.getSubsidiaryId as number,
+        members: [],
+      };
+      teams.value.push(newTeam);
+    };
 
     return {
       isLoading,
-      options,
+      opts,
       team,
       OrganizationLevel,
+      onOptionCreated,
     };
   },
 });
@@ -80,8 +112,9 @@ export default defineComponent({
     <form-field-select-table
       v-model="team"
       :organization-level="OrganizationLevel.team"
-      :options="options"
+      :options="opts.value"
       :loading="isLoading"
+      @create:option="onOptionCreated"
       data-cy="form-select-table-team"
     />
   </div>

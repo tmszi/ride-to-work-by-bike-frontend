@@ -23,6 +23,7 @@
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
+ * - `create:option`: Emitted when a new option is created.
  *
  * @components
  * - `DialogDefault`: Used to render a dialog window with form as content.
@@ -40,7 +41,7 @@
  */
 
 // libraries
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, inject, ref } from 'vue';
 import { QForm } from 'quasar';
 
 // config
@@ -55,11 +56,16 @@ import FormAddTeam from '../form/FormAddTeam.vue';
 import { useOrganizations } from '../../composables/useOrganizations';
 import { useSelectTable } from '../../composables/useSelectTable';
 import { useValidation } from '../../composables/useValidation';
+import { useApiPostTeam } from '../../composables/useApiPostTeam';
 
 // enums
 import { OrganizationType, OrganizationLevel } from '../types/Organization';
 
+// stores
+import { useRegisterChallengeStore } from '../../stores/registerChallenge';
+
 // types
+import type { Logger } from '../types/Logger';
 import {
   FormCompanyFields,
   FormOption,
@@ -97,8 +103,10 @@ export default defineComponent({
       default: null,
     },
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'create:option'],
   setup(props, { emit }) {
+    const logger = inject('vuejs3-logger') as Logger | null;
+
     // user input for filtering
     const query = ref<string>('');
     const formRef = ref<typeof QForm | null>(null);
@@ -169,12 +177,48 @@ export default defineComponent({
         const isFormValid: boolean = await formRef.value.validate();
 
         if (isFormValid) {
-          // TODO: Submit through API
+          await submitDialogForm();
           isDialogOpen.value = false;
         } else {
           formRef.value.$el.scrollIntoView({
             behavior: 'smooth',
           });
+        }
+      }
+    };
+
+    const { createTeam } = useApiPostTeam(logger);
+    const registerChallengeStore = useRegisterChallengeStore();
+
+    /**
+     * Submit dialog form based on organization level
+     * If `company`, create a new company
+     * If `team`, create a new team
+     * @returns {Promise<void>}
+     */
+    const submitDialogForm = async (): Promise<void> => {
+      if (props.organizationLevel === OrganizationLevel.organization) {
+        // TODO: Create a new company
+      } else if (props.organizationLevel === OrganizationLevel.team) {
+        logger?.info('Create team.');
+        const subsidiaryId = registerChallengeStore.getSubsidiaryId;
+        if (subsidiaryId === null) {
+          logger?.info('No subsidiary ID found in the store.');
+          return;
+        }
+        const data = await createTeam(subsidiaryId, teamNew.value.name);
+        if (data?.id) {
+          logger?.debug(
+            `New Team was created with ID <${data.id}> and name <${data.name}>.`,
+          );
+          // emit `create:option` event
+          emit('create:option', data);
+          // close dialog
+          isDialogOpen.value = false;
+          logger?.info('Close add team modal dialog.');
+          // store data in v-model (emits to parent component)
+          inputValue.value = data.id;
+          logger?.debug(`New team model ID set to <${inputValue.value}>.`);
         }
       }
     };

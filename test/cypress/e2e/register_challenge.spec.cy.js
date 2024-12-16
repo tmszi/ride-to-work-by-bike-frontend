@@ -105,6 +105,11 @@ describe('Register Challenge page', () => {
                 win.i18n,
                 formOrganizationOptions[0].subsidiaries[0].id,
               );
+              cy.interceptTeamPostApi(
+                config,
+                win.i18n,
+                formOrganizationOptions[0].subsidiaries[0].id,
+              );
               interceptOrganizationsApi(
                 config,
                 win.i18n,
@@ -419,6 +424,50 @@ describe('Register Challenge page', () => {
       cy.dataCy('step-6').find('.q-stepper__step-content').should('not.exist');
       cy.dataCy('step-7').find('.q-stepper__step-content').should('be.visible');
      */
+
+    it('allows user to create a new team', () => {
+      passToStep5();
+      checkActiveIcon(5);
+
+      // use formOrganizationOptions to get subsidiary id
+      // get team post request/response data fixture
+      cy.fixture('apiPostTeamRequest').then((teamRequest) => {
+        cy.fixture('apiPostTeamResponse').then((teamResponse) => {
+          // create new team
+          cy.dataCy('form-select-table-team').within(() => {
+            cy.dataCy('button-add-option').click();
+          });
+          cy.dataCy('dialog-add-option').should('be.visible');
+          cy.dataCy('form-add-team-name').find('input').type(teamRequest.name);
+          // get teams fixture data to compare with updated list
+          cy.fixture('apiGetTeamsResponse').then((teamsResponse) => {
+            cy.fixture('apiGetTeamsResponseNext').then((teamsResponseNext) => {
+              // submit form
+              cy.dataCy('dialog-button-submit').click();
+              // wait for POST and subsequent GET
+              cy.waitForTeamPostApi();
+              // verify dialog closed
+              cy.dataCy('dialog-add-option').should('not.exist');
+              // verify new team appears in the list
+              cy.dataCy('form-select-table-team')
+                .find('.q-radio__label')
+                .should(
+                  'have.length',
+                  teamsResponse.results.length +
+                    teamsResponseNext.results.length +
+                    1,
+                )
+                .and('contain', teamResponse.name);
+              // new team is selected
+              cy.dataCy('form-select-table-team')
+                .find('.q-radio__inner.q-radio__inner--truthy')
+                .siblings('.q-radio__label')
+                .should('contain', teamResponse.name);
+            });
+          });
+        });
+      });
+    });
 
     it('allows user to pass back and forth through stepper', () => {
       passToStep6();
