@@ -30,7 +30,15 @@
  */
 
 // libraries
-import { computed, defineComponent, inject, ref, watch, toRef } from 'vue';
+import {
+  computed,
+  defineComponent,
+  inject,
+  onMounted,
+  ref,
+  watch,
+  toRef,
+} from 'vue';
 import { QForm } from 'quasar';
 
 // components
@@ -38,19 +46,13 @@ import DialogDefault from 'src/components/global/DialogDefault.vue';
 import FormAddCompany from 'src/components/form/FormAddCompany.vue';
 
 // composables
-import { useApi } from 'src/composables/useApi';
 import { useApiGetOrganizations } from 'src/composables/useApiGetOrganizations';
+import { useApiPostOrganization } from 'src/composables/useApiPostOrganization';
 import { useOrganizations } from 'src/composables/useOrganizations';
 import { useValidation } from 'src/composables/useValidation';
 
-// config
-import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
-
 // enums
 import { OrganizationType } from '../types/Organization';
-
-// stores
-import { useLoginStore } from 'src/stores/login';
 
 // types
 import type {
@@ -58,17 +60,9 @@ import type {
   FormSelectOption,
 } from 'src/components/types/Form';
 import type { Logger } from 'src/components/types/Logger';
-import type {
-  PostOrganizationPayload,
-  PostOrganizationsResponse,
-} from 'src/components/types/Organization';
 
 // utils
-import {
-  deepObjectWithSimplePropsCopy,
-  requestDefaultHeader,
-  requestTokenHeader,
-} from 'src/utils';
+import { deepObjectWithSimplePropsCopy } from 'src/utils';
 
 export const emptyFormCompanyFields: FormCompanyFields = {
   name: '',
@@ -108,18 +102,21 @@ export default defineComponent({
   setup(props, { emit }) {
     const logger = inject('vuejs3-logger') as Logger | null;
     const optionsFiltered = ref<FormSelectOption[]>([]);
-    const loginStore = useLoginStore();
-    const { apiFetch } = useApi();
-    const { options, isLoading, loadOrganizations } =
-      useApiGetOrganizations(logger);
-    // get API base URL
-    const { urlApiOrganizations } = rideToWorkByBikeConfig;
+    const {
+      options,
+      isLoading: isLoadingGetOrganization,
+      loadOrganizations,
+    } = useApiGetOrganizations(logger);
+    const { createOrganization, isLoading: isLoadinPostOrganization } =
+      useApiPostOrganization(logger);
     logger?.debug(
       `Initial organization ID model value is <${props.modelValue}>.`,
     );
 
     // load options on component mount
-    loadOrganizations(props.organizationType);
+    onMounted(() => {
+      loadOrganizations(props.organizationType);
+    });
 
     // company v-model
     const company = computed<number | string>({
@@ -189,61 +186,40 @@ export default defineComponent({
         logger?.debug(`Form is valid <${isFormValid}>.`);
         if (isFormValid) {
           logger?.info('Create organization.');
-          createOrganization();
+          const data = await createOrganization(
+            companyNew.name,
+            companyNew.vatId,
+            props.organizationType,
+          );
+          if (data?.id) {
+            logger?.debug(`Organization created with ID <${data.id}>.`);
+            logger?.debug(`Organization created with name <${data.name}>.`);
+            // close dialog
+            isDialogOpen.value = false;
+            logger?.info('Close add company modal dialog.');
+            // Set organizations option to created organization
+            logger?.debug(`Setting organizations options to ID <${data.id}>.`);
+            const newCompanyOption: { label: string; value: number } = {
+              label: data.name,
+              value: data.id,
+            };
+            optionsFiltered.value.push(newCompanyOption);
+            company.value = newCompanyOption.value;
+            logger?.debug(
+              `Append newly created organization <${JSON.stringify(
+                newCompanyOption,
+                null,
+                2,
+              )}>` + ' into select organizations widget options.',
+            );
+            // Append newly created organization option into all organization select widget options
+            options.value.push(newCompanyOption);
+          }
         } else {
           formRef.value.$el.scrollIntoView({
             behavior: 'smooth',
           });
         }
-      }
-    };
-    /**
-     * Create organization
-     * Creates a new organization, POST data
-     * @returns {Promise<void>}
-     */
-    const createOrganization = async (): Promise<void> => {
-      logger?.info('Post new organization to API.');
-      // append access token into HTTP header
-      const requestTokenHeader_ = { ...requestTokenHeader };
-      requestTokenHeader_.Authorization += loginStore.getAccessToken;
-      // data
-      logger?.debug(`Create organization with name <${companyNew.name}>.`);
-      logger?.debug(`Create organization with vatId <${companyNew.vatId}>.`);
-      const payload: PostOrganizationPayload = {
-        name: companyNew.name,
-        vatId: companyNew.vatId,
-        organization_type: props.organizationType,
-      };
-      // post organization
-      const { data } = await apiFetch<PostOrganizationsResponse>({
-        endpoint: urlApiOrganizations,
-        method: 'post',
-        translationKey: 'createOrganization',
-        headers: Object.assign(requestDefaultHeader(), requestTokenHeader_),
-        payload: payload,
-        logger,
-      });
-      if (data?.id) {
-        logger?.debug(`Organization created with ID <${data.id}>.`);
-        logger?.debug(`Organization created with name <${data.name}>.`);
-        // close dialog
-        isDialogOpen.value = false;
-        logger?.info('Close add company modal dialog.');
-        // set company to new organization
-        logger?.debug(`Setting organization to ID <${data.id}>.`);
-        const newCompanyOption: { label: string; value: number } = {
-          label: data.name,
-          value: data.id,
-        };
-        optionsFiltered.value.push(newCompanyOption);
-        company.value = newCompanyOption.value;
-        logger?.debug(
-          `Append newly created organization <${JSON.stringify(newCompanyOption, null, 2)}>` +
-            ' into select organizations widget options.',
-        );
-        // Append newly created organization option into all organization select widget options
-        options.value.push(newCompanyOption);
       }
     };
 
@@ -296,7 +272,8 @@ export default defineComponent({
       formRef,
       isDialogOpen,
       isFilled,
-      isLoading,
+      isLoadingGetOrganization,
+      isLoadinPostOrganization,
       optionsFiltered,
       messageNoResult,
       options,
@@ -336,7 +313,7 @@ export default defineComponent({
           :lazy-rules="true"
           :model-value="company"
           :options="optionsFiltered"
-          :loading="isLoading"
+          :loading="isLoadingGetOrganization"
           class="q-mt-sm"
           id="form-company"
           name="company"
