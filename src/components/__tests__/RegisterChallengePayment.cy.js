@@ -5,9 +5,10 @@ import RegisterChallengePayment from 'components/register/RegisterChallengePayme
 import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 import { PaymentAmount, PaymentSubject } from '../enums/Payment';
-import { OrganizationType } from 'components/types/Organization';
 import { useRegisterChallengeStore } from 'stores/registerChallenge';
 import { getRadioOption } from '../../../test/cypress/utils';
+import { interceptOrganizationsApi } from '../../../test/cypress/support/commonTests';
+import { OrganizationType } from '../types/Organization';
 
 // selectors
 const selectorBannerPaymentMinimum = 'banner-payment-minimum';
@@ -85,6 +86,16 @@ describe('<RegisterChallengePayment>', () => {
   context('desktop', () => {
     beforeEach(() => {
       setActivePinia(createPinia());
+      interceptOrganizationsApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        OrganizationType.company,
+      );
+      interceptOrganizationsApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        OrganizationType.school,
+      );
       cy.fixture('registerPaymentVoucherFull').then((voucherFull) => {
         cy.fixture('registerPaymentVoucherHalf').then((voucherHalf) => {
           cy.wrap(voucherFull).as('voucherFull');
@@ -103,6 +114,16 @@ describe('<RegisterChallengePayment>', () => {
   context('mobile', () => {
     beforeEach(() => {
       setActivePinia(createPinia());
+      interceptOrganizationsApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        OrganizationType.company,
+      );
+      interceptOrganizationsApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        OrganizationType.school,
+      );
       cy.fixture('registerPaymentVoucherFull').then((voucherFull) => {
         cy.fixture('registerPaymentVoucherHalf').then((voucherHalf) => {
           cy.wrap(voucherFull).as('voucherFull');
@@ -242,6 +263,84 @@ function coreTests() {
       'have.value',
       testNumberValue.toString(),
     );
+  });
+
+  it('handles default price when switching between individual and discount voucher', () => {
+    cy.get('@voucherHalf').then((voucher) => {
+      // ensure we are on step individual
+      cy.dataCy(getRadioOption(PaymentSubject.individual))
+        .should('be.visible')
+        .click();
+      // check amount
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', defaultPaymentAmountMin);
+      // switch to voucher
+      cy.dataCy(getRadioOption(PaymentSubject.voucher))
+        .should('be.visible')
+        .click();
+      // amount options are hidden
+      cy.dataCy(selectorPaymentAmount).should('not.exist');
+      // input voucher
+      cy.dataCy(selectorVoucherInput).type(voucher.code);
+      cy.dataCy(selectorVoucherSubmit).click();
+      // option with discounted amount is available
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', voucher.amount);
+      // switch to individual
+      cy.dataCy(getRadioOption(PaymentSubject.individual))
+        .should('be.visible')
+        .click();
+      // amount is reset to default value
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', defaultPaymentAmountMin);
+      // switch to voucher
+      cy.dataCy(getRadioOption(PaymentSubject.voucher))
+        .should('be.visible')
+        .click();
+      // amount is reset to voucher value
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', voucher.amount);
+      // select payment amount available for both payment subjects
+      cy.dataCy(getRadioOption(testNumberValue)).should('be.visible').click();
+      // amount is set to shared test value
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', testNumberValue);
+      // switch to individual
+      cy.dataCy(getRadioOption(PaymentSubject.individual))
+        .should('be.visible')
+        .click();
+      // amount stays the same
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', testNumberValue);
+      // switch to voucher
+      cy.dataCy(getRadioOption(PaymentSubject.voucher))
+        .should('be.visible')
+        .click();
+      // amount stays the same
+      cy.dataCy(selectorPaymentAmount)
+        .should('be.visible')
+        .find('.q-radio__inner.q-radio__inner--truthy')
+        .siblings('.q-radio__label')
+        .should('contain', testNumberValue);
+    });
   });
 
   it('if selected voucher - allows to apply voucher (HALF)', () => {
