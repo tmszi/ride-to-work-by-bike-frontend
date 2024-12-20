@@ -64,6 +64,7 @@ export interface ConfigGlobal {
   urlApiTeams: string;
   urlLoginRegisterBackgroundImage: string;
   urlRTWBBLogo: string;
+  urlBaseBackend: string;
   checkIsEmailVerifiedInterval: number;
   checkIsThisCampaignCompetitionPhaseTypeInterval: string;
   googleLoginAppId: string;
