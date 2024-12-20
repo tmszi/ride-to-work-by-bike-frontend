@@ -44,6 +44,11 @@ describe('<FormFieldCompanyAddress>', () => {
         i18n,
         organizationId,
       );
+      cy.interceptSubsidiaryPostApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        organizationId,
+      );
       cy.interceptCitiesGetApi(rideToWorkByBikeConfig, i18n);
       model.value = null;
       cy.mount(FormFieldCompanyAddress, {
@@ -118,28 +123,84 @@ describe('<FormFieldCompanyAddress>', () => {
     });
 
     it('renders dialog for adding a new address', () => {
-      cy.dataCy('button-add-address').click();
-      cy.dataCy('dialog-add-address').should('be.visible');
-      // title
-      cy.dataCy('dialog-add-address')
-        .find('h3')
-        .should('be.visible')
-        .and('have.css', 'font-size', '20px')
-        .and('have.css', 'font-weight', '500')
-        .and('contain', i18n.global.t('form.company.titleAddAddress'));
-      // message
-      cy.dataCy('add-subsidiary-text')
-        .should('be.visible')
-        .and('contain', i18n.global.t('form.company.textSubsidiaryAddress'));
-      // form
-      cy.dataCy('form-add-subsidiary').should('be.visible');
-      // buttons
-      cy.dataCy('dialog-button-cancel')
-        .should('be.visible')
-        .and('have.text', i18n.global.t('navigation.discard'));
-      cy.dataCy('dialog-button-submit')
-        .should('be.visible')
-        .and('have.text', i18n.global.t('form.company.buttonAddSubsidiary'));
+      cy.wrap(useRegisterChallengeStore()).then((store) => {
+        // set organization ID in store
+        store.setOrganizationId(organizationId);
+        cy.wrap(store.getOrganizationId).should('eq', organizationId);
+        cy.dataCy('button-add-address').click();
+        cy.dataCy('dialog-add-address').should('be.visible');
+        // title
+        cy.dataCy('dialog-add-address')
+          .find('h3')
+          .should('be.visible')
+          .and('have.css', 'font-size', '20px')
+          .and('have.css', 'font-weight', '500')
+          .and('contain', i18n.global.t('form.company.titleAddAddress'));
+        // message
+        cy.dataCy('add-subsidiary-text')
+          .should('be.visible')
+          .and('contain', i18n.global.t('form.company.textSubsidiaryAddress'));
+        // form
+        cy.dataCy('form-add-subsidiary').should('be.visible');
+        // buttons
+        cy.dataCy('dialog-button-cancel')
+          .should('be.visible')
+          .and('have.text', i18n.global.t('navigation.discard'));
+        cy.dataCy('dialog-button-submit')
+          .should('be.visible')
+          .and('have.text', i18n.global.t('form.company.buttonAddSubsidiary'));
+      });
+    });
+
+    it('allows user to create a new subsidiary', () => {
+      cy.fixture('apiPostSubsidiaryRequest').then((subsidiaryRequest) => {
+        cy.fixture('apiPostSubsidiaryResponse').then((subsidiaryResponse) => {
+          cy.wrap(useRegisterChallengeStore()).then((store) => {
+            // set organization ID in store
+            store.setOrganizationId(organizationId);
+            cy.wrap(store.getOrganizationId).should('eq', organizationId);
+            // open dialog
+            cy.dataCy('button-add-address').click();
+            cy.dataCy('dialog-add-address').should('be.visible');
+            // fill the form
+            cy.dataCy('form-add-subsidiary').within(() => {
+              cy.dataCy('form-add-subsidiary-street').type(
+                subsidiaryRequest.address.street,
+              );
+              cy.dataCy('form-add-subsidiary-house-number').type(
+                subsidiaryRequest.address.street_number,
+              );
+              cy.dataCy('form-add-subsidiary-city').type(
+                subsidiaryRequest.address.city,
+              );
+              cy.dataCy('form-add-subsidiary-zip').type(
+                subsidiaryRequest.address.psc,
+              );
+              cy.dataCy('form-add-subsidiary-department').type(
+                subsidiaryRequest.address.recipient,
+              );
+              // open city challenge dropdown
+              cy.dataCy('form-add-subsidiary-city-challenge').click();
+            });
+            // select city challenge (outside the form)
+            cy.fixture('apiGetCitiesResponse').then((citiesResponse) => {
+              cy.get('.q-menu').within(() => {
+                cy.contains(citiesResponse.results[0].name)
+                  .should('be.visible')
+                  .click();
+              });
+            });
+            // submit form
+            cy.dataCy('dialog-button-submit').click();
+            // wait for API response
+            cy.waitForSubsidiaryPostApi(subsidiaryResponse);
+            // verify model was updated
+            cy.wrap(model).its('value').should('eq', subsidiaryResponse.id);
+            // verify dialog was closed
+            cy.dataCy('dialog-add-address').should('not.exist');
+          });
+        });
+      });
     });
   });
 

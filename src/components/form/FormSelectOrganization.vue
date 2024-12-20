@@ -46,6 +46,7 @@ export default defineComponent({
   setup() {
     const logger = inject('vuejs3-logger') as Logger | null;
     const opts = ref<FormSelectOption[]>([]);
+    const formFieldSelectTableRef = ref(null);
     const { options, isLoading, loadOrganizations } =
       useApiGetOrganizations(logger);
 
@@ -78,20 +79,28 @@ export default defineComponent({
           loadOrganizations(newValue).then(() => {
             logger?.info('All organizations data was loaded from the API.');
             // Lazy loading
-            opts.value = options.value;
+            opts.value = options;
           });
         }
       },
       { immediate: true },
     );
 
+    const onCloseAddSubsidiaryDialog = () => {
+      // Run organization validation proccess before open add subsidiary dialog
+      logger?.info('Run select organization widget validation process.');
+      formFieldSelectTableRef.value.selectOrganizationRef.validate();
+    };
+
     return {
+      formFieldSelectTableRef,
       isLoading,
       organizationId,
       opts,
       subsidiaryId,
       OrganizationLevel,
       organizationType,
+      onCloseAddSubsidiaryDialog,
     };
   },
 });
@@ -102,15 +111,17 @@ export default defineComponent({
     <form-field-select-table
       v-model="organizationId"
       :loading="isLoading"
-      :options="opts"
+      :options="opts.value"
       :organization-level="OrganizationLevel.organization"
       :organization-type="organizationType"
       :data-organization-type="organizationType"
+      ref="formFieldSelectTableRef"
       data-cy="form-select-table-company"
     />
     <form-field-company-address
       v-model="subsidiaryId"
       data-cy="form-company-address"
+      @close:addSubsidiaryDialog="onCloseAddSubsidiaryDialog"
     />
   </div>
 </template>
