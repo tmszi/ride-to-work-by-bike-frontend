@@ -156,6 +156,7 @@ export default defineComponent({
     const selectedPaymentAmount = ref<string>(String(defaultPaymentAmountMin));
     // Model for 'Entry fee amount' radio button element custom option slider element
     const selectedPaymentAmountCustom = ref<number>(defaultPaymentAmountMin);
+    const donationAmount = ref<number>(0);
     const paymentAmountMax = ref<number>(defaultPaymentAmountMax);
     const paymentAmountMin = ref<number>(defaultPaymentAmountMin);
     //  Model for 'Entry fee payment' radio button element
@@ -229,6 +230,11 @@ export default defineComponent({
       // clear active voucher
       activeVoucher.value = null;
       logger?.debug(`Clear active voucher code <${activeVoucher.value}>.`);
+    };
+
+    const onUpdateDonation = (amount: number): void => {
+      donationAmount.value = amount;
+      logger?.debug(`Set donation amount <${donationAmount.value}>.`);
     };
 
     const optionsPaymentAmountComputed = computed((): FormOption[] => {
@@ -399,6 +405,50 @@ export default defineComponent({
       }
     });
 
+    /**
+     * Compute current value based on selected payment subject, amount option and donation
+     * @returns {number}
+     */
+    const computedCurrentValue = computed<number>((): number => {
+      switch (selectedPaymentSubject.value) {
+        case PaymentSubject.individual:
+          logger?.debug(
+            `Selected payment subject <${selectedPaymentSubject.value}>,` +
+              ` computed current value <${selectedPaymentAmountCustom.value || 0}>.`,
+          );
+          return selectedPaymentAmountCustom.value || 0;
+        case PaymentSubject.voucher:
+          if (isVoucherFreeEntry.value) {
+            logger?.debug(
+              `Selected payment subject <${selectedPaymentSubject.value}>,` +
+                ` voucher free entry <${isVoucherFreeEntry.value}>,` +
+                ` computed current value <${donationAmount.value || 0}>.`,
+            );
+            return donationAmount.value || 0;
+          } else {
+            logger?.debug(
+              `Selected payment subject <${selectedPaymentSubject.value}>,` +
+                ` computed current value <${selectedPaymentAmountCustom.value || 0}>.`,
+            );
+            // entry is not free so user selects amount
+            return selectedPaymentAmountCustom.value || 0;
+          }
+        case PaymentSubject.company:
+        case PaymentSubject.school:
+          logger?.debug(
+            `Selected payment subject <${selectedPaymentSubject.value}>,` +
+              ` computed current value <${donationAmount.value || 0}>.`,
+          );
+          return donationAmount.value || 0;
+        default:
+          logger?.debug(
+            `Selected payment subject <${selectedPaymentSubject.value}>,` +
+              ` computed current value <${0}>.`,
+          );
+          return 0;
+      }
+    });
+
     const showVoucherElement = () => {
       const show = selectedPaymentSubject.value === PaymentSubject.voucher;
       logger?.debug(`Show voucher element <${show}>.`);
@@ -466,6 +516,7 @@ export default defineComponent({
     return {
       activeVoucher,
       borderRadius,
+      computedCurrentValue,
       formRegisterCoordinator,
       isRegistrationCoordinator,
       optionsPaymentAmountComputed,
@@ -478,7 +529,10 @@ export default defineComponent({
       selectedPaymentAmount,
       selectedPaymentAmountCustom,
       selectedPaymentSubject,
+      Currency,
+      formatPriceCurrency,
       onRemoveVoucher,
+      onUpdateDonation,
       onUpdateVoucher,
       showCompanySchoolElement,
       showCustomPaymentAmountElement,
@@ -581,7 +635,11 @@ export default defineComponent({
     </div>
     <!-- Input: Donation -->
     <div v-if="showDonationElement()">
-      <form-field-donation class="q-mt-md" data-cy="form-field-donation" />
+      <form-field-donation
+        class="q-mt-md"
+        @update:donation="onUpdateDonation"
+        data-cy="form-field-donation"
+      />
     </div>
     <!-- Section: Register coordinator -->
     <!-- TODO: Add condition - NO COORDINATOR IN SELECTED COMPANY -->
@@ -688,5 +746,20 @@ export default defineComponent({
         </div>
       </div>
     </div>
+    <!-- Section: Total price -->
+    <template v-if="computedCurrentValue">
+      <q-separator class="q-my-lg" />
+      <div class="flex gap-8 items-baseline" data-cy="total-price">
+        <span class="text-grey-8" data-cy="total-price-label">
+          {{ $t('global.total') }}:
+        </span>
+        <span
+          class="text-h5 text-grey-10 text-weight-bold"
+          data-cy="total-price-value"
+        >
+          {{ formatPriceCurrency(computedCurrentValue, Currency.CZK) }}
+        </span>
+      </div>
+    </template>
   </div>
 </template>
