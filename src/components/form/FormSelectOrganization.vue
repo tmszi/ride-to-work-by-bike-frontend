@@ -33,6 +33,8 @@ import { OrganizationLevel, OrganizationType } from '../types/Organization';
 // types
 import type { FormSelectOption } from '../types/Form';
 import type { Logger } from '../types/Logger';
+import type { OrganizationOption } from '../types/Organization';
+import type { PostOrganizationResponse } from '../types/apiOrganization';
 
 // stores
 import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
@@ -45,9 +47,12 @@ export default defineComponent({
   },
   setup() {
     const logger = inject('vuejs3-logger') as Logger | null;
+    const formFieldSelectTableRef = ref<typeof FormFieldSelectTable | null>(
+      null,
+    );
+
     const opts = ref<FormSelectOption[]>([]);
-    const formFieldSelectTableRef = ref(null);
-    const { options, isLoading, loadOrganizations } =
+    const { options, organizations, isLoading, loadOrganizations } =
       useApiGetOrganizations(logger);
 
     const registerChallengeStore = useRegisterChallengeStore();
@@ -79,7 +84,7 @@ export default defineComponent({
           loadOrganizations(newValue).then(() => {
             logger?.info('All organizations data was loaded from the API.');
             // Lazy loading
-            opts.value = options;
+            opts.value = options.value;
           });
         }
       },
@@ -87,9 +92,28 @@ export default defineComponent({
     );
 
     const onCloseAddSubsidiaryDialog = () => {
-      // Run organization validation proccess before open add subsidiary dialog
-      logger?.info('Run select organization widget validation process.');
-      formFieldSelectTableRef.value.selectOrganizationRef.validate();
+      if (formFieldSelectTableRef.value) {
+        // Run organization validation proccess before open add subsidiary dialog
+        logger?.info('Run select organization widget validation process.');
+        formFieldSelectTableRef.value.selectOrganizationRef.validate();
+      }
+    };
+
+    /**
+     * Prepend new organization option event handler
+     * @param {PostOrganizationResponse} data - The new organization data.
+     */
+    const onCreateOption = (data: PostOrganizationResponse) => {
+      const newOrganization: OrganizationOption = data;
+      logger?.debug(
+        `Add new organization to organizations options <${JSON.stringify(newOrganization, null, 2)}>.`,
+      );
+      organizations.value.unshift(newOrganization);
+      logger?.debug(
+        `Organizations options updated to <${JSON.stringify(organizations.value, null, 2)}>.`,
+      );
+      // lazy load options array with prepended new organization
+      opts.value = options.value;
     };
 
     return {
@@ -101,6 +125,7 @@ export default defineComponent({
       OrganizationLevel,
       organizationType,
       onCloseAddSubsidiaryDialog,
+      onCreateOption,
     };
   },
 });
@@ -109,13 +134,14 @@ export default defineComponent({
 <template>
   <div data-cy="form-select-organization">
     <form-field-select-table
+      ref="formFieldSelectTableRef"
       v-model="organizationId"
       :loading="isLoading"
-      :options="opts.value"
+      :options="opts"
       :organization-level="OrganizationLevel.organization"
       :organization-type="organizationType"
       :data-organization-type="organizationType"
-      ref="formFieldSelectTableRef"
+      @create:option="onCreateOption"
       data-cy="form-select-table-company"
     />
     <form-field-company-address
