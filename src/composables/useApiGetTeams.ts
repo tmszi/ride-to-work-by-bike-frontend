@@ -9,6 +9,7 @@ import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
 // stores
 import { useLoginStore } from '../stores/login';
+import { useChallengeStore } from '../stores/challenge';
 
 // types
 import type { Logger } from '../components/types/Logger';
@@ -32,6 +33,7 @@ export const useApiGetTeams = (logger: Logger | null): useApiGetTeamsReturn => {
   const teams = ref<OrganizationTeam[]>([]);
   const isLoading = ref<boolean>(false);
   const loginStore = useLoginStore();
+  const challengeStore = useChallengeStore();
   const { apiFetch } = useApi();
 
   /**
@@ -113,18 +115,27 @@ export const useApiGetTeams = (logger: Logger | null): useApiGetTeamsReturn => {
 
   // Push results to options
   const options = computed<FormSelectTableOption[]>(() => {
-    return teams.value.map((team: OrganizationTeam): FormSelectTableOption => {
+    return mapTeamsToOptions(teams.value);
+  });
+
+  const mapTeamsToOptions = (
+    teams: OrganizationTeam[],
+  ): FormSelectTableOption[] => {
+    return teams.map((team: OrganizationTeam): FormSelectTableOption => {
       return {
         label: team.name,
         value: team.id,
+        members: team.members,
+        maxMembers: challengeStore.getMaxTeamMembers,
       };
     });
-  });
+  };
 
   return {
     teams,
     options,
     isLoading,
     loadTeams,
+    mapTeamsToOptions,
   };
 };
