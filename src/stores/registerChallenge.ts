@@ -3,6 +3,9 @@ import { defineStore } from 'pinia';
 
 // composables
 import { useApiGetSubsidiaries } from 'src/composables/useApiGetSubsidiaries';
+import { useApiGetOrganizations } from 'src/composables/useApiGetOrganizations';
+import { useApiGetTeams } from 'src/composables/useApiGetTeams';
+import { useApiGetMerchandise } from 'src/composables/useApiGetMerchandise';
 
 // enums
 import { Gender } from '../components/types/Profile';
@@ -10,6 +13,8 @@ import { NewsletterType } from '../components/types/Newsletter';
 import {
   OrganizationSubsidiary,
   OrganizationType,
+  OrganizationOption,
+  OrganizationTeam,
 } from '../components/types/Organization';
 import { PaymentSubject } from '../components/enums/Payment';
 
@@ -17,6 +22,10 @@ import { PaymentSubject } from '../components/enums/Payment';
 import type { Logger } from '../components/types/Logger';
 import type { RegisterChallengePersonalDetailsForm } from '../components/types/RegisterChallenge';
 import type { ValidatedCoupon } from '../components/types/Coupon';
+import type {
+  MerchandiseCard,
+  MerchandiseItem,
+} from '../components/types/Merchandise';
 
 const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   firstName: '',
@@ -45,7 +54,14 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     paymentSubject: PaymentSubject.individual,
     voucher: '' as ValidatedCoupon | string,
     subsidiaries: [] as OrganizationSubsidiary[],
+    organizations: [] as OrganizationOption[],
+    teams: [] as OrganizationTeam[],
+    merchandiseItems: [] as MerchandiseItem[],
+    merchandiseCards: {} as Record<Gender, MerchandiseCard[]>,
     isLoadingSubsidiaries: false,
+    isLoadingOrganizations: false,
+    isLoadingTeams: false,
+    isLoadingMerchandise: false,
   }),
 
   getters: {
@@ -59,6 +75,11 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getPaymentSubject: (state): PaymentSubject => state.paymentSubject,
     getVoucher: (state): ValidatedCoupon | string => state.voucher,
     getSubsidiaries: (state): OrganizationSubsidiary[] => state.subsidiaries,
+    getOrganizations: (state): OrganizationOption[] => state.organizations,
+    getTeams: (state): OrganizationTeam[] => state.teams,
+    getMerchandiseItems: (state): MerchandiseItem[] => state.merchandiseItems,
+    getMerchandiseCards: (state): Record<Gender, MerchandiseCard[]> =>
+      state.merchandiseCards,
   },
 
   actions: {
@@ -89,6 +110,18 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     setSubsidiaries(subsidiaries: OrganizationSubsidiary[]) {
       this.subsidiaries = subsidiaries;
     },
+    setOrganizations(organizations: OrganizationOption[]) {
+      this.organizations = organizations;
+    },
+    setTeams(teams: OrganizationTeam[]) {
+      this.teams = teams;
+    },
+    setMerchandiseItems(items: MerchandiseItem[]) {
+      this.merchandiseItems = items;
+    },
+    setMerchandiseCards(cards: Record<Gender, MerchandiseCard[]>) {
+      this.merchandiseCards = cards;
+    },
     async loadSubsidiariesToStore(logger: Logger | null) {
       const { subsidiaries, loadSubsidiaries } = useApiGetSubsidiaries(logger);
       if (this.organizationId) {
@@ -105,9 +138,59 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         this.isLoadingSubsidiaries = false;
       }
     },
+    async loadOrganizationsToStore(logger: Logger | null) {
+      const { organizations, loadOrganizations } =
+        useApiGetOrganizations(logger);
+      if (this.organizationType !== OrganizationType.none) {
+        logger?.debug(
+          `Load organizations for type <${this.organizationType}>` +
+            ' and save them into store.',
+        );
+        this.isLoadingOrganizations = true;
+        await loadOrganizations(this.organizationType);
+        this.organizations = organizations.value;
+        logger?.debug(
+          `Loaded organizations <${this.organizations}> saved into store.`,
+        );
+        this.isLoadingOrganizations = false;
+      }
+    },
+    async loadTeamsToStore(logger: Logger | null) {
+      const { teams, loadTeams } = useApiGetTeams(logger);
+      if (this.subsidiaryId) {
+        logger?.debug(
+          `Load subsidiary ID <${this.subsidiaryId}>` +
+            ' teams and save them into store.',
+        );
+        this.isLoadingTeams = true;
+        await loadTeams(this.subsidiaryId);
+        this.teams = teams.value;
+        logger?.debug(`Loaded teams <${this.teams}> saved into store.`);
+        this.isLoadingTeams = false;
+      }
+    },
+    async loadMerchandiseToStore(logger: Logger | null) {
+      const { merchandiseItems, merchandiseCards, loadMerchandise } =
+        useApiGetMerchandise(logger);
+      logger?.debug('Loading merchandise data into store.');
+      this.isLoadingMerchandise = true;
+      await loadMerchandise();
+      this.merchandiseItems = merchandiseItems.value;
+      this.merchandiseCards = merchandiseCards.value;
+      logger?.debug(
+        `Loaded merchandise items <${this.merchandiseItems.length}> and cards saved into store.`,
+      );
+      this.isLoadingMerchandise = false;
+    },
   },
 
   persist: {
-    omit: ['subsidiaries'],
+    omit: [
+      'subsidiaries',
+      'organizations',
+      'teams',
+      'merchandiseItems',
+      'merchandiseCards',
+    ],
   },
 });
