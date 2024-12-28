@@ -1,11 +1,15 @@
 // libraries
 import { defineStore } from 'pinia';
 
+// adapters
+import { subsidiaryAdapter } from 'src/adapters/subsidiaryAdapter';
+
 // composables
 import { useApiGetSubsidiaries } from 'src/composables/useApiGetSubsidiaries';
 import { useApiGetOrganizations } from 'src/composables/useApiGetOrganizations';
 import { useApiGetTeams } from 'src/composables/useApiGetTeams';
 import { useApiGetMerchandise } from 'src/composables/useApiGetMerchandise';
+import { useApiGetFilteredMerchandise } from 'src/composables/useApiGetFilteredMerchandise';
 
 // enums
 import { Gender } from '../components/types/Profile';
@@ -26,6 +30,7 @@ import type {
   MerchandiseCard,
   MerchandiseItem,
 } from '../components/types/Merchandise';
+import { i18n } from '../boot/i18n';
 
 const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   firstName: '',
@@ -62,6 +67,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     isLoadingOrganizations: false,
     isLoadingTeams: false,
     isLoadingMerchandise: false,
+    isLoadingFilteredMerchandise: false,
   }),
 
   getters: {
@@ -80,6 +86,60 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getMerchandiseItems: (state): MerchandiseItem[] => state.merchandiseItems,
     getMerchandiseCards: (state): Record<Gender, MerchandiseCard[]> =>
       state.merchandiseCards,
+    getSelectedOrganizationLabel: (state): string => {
+      if (state.organizationId) {
+        const organization = state.organizations.find(
+          (org) => org.id === state.organizationId,
+        );
+        return organization?.name || '';
+      }
+      return '';
+    },
+    getSelectedSubsidiaryLabel: (state): string => {
+      if (state.subsidiaryId) {
+        const subsidiary = state.subsidiaries.find(
+          (sub) => sub.id === state.subsidiaryId,
+        );
+        return subsidiary?.title || '';
+      }
+      return '';
+    },
+    getSelectedTeamLabel: (state): string => {
+      if (state.teamId) {
+        const team = state.teams.find((t) => t.id === state.teamId);
+        return team?.name || '';
+      }
+      return '';
+    },
+    getSelectedMerchandiseLabel: (state): string => {
+      if (state.merchId) {
+        const merchandise = state.merchandiseItems.find(
+          (m) => m.id === state.merchId,
+        );
+        return merchandise?.label || i18n.global.t('form.merch.labelNoMerch');
+      }
+      return '';
+    },
+    getSelectedMerchandiseDescription: (state): string => {
+      if (state.merchId) {
+        const merchandise = state.merchandiseItems.find(
+          (m) => m.id === state.merchId,
+        );
+        return merchandise?.description || '';
+      }
+      return '';
+    },
+    getSelectedSubsidiaryAddress: (state): string => {
+      if (state.subsidiaryId) {
+        const subsidiary = state.subsidiaries.find(
+          (sub) => sub.id === state.subsidiaryId,
+        );
+        return subsidiaryAdapter.fromFormCompanyAddressFieldsToString(
+          subsidiary?.address,
+        );
+      }
+      return '';
+    },
   },
 
   actions: {
@@ -172,7 +232,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     async loadMerchandiseToStore(logger: Logger | null) {
       const { merchandiseItems, merchandiseCards, loadMerchandise } =
         useApiGetMerchandise(logger);
-      logger?.debug('Loading merchandise data into store.');
+      logger?.info('Loading merchandise data into store.');
       this.isLoadingMerchandise = true;
       await loadMerchandise();
       this.merchandiseItems = merchandiseItems.value;
@@ -181,6 +241,20 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         `Loaded merchandise items <${this.merchandiseItems.length}> and cards saved into store.`,
       );
       this.isLoadingMerchandise = false;
+    },
+    async loadFilteredMerchandiseToStore(logger: Logger | null, code: string) {
+      const { merchandise, loadFilteredMerchandise } =
+        useApiGetFilteredMerchandise(logger);
+      logger?.debug(
+        `Loading filtered merchandise data by code <${code}> into store.`,
+      );
+      this.isLoadingFilteredMerchandise = true;
+      await loadFilteredMerchandise(code);
+      this.setMerchId(merchandise.value[0]['id']);
+      logger?.debug(
+        `Loaded filtered merchandise item ID <${this.getMerchId}> saved into store.`,
+      );
+      this.isLoadingFilteredMerchandise = false;
     },
   },
 

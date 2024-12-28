@@ -53,6 +53,8 @@ import { i18n } from '../../boot/i18n';
 // stores
 import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
 
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
 // enums
 import { Gender } from '../types/Profile';
 
@@ -98,7 +100,7 @@ export default defineComponent({
 
     // load merchandise on mount
     onMounted(async () => {
-      await registerChallengeStore.loadMerchandiseToStore(logger);
+      registerChallengeStore.loadMerchandiseToStore(logger);
     });
 
     const merchandiseItems = computed(
@@ -264,8 +266,29 @@ export default defineComponent({
      * Scroll to merch tabs if you uncheck
      * "I don't want merch" checkbox widget
      */
+    let iDontWantMerchandiseCachedId;
     const onCheckboxUpdate = function (val: boolean): void {
-      if (!val) {
+      if (val) {
+        if (!iDontWantMerchandiseCachedId) {
+          logger?.info("Get 'I don't want any merchandise' ID from the API.");
+          registerChallengeStore
+            .loadFilteredMerchandiseToStore(
+              logger,
+              rideToWorkByBikeConfig.iDontWantMerchandiseItemCode,
+            )
+            .then(() => {
+              iDontWantMerchandiseCachedId = registerChallengeStore.getMerchId;
+              logger?.debug(
+                `Save 'I don't want any merchandise' ID <${iDontWantMerchandiseCachedId}> into cache.`,
+              );
+            });
+        } else {
+          logger?.debug(
+            `Use 'I don't want any merchandise' ID <${iDontWantMerchandiseCachedId}> from the cache.`,
+          );
+          registerChallengeStore.setMerchId(iDontWantMerchandiseCachedId);
+        }
+      } else {
         nextTick(() => {
           tabsMerchRef.value?.$el.scrollIntoView({
             behavior: 'smooth',
