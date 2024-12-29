@@ -1,3 +1,6 @@
+// libraries
+import type { Ref } from 'vue';
+
 export interface PostOrganizationPayload {
   name: string;
   vatId: string;
@@ -14,4 +17,14 @@ export interface PostOrganizationPayload {
 export interface PostOrganizationResponse {
   id: number;
   name: string;
+}
+
+export interface UseApiGetHasOrganizationAdminReturn {
+  isLoading: Ref<boolean>;
+  hasOrganizationAdmin: Ref<boolean | null>;
+  checkOrganizationAdmin: () => Promise<void>;
+}
+
+export interface HasOrganizationAdminResponse {
+  has_organization_admin: boolean;
 }
