@@ -94,6 +94,29 @@ export default defineComponent({
       { immediate: true },
     );
 
+    const onOrganizationIdChange = (): void => {
+      // reset subsidiaryId on organizationId change
+      registerChallengeStore.setSubsidiaryId(null);
+      logger?.debug(
+        'Organization ID change, reset' +
+          ` subsidiary ID <${registerChallengeStore.getSubsidiaryId}>.`,
+      );
+      // reset teamId on organizationId change
+      registerChallengeStore.setTeamId(null);
+      logger?.debug(
+        'Organization ID change, reset' +
+          ` team ID <${registerChallengeStore.getTeamId}>.`,
+      );
+    };
+
+    const onSubsidiaryIdChange = (): void => {
+      registerChallengeStore.setTeamId(null);
+      logger?.debug(
+        'Subsidiary ID change, reset' +
+          ` team ID <${registerChallengeStore.getTeamId}>.`,
+      );
+    };
+
     const onCloseAddSubsidiaryDialog = () => {
       if (formFieldSelectTableRef.value) {
         // Run organization validation proccess before open add subsidiary dialog
@@ -128,6 +151,8 @@ export default defineComponent({
       organizationType,
       onCloseAddSubsidiaryDialog,
       onCreateOption,
+      onOrganizationIdChange,
+      onSubsidiaryIdChange,
     };
   },
 });
@@ -144,11 +169,13 @@ export default defineComponent({
       :organization-type="organizationType"
       :data-organization-type="organizationType"
       @create:option="onCreateOption"
+      @update:model-value="onOrganizationIdChange"
       data-cy="form-select-table-company"
     />
     <form-field-company-address
       v-model="subsidiaryId"
       data-cy="form-company-address"
+      @update:model-value="onSubsidiaryIdChange"
       @close:addSubsidiaryDialog="onCloseAddSubsidiaryDialog"
     />
   </div>

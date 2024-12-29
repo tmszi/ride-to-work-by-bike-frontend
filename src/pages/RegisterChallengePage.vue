@@ -38,6 +38,7 @@ import FormSelectTeam from 'src/components/form/FormSelectTeam.vue';
 import LoginRegisterHeader from 'components/global/LoginRegisterHeader.vue';
 import RegisterChallengePayment from 'src/components/register/RegisterChallengePayment.vue';
 import RegisterChallengeSummary from 'src/components/register/RegisterChallengeSummary.vue';
+import ShowOrganizationIds from 'src/components/debug/ShowOrganizationIds.vue';
 import TopBarCountdown from 'src/components/global/TopBarCountdown.vue';
 
 // composables
@@ -61,6 +62,7 @@ export default defineComponent({
     LoginRegisterHeader,
     RegisterChallengePayment,
     RegisterChallengeSummary,
+    ShowOrganizationIds,
     TopBarCountdown,
   },
   setup() {
@@ -142,7 +144,7 @@ export default defineComponent({
     const { getOrganizationLabels } = useOrganizations();
     const organizationStepTitle = computed(() => {
       return getOrganizationLabels(
-        organizationType.value || OrganizationType.company,
+        registerChallengeStore.getOrganizationType || OrganizationType.company,
       ).labelShort;
     });
 
@@ -218,6 +220,7 @@ export default defineComponent({
         class="q-mx-auto q-mt-xl"
         :style="{ 'max-width': containerFormWidth }"
       >
+        <show-organization-ids />
         <!-- Page title -->
         <h1
           class="text-h5 text-bold text-white q-my-none"
@@ -319,7 +322,6 @@ export default defineComponent({
                 {{ $t('form.participation.titleParticipation') }}
               </p>
               <form-field-option-group
-                v-model="organizationType"
                 name="participation"
                 label="form.labelParticipation"
               />
