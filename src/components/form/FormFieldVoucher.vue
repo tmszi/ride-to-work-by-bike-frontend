@@ -29,6 +29,8 @@ import { i18n } from '../../boot/i18n';
 import { useFormatPrice } from '../../composables/useFormatPrice';
 import { useApiGetDiscountCoupon } from '../../composables/useApiGetDiscountCoupon';
 
+import { defaultPaymentAmountMinComputed } from '../../utils/price_levels.ts';
+
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
@@ -36,6 +38,7 @@ import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 import { Currency } from '../../composables/useFormatPrice';
 
 // stores
+import { useChallengeStore } from '../../stores/challenge';
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
 
 // types
@@ -49,9 +52,12 @@ export default defineComponent({
   props: {},
   setup() {
     const formFieldTextRequiredRef = ref(null);
-    const defaultPaymentAmountMin = parseInt(
-      rideToWorkByBikeConfig.entryFeePaymentMin,
-    );
+    const challengeStore = useChallengeStore();
+    const defaultPaymentAmountMin = computed(() => {
+      return defaultPaymentAmountMinComputed(
+        challengeStore.getCurrentPriceLevels,
+      );
+    });
 
     const registerChallengeStore = useRegisterChallengeStore();
 
@@ -115,7 +121,7 @@ export default defineComponent({
 
       // calculate discount from min payment amount
       const discountAmountInt: number = Math.round(
-        (defaultPaymentAmountMin * discount) / 100,
+        (defaultPaymentAmountMin.value * discount) / 100,
       );
 
       if (discount === 100) {

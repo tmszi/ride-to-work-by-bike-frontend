@@ -7,13 +7,17 @@ import { useApiGetCampaign } from '../composables/useApiGetCampaign';
 
 // utils
 import { timestampToDatetimeString } from 'src/utils';
+import { getCurrentPriceLevelsUtil } from '../utils/price_levels';
 
 // enums
-import { ChallengeStatus } from '../components/enums/Challenge';
+import {
+  ChallengeStatus,
+  PriceLevelCategory,
+} from '../components/enums/Challenge';
 
 // types
 import type { Logger } from '../components/types/Logger';
-import type { Phase } from '../components/types/Challenge';
+import type { Phase, PriceLevel } from '../components/types/Challenge';
 
 export const useChallengeStore = defineStore('challenge', {
   state: () => ({
@@ -31,6 +35,7 @@ export const useChallengeStore = defineStore('challenge', {
     phaseSet: [] as Phase[],
     daysActive: null as number | null,
     maxTeamMembers: null as number | null,
+    priceLevel: [] as PriceLevel[],
   }),
 
   getters: {
@@ -58,11 +63,20 @@ export const useChallengeStore = defineStore('challenge', {
     getMaxTeamMembers(): number | null {
       return this.maxTeamMembers;
     },
+    getPriceLevel(): PriceLevel[] {
+      return this.priceLevel;
+    },
+    getCurrentPriceLevels(): Record<PriceLevelCategory, PriceLevel> {
+      return getCurrentPriceLevelsUtil(this.priceLevel);
+    },
   },
 
   actions: {
     setMaxTeamMembers(maxTeamMembers: number | null): void {
       this.maxTeamMembers = maxTeamMembers;
+    },
+    setPriceLevel(priceLevel: PriceLevel[]): void {
+      this.priceLevel = priceLevel;
     },
     async loadPhaseSet(): Promise<void> {
       const { campaigns, loadCampaign } = useApiGetCampaign(this.$log);
@@ -101,6 +115,15 @@ export const useChallengeStore = defineStore('challenge', {
         );
       } else {
         this.$log?.info('No this campaign max team members found.');
+      }
+
+      if (campaigns.value.length && campaigns.value[0]?.price_level) {
+        this.$log?.debug(
+          `Set store this campaign price level <${campaigns.value[0].price_level}>.`,
+        );
+        this.priceLevel = campaigns.value[0].price_level;
+      } else {
+        this.$log?.info('No this campaign price level found.');
       }
     },
     /**

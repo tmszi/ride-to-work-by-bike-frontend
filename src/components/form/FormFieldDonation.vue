@@ -19,13 +19,15 @@
  */
 
 // libraries
-import { defineComponent, onUnmounted, ref, watch } from 'vue';
+import { computed, defineComponent, onUnmounted, ref, watch } from 'vue';
+
+import { defaultPaymentAmountMinComputed } from '../../utils/price_levels.ts';
 
 // components
 import FormFieldSliderNumber from './FormFieldSliderNumber.vue';
 
-// config
-import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+// stores
+import { useChallengeStore } from '../../stores/challenge';
 
 export default defineComponent({
   name: 'FormFieldDonation',
@@ -34,10 +36,16 @@ export default defineComponent({
   },
   emits: ['update:donation'],
   setup(props, { emit }) {
-    const defaultPaymentAmountMin = parseInt(
-      rideToWorkByBikeConfig.entryFeePaymentMin,
-    );
-    const amount = ref<number>(defaultPaymentAmountMin);
+    const challengeStore = useChallengeStore();
+    const defaultPaymentAmountMin = computed(() => {
+      return defaultPaymentAmountMinComputed(
+        challengeStore.getCurrentPriceLevels,
+      );
+    });
+    watch(defaultPaymentAmountMin, () => {
+      amount.value = defaultPaymentAmountMin.value;
+    });
+    const amount = ref<number>(0);
     const isDonation = ref<boolean>(false);
 
     /**
@@ -50,7 +58,7 @@ export default defineComponent({
           emit('update:donation', amount.value);
         } else {
           // deselecting donation resets donation amount to default
-          amount.value = defaultPaymentAmountMin;
+          amount.value = defaultPaymentAmountMin.value;
           emit('update:donation', 0);
         }
       },

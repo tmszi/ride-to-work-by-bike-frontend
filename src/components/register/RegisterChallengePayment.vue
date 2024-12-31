@@ -5,7 +5,8 @@
  * @description * Use this component to render a payment widget for the
  * registration process.
  * Options for payment amount are set in the config file as
- * `entryFeePaymentMin`, `entryFeePaymentMax` and `entryFeePaymentOptions`.
+ * `entryFeePaymentMax` and `entryFeePaymentOptions`.
+ * The minimum payment amount is set from API in the challenge store.
  *
  * @components
  * - `FormFieldCompany`: Component to render company select.
@@ -48,6 +49,8 @@ import FormFieldSliderNumber from '../form/FormFieldSliderNumber.vue';
 import FormFieldTextRequired from '../global/FormFieldTextRequired.vue';
 import FormFieldVoucher from '../form/FormFieldVoucher.vue';
 
+import { defaultPaymentAmountMinComputed } from '../../utils/price_levels.ts';
+
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
@@ -57,6 +60,7 @@ import { PaymentAmount, PaymentSubject } from '../enums/Payment';
 import { OrganizationType } from '../types/Organization';
 
 // stores
+import { useChallengeStore } from '../../stores/challenge';
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
 
 // types
@@ -77,15 +81,22 @@ export default defineComponent({
   },
   setup() {
     const logger = inject('vuejs3-logger') as Logger | null;
+    const challengeStore = useChallengeStore();
     // constants
     const defaultPaymentAmountMax = parseInt(
       rideToWorkByBikeConfig.entryFeePaymentMax,
     );
     logger?.debug(`Default max. payment amount <${defaultPaymentAmountMax}>.`);
-    const defaultPaymentAmountMin = parseInt(
-      rideToWorkByBikeConfig.entryFeePaymentMin,
+    // get default min price from store
+    const defaultPaymentAmountMin = computed(() => {
+      return defaultPaymentAmountMinComputed(
+        challengeStore.getCurrentPriceLevels,
+      );
+    });
+    logger?.debug(
+      `Default min. payment amount basic <${defaultPaymentAmountMin.value}>.`,
     );
-    logger?.debug(`Default min. payment amount <${defaultPaymentAmountMin}>.`);
+
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
     const { getPaletteColor, lighten } = colors;
     const primaryColor = getPaletteColor('primary');
@@ -118,15 +129,6 @@ export default defineComponent({
     );
 
     const { formatPriceCurrency } = useFormatPrice();
-    const defaultPaymentOption = {
-      label: formatPriceCurrency(defaultPaymentAmountMin, Currency.CZK),
-      value: String(defaultPaymentAmountMin),
-    };
-    logger?.debug(
-      `Default payment options <${JSON.stringify(defaultPaymentOption, null, 2)}>` +
-        ` for <${i18n.global.t('register.challenge.labelPaymentAmount')}>` +
-        ' radio button element.',
-    );
 
     // Build the optionsPaymentAmount array dynamically
     let paymentOptions: FormOption[] = [];
@@ -165,12 +167,16 @@ export default defineComponent({
       return registerChallengeStore.getVoucher;
     });
     // Model for 'Entry fee amount' radio button element must be string type (options values '390', ..., 'custom')
-    const selectedPaymentAmount = ref<string>(String(defaultPaymentAmountMin));
+    const selectedPaymentAmount = ref<string>(
+      String(defaultPaymentAmountMin.value),
+    );
     // Model for 'Entry fee amount' radio button element custom option slider element
-    const selectedPaymentAmountCustom = ref<number>(defaultPaymentAmountMin);
+    const selectedPaymentAmountCustom = ref<number>(
+      defaultPaymentAmountMin.value,
+    );
     const donationAmount = ref<number>(0);
     const paymentAmountMax = ref<number>(defaultPaymentAmountMax);
-    const paymentAmountMin = ref<number>(defaultPaymentAmountMin);
+    const paymentAmountMin = ref<number>(defaultPaymentAmountMin.value);
 
     const registerChallengeStore = useRegisterChallengeStore();
 
@@ -281,7 +287,7 @@ export default defineComponent({
         activeVoucher.value?.discount
       ) {
         const discountAmount: number =
-          (defaultPaymentAmountMin * activeVoucher.value?.discount) / 100;
+          (defaultPaymentAmountMin.value * activeVoucher.value?.discount) / 100;
         logger?.debug(
           `Selected payment subject <${selectedPaymentSubject.value}>,` +
             ` is voucher valid <${isVoucherValid.value}>,` +
@@ -317,7 +323,13 @@ export default defineComponent({
         );
         opts = [
           // min option
-          defaultPaymentOption,
+          {
+            label: formatPriceCurrency(
+              defaultPaymentAmountMin.value,
+              Currency.CZK,
+            ),
+            value: String(defaultPaymentAmountMin.value),
+          },
           // other options
           ...paymentOptions,
           // custom option
