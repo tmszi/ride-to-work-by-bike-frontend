@@ -3,13 +3,16 @@ import { defineStore } from 'pinia';
 
 // adapters
 import { subsidiaryAdapter } from 'src/adapters/subsidiaryAdapter';
+import { registerChallengeAdapter } from '../adapters/registerChallengeAdapter';
 
 // composables
+import { useApiGetRegisterChallenge } from 'src/composables/useApiGetRegisterChallenge';
 import { useApiGetSubsidiaries } from 'src/composables/useApiGetSubsidiaries';
 import { useApiGetOrganizations } from 'src/composables/useApiGetOrganizations';
 import { useApiGetTeams } from 'src/composables/useApiGetTeams';
 import { useApiGetMerchandise } from 'src/composables/useApiGetMerchandise';
 import { useApiGetFilteredMerchandise } from 'src/composables/useApiGetFilteredMerchandise';
+import { useApiPostRegisterChallenge } from '../composables/useApiPostRegisterChallenge';
 
 // enums
 import { Gender } from '../components/types/Profile';
@@ -21,6 +24,7 @@ import {
   OrganizationTeam,
 } from '../components/types/Organization';
 import { PaymentSubject } from '../components/enums/Payment';
+import { RegisterChallengeStep } from '../components/enums/RegisterChallenge';
 
 // types
 import type { Logger } from '../components/types/Logger';
@@ -33,6 +37,12 @@ import type {
 import { i18n } from '../boot/i18n';
 import { useChallengeStore } from './challenge';
 import { PriceLevelCategory } from '../components/enums/Challenge';
+import type {
+  RegisterChallengePostPayload,
+  RegisterChallengePostResponse,
+  RegisterChallengeResult,
+  ToApiPayloadStoreState,
+} from '../components/types/ApiRegistration';
 
 const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   firstName: '',
@@ -41,7 +51,6 @@ const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   nickname: '',
   gender: null as Gender | null,
   terms: true,
-  paymentSubject: PaymentSubject.individual,
 };
 
 /**
@@ -59,12 +68,14 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     teamId: null as number | null,
     merchId: null as number | null,
     paymentSubject: PaymentSubject.individual,
-    voucher: '' as ValidatedCoupon | string,
+    paymentAmount: null as number | null,
+    voucher: null as ValidatedCoupon | null,
     subsidiaries: [] as OrganizationSubsidiary[],
     organizations: [] as OrganizationOption[],
     teams: [] as OrganizationTeam[],
     merchandiseItems: [] as MerchandiseItem[],
     merchandiseCards: {} as Record<Gender, MerchandiseCard[]>,
+    isLoadingRegisterChallenge: false,
     isLoadingSubsidiaries: false,
     isLoadingOrganizations: false,
     isLoadingTeams: false,
@@ -81,7 +92,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getTeamId: (state): number | null => state.teamId,
     getMerchId: (state): number | null => state.merchId,
     getPaymentSubject: (state): PaymentSubject => state.paymentSubject,
-    getVoucher: (state): ValidatedCoupon | string => state.voucher,
+    getPaymentAmount: (state): number | null => state.paymentAmount,
+    getVoucher: (state): ValidatedCoupon | null => state.voucher,
     getSubsidiaries: (state): OrganizationSubsidiary[] => state.subsidiaries,
     getOrganizations: (state): OrganizationOption[] => state.organizations,
     getTeams: (state): OrganizationTeam[] => state.teams,
@@ -176,7 +188,10 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     setPaymentSubject(paymentSubject: PaymentSubject) {
       this.paymentSubject = paymentSubject;
     },
-    setVoucher(voucher: ValidatedCoupon | string) {
+    setPaymentAmount(paymentAmount: number | null) {
+      this.paymentAmount = paymentAmount;
+    },
+    setVoucher(voucher: ValidatedCoupon | null) {
       this.voucher = voucher;
     },
     setSubsidiaries(subsidiaries: OrganizationSubsidiary[]) {
@@ -194,18 +209,151 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     setMerchandiseCards(cards: Record<Gender, MerchandiseCard[]>) {
       this.merchandiseCards = cards;
     },
+    /**
+     * Load registration data from API and set store state
+     */
+    async loadRegisterChallengeToStore(): Promise<void> {
+      const { registrations, loadRegistrations } = useApiGetRegisterChallenge(
+        this.$log,
+      );
+      this.isLoadingRegisterChallenge = true;
+      await loadRegistrations();
+      if (registrations.value.length > 0) {
+        this.setRegisterChallengeFromApi(registrations.value[0]);
+      } else {
+        this.$log?.info(
+          'No registration challenge data available to set store state.',
+        );
+      }
+      this.isLoadingRegisterChallenge = false;
+    },
+    /**
+     * Set store state from API registration data
+     * @param registration - Registration data from API
+     */
+    setRegisterChallengeFromApi(registration: RegisterChallengeResult): void {
+      this.$log?.debug(
+        `Setting store state from registration challenge data <${JSON.stringify(
+          registration,
+          null,
+          2,
+        )}>.`,
+      );
+      const parsedResponse = registerChallengeAdapter.toStoreData(registration);
+      // update store state
+      this.setPersonalDetails(parsedResponse.personalDetails);
+      this.$log?.debug(
+        `Personal details updated to <${JSON.stringify(this.getPersonalDetails, null, 2)}>.`,
+      );
+      /**
+       * The paymentAmount value is sent for subject = 'company' or 'school'.
+       * It indicates what was the price for which the user registered.
+       * We store the amount because the price may change.
+       */
+      /**
+       * The paymentVoucher value is sent when discounted payment is made.
+       * We do not need the name value (unless for information purposes)
+       * as the payment must be made immediately.
+       */
+      this.setPaymentSubject(parsedResponse.paymentSubject);
+      this.$log?.debug(
+        `Payment subject strore updated to <${this.getPaymentSubject}>.`,
+      );
+      /**
+       * In case the payment subject has been selected but the organizationType
+       * has not been set by completing the step "Participation", we set
+       * the organizationType based on the payment subject.
+       */
+      if (parsedResponse.paymentSubject === PaymentSubject.company) {
+        this.setOrganizationType(OrganizationType.company);
+      } else if (parsedResponse.paymentSubject === PaymentSubject.school) {
+        this.setOrganizationType(OrganizationType.school);
+      }
+      if (parsedResponse.organizationType) {
+        this.setOrganizationType(parsedResponse.organizationType);
+      }
+      this.$log?.debug(
+        `Organization type strore updated to <${this.getOrganizationType}>.`,
+      );
+      this.setOrganizationId(parsedResponse.organizationId);
+      this.$log?.debug(
+        `Organization ID strore updated to <${this.getOrganizationId}>.`,
+      );
+      this.setSubsidiaryId(parsedResponse.subsidiaryId);
+      this.$log?.debug(
+        `Subsidiary ID store updated to <${this.getSubsidiaryId}>.`,
+      );
+      this.setTeamId(parsedResponse.teamId);
+      this.$log?.debug(`Team ID store updated to <${this.getTeamId}>.`);
+      this.setMerchId(parsedResponse.merchId);
+      this.$log?.debug(`Merch ID store updated to <${this.getMerchId}>.`);
+    },
+    /**
+     * Submit a registration step
+     * @param step - The step being submitted
+     */
+    async submitStep(
+      step: RegisterChallengeStep,
+    ): Promise<RegisterChallengePostResponse | null> {
+      // payload map defines what data is sent to the API for each step
+      const payloadMap: Record<RegisterChallengeStep, unknown> = {
+        [RegisterChallengeStep.personalDetails]: {
+          personalDetails: this.personalDetails,
+        },
+        [RegisterChallengeStep.payment]: {
+          paymentSubject: this.paymentSubject,
+          // we send only the default payment amount for organization
+          paymentAmount: this.getDefaultPaymentAmountCompany,
+          voucher: this.voucher,
+        },
+        [RegisterChallengeStep.participation]: {},
+        [RegisterChallengeStep.organization]: {},
+        [RegisterChallengeStep.team]: { teamId: this.teamId },
+        [RegisterChallengeStep.merch]: { merchId: this.merchId },
+        [RegisterChallengeStep.summary]: {},
+      };
+      // convert store state to API payload
+      const payload = registerChallengeAdapter.toApiPayload(
+        payloadMap[step] as ToApiPayloadStoreState,
+      );
+      this.$log?.debug(
+        `Submitting <${step}> payload <${JSON.stringify(payload, null, 2)}>.`,
+      );
+      // post payload to API
+      return this.postRegisterChallenge(payload);
+    },
+    /**
+     * Post registration data to API
+     * @param {RegisterChallengePostPayload} payload - Registration data to send
+     * @returns {Promise<RegisterChallengePostResponse | null>}
+     */
+    async postRegisterChallenge(
+      payload: RegisterChallengePostPayload,
+    ): Promise<RegisterChallengePostResponse | null> {
+      const { registerChallenge } = useApiPostRegisterChallenge(this.$log);
+      this.isLoadingRegisterChallenge = true;
+
+      this.$log?.debug(
+        `Posting registration challenge data to API <${JSON.stringify(payload, null, 2)}>.`,
+      );
+
+      const response = await registerChallenge(payload);
+      this.isLoadingRegisterChallenge = false;
+
+      return response;
+    },
     async loadSubsidiariesToStore(logger: Logger | null) {
       const { subsidiaries, loadSubsidiaries } = useApiGetSubsidiaries(logger);
       if (this.organizationId) {
         logger?.debug(
-          `Load organization ID <${this.organizationId}>` +
+          `Load organization ID <${this.getOrganizationId}>` +
             ' subsidiaries and save them into store.',
         );
         this.isLoadingSubsidiaries = true;
         await loadSubsidiaries(this.organizationId);
         this.subsidiaries = subsidiaries.value;
         logger?.debug(
-          `Loaded subsidiaries <${this.subsidiaries}> saved into store.`,
+          `Loaded subsidiaries <${this.getSubsidiaries}> saved into store.`,
         );
         this.isLoadingSubsidiaries = false;
       }

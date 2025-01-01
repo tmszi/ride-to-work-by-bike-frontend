@@ -80,6 +80,11 @@ apiMessageError = "Fetching filtered merchandise by code failed."
 apiMessageErrorWithMessage = "Fetching filtered merchandise by code failed. Error: {error}"
 apiMessageSuccess = "Filtered Merchandise by code fetched successfully."
 
+[getRegisterChallenge]
+apiMessageError = "Fetching registrations failed."
+apiMessageErrorWithMessage = "Fetching registrations failed. Error: {error}"
+apiMessageSuccess = "Registrations fetched successfully."
+
 [getSubsidiaries]
 apiMessageError = "Fetching subsidiaries failed."
 apiMessageErrorWithMessage = "Fetching subsidiaries failed. Error: {error}"
@@ -607,6 +612,11 @@ labelOrganization = "Organization"
 labelPaid = "Paid"
 labelRegistration = "At registration"
 labelScheduled = "After challenge"
+
+[postRegisterChallenge]
+apiMessageError = "Error saving registration status."
+apiMessageErrorWithMessage = "Error saving registration status. Error: {error}"
+apiMessageSuccess = "Registration status was successfully saved."
 
 [profile]
 buttonDeleteAccount = "Delete"

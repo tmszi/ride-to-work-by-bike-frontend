@@ -23,11 +23,13 @@
  */
 
 // libraries
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
 import { QForm, QStepper } from 'quasar';
+import { useRouter } from 'vue-router';
 
 // config
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
+import { routesConf } from '../router/routes_conf';
 
 // components
 import FormFieldListMerch from 'src/components/form/FormFieldListMerch.vue';
@@ -130,6 +132,10 @@ export default defineComponent({
 
     const registerChallengeStore = useRegisterChallengeStore();
 
+    onMounted(() => {
+      registerChallengeStore.loadRegisterChallengeToStore();
+    });
+
     const organizationType = computed({
       get: (): OrganizationType => registerChallengeStore.getOrganizationType,
       set: (value: OrganizationType) => {
@@ -166,6 +172,11 @@ export default defineComponent({
       stepTeamRef,
       stepMerchRef,
     });
+
+    const router = useRouter();
+    const onCompleteRegistration = () => {
+      router.push(routesConf['home']['path']);
+    };
 
     return {
       challengeMonth,
@@ -204,6 +215,7 @@ export default defineComponent({
       organizationStepTitle,
       onBack,
       onContinue,
+      onCompleteRegistration,
     };
   },
 });
@@ -502,7 +514,7 @@ export default defineComponent({
                 rounded
                 color="primary"
                 :label="$t('form.buttonCompleteRegistration')"
-                @click="onContinue"
+                @click="onCompleteRegistration"
                 class="q-ml-sm"
                 data-cy="step-7-continue"
               />
