@@ -31,6 +31,10 @@ interface HasVerifiedEmailResponse {
   has_user_verified_email_address: boolean;
 }
 
+interface ConfirmEmailResponse {
+  detail: string;
+}
+
 export const useRegisterStore = defineStore('register', {
   state: () => ({
     // property set in pinia.js boot file
@@ -157,6 +161,39 @@ export const useRegisterStore = defineStore('register', {
         this.$log?.warn('Email verification check failed or returned no data.');
       }
     },
+
+    /**
+     * Email confirmation
+     * Confirms email to the API.
+     * Returns true if successful, false if not.
+     * @param {string} key - Confirm email URL key param value
+     * @returns {Promise<boolean>}
+     */
+    async confirmEmail(key: string): Promise<boolean> {
+      const { apiFetch } = useApi();
+      // email confirmation
+      const { success, data } = await apiFetch<ConfirmEmailResponse>({
+        endpoint: rideToWorkByBikeConfig.urlApiConfirmEmail,
+        method: 'post',
+        payload: { key: key },
+        translationKey: 'confirmEmail',
+        showSuccessMessage: true,
+        logger: this.$log,
+      });
+
+      if (success) {
+        this.$log?.info('Email confirmation successful.');
+        return true;
+      } else {
+        if (data && typeof data?.detail === 'string') {
+          this.$log?.warn(`Email confirmation failed <${data.detail}>.`);
+        } else {
+          this.$log?.warn('Email confirmation failed.');
+        }
+        return false;
+      }
+    },
+
     /**
      * Register coordinator
      * Sends the coordinator registration request to the API.
