@@ -1,7 +1,12 @@
+// config
+import { rideToWorkByBikeConfig } from '../boot/global_vars';
+
 // libraries
 import { defineStore } from 'pinia';
+import { Notify } from 'quasar';
 
 // adapters
+import { payuAdapter } from 'src/adapters/payuAdapter';
 import { subsidiaryAdapter } from 'src/adapters/subsidiaryAdapter';
 import { registerChallengeAdapter } from '../adapters/registerChallengeAdapter';
 
@@ -13,9 +18,12 @@ import { useApiGetTeams } from 'src/composables/useApiGetTeams';
 import { useApiGetMerchandise } from 'src/composables/useApiGetMerchandise';
 import { useApiGetFilteredMerchandise } from 'src/composables/useApiGetFilteredMerchandise';
 import { useApiPostRegisterChallenge } from '../composables/useApiPostRegisterChallenge';
+import { useApiGetIpAddress } from '../composables/useApiGetIpAddress';
+import { useApiPostPayuCreateOrder } from '../composables/useApiPostPayuCreateOrder';
 
 // enums
 import { Gender } from '../components/types/Profile';
+import { PaymentState } from '../components/enums/Payment';
 import { NewsletterType } from '../components/types/Newsletter';
 import {
   OrganizationSubsidiary,
@@ -43,6 +51,7 @@ import type {
   RegisterChallengeResult,
   ToApiPayloadStoreState,
 } from '../components/types/ApiRegistration';
+import type { IpAddressResponse } from '../components/types/ApiIpAddress';
 
 const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   firstName: '',
@@ -62,13 +71,14 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     $log: null as Logger | null,
     personalDetails: emptyFormPersonalDetails,
     payment: null, // TODO: add data type options
+    paymentAmount: null as number | null,
+    paymentState: PaymentState.none,
+    paymentSubject: PaymentSubject.individual,
     organizationType: OrganizationType.none,
     organizationId: null as number | null,
     subsidiaryId: null as number | null,
     teamId: null as number | null,
     merchId: null as number | null,
-    paymentSubject: PaymentSubject.individual,
-    paymentAmount: null as number | null,
     voucher: null as ValidatedCoupon | null,
     subsidiaries: [] as OrganizationSubsidiary[],
     organizations: [] as OrganizationOption[],
@@ -76,11 +86,15 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     merchandiseItems: [] as MerchandiseItem[],
     merchandiseCards: {} as Record<Gender, MerchandiseCard[]>,
     isLoadingRegisterChallenge: false,
+    ipAddressData: null as IpAddressResponse | null,
     isLoadingSubsidiaries: false,
     isLoadingOrganizations: false,
     isLoadingTeams: false,
     isLoadingMerchandise: false,
     isLoadingFilteredMerchandise: false,
+    isLoadingPayuOrder: false,
+    isPayuTransactionInitiated: false,
+    checkPaymentStatusRepetitionCount: 0,
   }),
 
   getters: {
@@ -93,6 +107,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getMerchId: (state): number | null => state.merchId,
     getPaymentSubject: (state): PaymentSubject => state.paymentSubject,
     getPaymentAmount: (state): number | null => state.paymentAmount,
+    getPaymentState: (state): PaymentState => state.paymentState,
     getVoucher: (state): ValidatedCoupon | null => state.voucher,
     getSubsidiaries: (state): OrganizationSubsidiary[] => state.subsidiaries,
     getOrganizations: (state): OrganizationOption[] => state.organizations,
@@ -162,8 +177,15 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getDefaultPaymentAmountCompany(): number {
       const challengeStore = useChallengeStore();
       const currentPriceLevels = challengeStore.getCurrentPriceLevels;
-      return currentPriceLevels[PriceLevelCategory.company].price;
+      if (currentPriceLevels[PriceLevelCategory.company]) {
+        return currentPriceLevels[PriceLevelCategory.company].price;
+      }
+      return 0;
     },
+    getIpAddressData: (state): IpAddressResponse | null => state.ipAddressData,
+    getIpAddress: (state): string => state.ipAddressData?.ip || '',
+    getIsPayuTransactionInitiated: (state): boolean =>
+      state.isPayuTransactionInitiated,
   },
 
   actions: {
@@ -184,6 +206,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     setMerchId(merchId: number | null) {
       this.merchId = merchId;
+    },
+    setPaymentState(paymentState: PaymentState) {
+      this.paymentState = paymentState;
     },
     setPaymentSubject(paymentSubject: PaymentSubject) {
       this.paymentSubject = paymentSubject;
@@ -208,6 +233,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     setMerchandiseCards(cards: Record<Gender, MerchandiseCard[]>) {
       this.merchandiseCards = cards;
+    },
+    setIsPayuTransactionInitiated(isPayuTransactionInitiated: boolean) {
+      this.isPayuTransactionInitiated = isPayuTransactionInitiated;
     },
     /**
      * Load registration data from API and set store state
@@ -258,6 +286,10 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       this.setPaymentSubject(parsedResponse.paymentSubject);
       this.$log?.debug(
         `Payment subject strore updated to <${this.getPaymentSubject}>.`,
+      );
+      this.setPaymentState(parsedResponse.paymentState);
+      this.$log?.debug(
+        `Payment state strore updated to <${this.getPaymentState}>.`,
       );
       /**
        * In case the payment subject has been selected but the organizationType
@@ -416,6 +448,173 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       );
       this.isLoadingFilteredMerchandise = false;
     },
+    /**
+     * Load IP address data from API
+     * @returns {Promise<string>} - IP address
+     */
+    async loadIpAddress(): Promise<string> {
+      const { ipAddressData, loadIpAddress } = useApiGetIpAddress(this.$log);
+      this.$log?.debug('Loading IP address data.');
+      await loadIpAddress();
+      return ipAddressData.value?.ip || '';
+    },
+    /**
+     * Create PayU order and redirect to payment
+     * @returns {Promise<void>}
+     */
+    async createPayuOrder(): Promise<void> {
+      this.$log?.debug('Creating PayU order.');
+      this.isLoadingPayuOrder = true;
+      // get client IP
+      const clientIp = await this.loadIpAddress();
+      if (!clientIp) {
+        Notify.create({
+          message: i18n.global.t('createPayuOrder.apiMessageError'),
+          color: 'negative',
+        });
+        this.$log?.debug('Failed to get client IP address.');
+        this.isLoadingPayuOrder = false;
+        return;
+      }
+      // check payment amount
+      if (!this.paymentAmount || this.paymentAmount <= 0) {
+        Notify.create({
+          message: i18n.global.t('createPayuOrder.apiMessageNoPaymentAmount'),
+          color: 'negative',
+        });
+        this.$log?.debug(
+          `Payment amount <${this.paymentAmount}>, skipping PayU order creation.`,
+        );
+        this.isLoadingPayuOrder = false;
+        return;
+      }
+      // create order
+      const { createOrder } = useApiPostPayuCreateOrder(this.$log);
+      this.$log?.debug(
+        `Creating PayU order with amount <${this.getPaymentAmount}>,` +
+          ` payment subject <${this.getPaymentSubject}` +
+          ` and client IP <${clientIp}>.`,
+      );
+      const payload = payuAdapter.toPayuOrderPayload(
+        this.paymentSubject,
+        this.paymentAmount,
+        this.voucher,
+        clientIp,
+      );
+      this.$log?.debug(
+        `Payload created <${JSON.stringify(payload, null, 2)}>.`,
+      );
+      if (!payload) {
+        Notify.create({
+          message: i18n.global.t('createPayuOrder.payloadCreateError'),
+          color: 'positive',
+        });
+        return;
+      }
+      const response = await createOrder(payload);
+      // check response and redirect
+      if (response?.status.statusCode === 'SUCCESS' && response.redirectUri) {
+        Notify.create({
+          message: i18n.global.t('createPayuOrder.apiMessageSuccess'),
+          color: 'positive',
+        });
+        this.$log?.debug(
+          `Redirecting to PayU payment page: ${response.redirectUri}`,
+        );
+        this.isPayuTransactionInitiated = true;
+        this.$log?.debug(
+          `PayU transaction initiated flag set to ${this.isPayuTransactionInitiated}.`,
+        );
+        // localize the URI
+        const redirectUriLocalized = `${response.redirectUri}&lang=${i18n.global.locale}`;
+        window.location.href = redirectUriLocalized;
+      } else {
+        Notify.create({
+          message: i18n.global.t('createPayuOrder.apiMessageError'),
+          color: 'negative',
+        });
+        this.$log?.error(
+          'Failed to create PayU order or missing redirect URI.',
+        );
+      }
+      this.isLoadingPayuOrder = false;
+    },
+    /**
+     * Start periodic check of register challenge data with max repetitions
+     * Used when payment is in progress to detect when it's completed
+     */
+    startRegisterChallengePeriodicCheck(): void {
+      this.$log?.debug(
+        'Start periodic check of registration status with interval' +
+          ` <${rideToWorkByBikeConfig.checkRegisterChallengeStatusIntervalSeconds}> seconds` +
+          ` and max. repetitions <${rideToWorkByBikeConfig.checkRegisterChallengeStatusMaxRepetitions}>.`,
+      );
+      let intervalId: ReturnType<typeof setInterval> | null = null;
+
+      // function to clear interval
+      const stopCheck = (): void => {
+        if (intervalId) {
+          this.$log?.debug('Stop periodic check of registration status.');
+          clearInterval(intervalId);
+          this.$log?.debug(`Cleared interval ID <${intervalId}>.`);
+          intervalId = null;
+          this.checkPaymentStatusRepetitionCount = 0;
+          this.$log?.debug('Reset interval ID and repetition count.');
+        }
+      };
+
+      // function to run the interval
+      const checkRegisterChallenge = async (): Promise<void> => {
+        this.$log?.debug('Check payment status.');
+        // before each call, check if paymentState is done
+        if (
+          this.isPayuTransactionInitiated &&
+          this.paymentState !== PaymentState.done
+        ) {
+          this.$log?.debug(
+            'Payment is in progress, refresh registration data from the API.',
+          );
+          await this.loadRegisterChallengeToStore();
+          // if payment is now done after the refresh, stop checking
+          if ((this.paymentState as PaymentState) === PaymentState.done) {
+            this.$log?.debug('Payment is now done, stopping periodic check.');
+            stopCheck();
+            return;
+          }
+          // increment counter
+          this.checkPaymentStatusRepetitionCount++;
+          // check that we have not reached max iterations count
+          const maxRepetitions =
+            rideToWorkByBikeConfig.checkRegisterChallengeStatusMaxRepetitions;
+          if (
+            !maxRepetitions ||
+            this.checkPaymentStatusRepetitionCount >= maxRepetitions
+          ) {
+            this.$log?.debug(
+              `Maximum number of payment status checks reached (${maxRepetitions}),` +
+                ' stopping periodic check.',
+            );
+            // if we do reach max iterations count, stop loop
+            stopCheck();
+            return;
+          }
+        } else {
+          this.$log?.debug(
+            'Payment is either not started from the UI or already done,' +
+              ' disable periodic check.',
+          );
+          stopCheck();
+          return;
+        }
+      };
+
+      // start interval
+      intervalId = setInterval(
+        checkRegisterChallenge,
+        rideToWorkByBikeConfig.checkRegisterChallengeStatusIntervalSeconds *
+          1000,
+      );
+    },
   },
 
   persist: {
@@ -425,6 +624,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       'teams',
       'merchandiseItems',
       'merchandiseCards',
+      'ipAddressData',
+      'checkPaymentStatusRepetitionCount',
     ],
   },
 });

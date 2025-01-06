@@ -23,6 +23,8 @@ export default defineComponent({
     let organizationId;
     let subsidiaryId;
     let teamId;
+    let paymentState;
+    let isPayuTransactionInitiated;
 
     const showComponent = computed(() => !!window.Cypress);
 
@@ -32,6 +34,10 @@ export default defineComponent({
       organizationId = computed(() => registerChallengeStore.getOrganizationId);
       subsidiaryId = computed(() => registerChallengeStore.getSubsidiaryId);
       teamId = computed(() => registerChallengeStore.getTeamId);
+      paymentState = computed(() => registerChallengeStore.getPaymentState);
+      isPayuTransactionInitiated = computed(
+        () => registerChallengeStore.getIsPayuTransactionInitiated,
+      );
     }
 
     return {
@@ -39,6 +45,8 @@ export default defineComponent({
       subsidiaryId,
       teamId,
       showComponent,
+      paymentState,
+      isPayuTransactionInitiated,
     };
   },
 });
@@ -48,15 +56,25 @@ export default defineComponent({
   <div v-if="showComponent" data-cy="debug-register-challenge-ids">
     <div class="text-red text-bold">
       <div data-cy="debug-organization-id">
-        DEBUG: organization ID
+        DEBUG organization ID
         <span data-cy="debug-organization-id-value">{{ organizationId }}</span>
       </div>
       <div data-cy="debug-subsidiary-id">
-        DEBUG: subsidiary ID
+        DEBUG subsidiary ID
         <span data-cy="debug-subsidiary-id-value">{{ subsidiaryId }}</span>
       </div>
       <div data-cy="debug-team-id">
-        DEBUG: team ID <span data-cy="debug-team-id-value">{{ teamId }}</span>
+        DEBUG team ID <span data-cy="debug-team-id-value">{{ teamId }}</span>
+      </div>
+      <div data-cy="debug-payment-state">
+        DEBUG: payment state
+        <span data-cy="debug-payment-state-value">{{ paymentState }}</span>
+      </div>
+      <div data-cy="debug-is-paid-from-ui">
+        DEBUG: is paid from UI
+        <span data-cy="debug-is-paid-from-ui-value">{{
+          isPayuTransactionInitiated
+        }}</span>
       </div>
     </div>
   </div>

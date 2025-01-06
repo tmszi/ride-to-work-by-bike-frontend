@@ -236,6 +236,8 @@ export default defineComponent({
         'Set store organization type to' +
           ` <${registerChallengeStore.getOrganizationType}>.`,
       );
+      // when switching payment subject, always clear the organizationId
+      selectedCompany.value = null;
     });
     const organizationType = computed<OrganizationType>(() => {
       return registerChallengeStore.getOrganizationType;
@@ -288,15 +290,17 @@ export default defineComponent({
       ) {
         const discountAmount: number =
           (defaultPaymentAmountMin.value * activeVoucher.value?.discount) / 100;
+        const discountedAmount: number =
+          defaultPaymentAmountMin.value - discountAmount;
         logger?.debug(
           `Selected payment subject <${selectedPaymentSubject.value}>,` +
             ` is voucher valid <${isVoucherValid.value}>,` +
-            ` active voucher amount <${discountAmount}>.`,
+            ` active voucher amount <${discountedAmount}>.`,
         );
         opts = [
           {
-            label: formatPriceCurrency(discountAmount, Currency.CZK),
-            value: String(discountAmount),
+            label: formatPriceCurrency(discountedAmount, Currency.CZK),
+            value: String(discountedAmount),
           },
           // other options
           ...paymentOptions,
@@ -458,13 +462,16 @@ export default defineComponent({
                 ` computed current value <${donationAmount.value || 0}>.`,
             );
             return donationAmount.value || 0;
-          } else {
+          } else if (isVoucherValid.value) {
             logger?.debug(
               `Selected payment subject <${selectedPaymentSubject.value}>,` +
                 ` computed current value <${selectedPaymentAmountCustom.value || 0}>.`,
             );
             // entry is not free so user selects amount
             return selectedPaymentAmountCustom.value || 0;
+          } else {
+            // if there is no valid voucher, amount to pay is 0
+            return 0;
           }
         case PaymentSubject.company:
         case PaymentSubject.school:
@@ -481,6 +488,15 @@ export default defineComponent({
           return 0;
       }
     });
+    // track current computed value in store
+    watch(
+      computedCurrentValue,
+      (newVal) => {
+        logger?.debug(`Setting store payment amount to <${newVal}>.`);
+        registerChallengeStore.setPaymentAmount(newVal);
+      },
+      { immediate: true },
+    );
 
     const showVoucherElement = () => {
       const show = selectedPaymentSubject.value === PaymentSubject.voucher;
@@ -562,6 +578,7 @@ export default defineComponent({
     return {
       borderRadius,
       computedCurrentValue,
+      donationAmount,
       formRegisterCoordinator,
       hasOrganizationAdmin,
       isRegistrationCoordinator,

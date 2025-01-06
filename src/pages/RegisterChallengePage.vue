@@ -49,8 +49,10 @@ import { useOrganizations } from 'src/composables/useOrganizations';
 
 // enums
 import { OrganizationType } from 'src/components/types/Organization';
+import { PaymentState, PaymentSubject } from 'src/components/enums/Payment';
 
 // stores
+import { useChallengeStore } from 'src/stores/challenge';
 import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
 
 export default defineComponent({
@@ -130,10 +132,56 @@ export default defineComponent({
     }`;
     const doneIconImgSrcStepper7 = doneIcon;
 
+    const challengeStore = useChallengeStore();
     const registerChallengeStore = useRegisterChallengeStore();
 
-    onMounted(() => {
-      registerChallengeStore.loadRegisterChallengeToStore();
+    const isPayuTransactionInitiated = computed(
+      () => registerChallengeStore.getIsPayuTransactionInitiated,
+    );
+    const paymentState = computed(() => registerChallengeStore.getPaymentState);
+
+    onMounted(async () => {
+      // make sure price level is loaded
+      if (!challengeStore.getPriceLevel.length) {
+        await challengeStore.loadPhaseSet();
+      }
+
+      await registerChallengeStore.loadRegisterChallengeToStore();
+      /**
+       * Depending on the paymentState, and isPayuTransactionInitiated flag
+       * we determine if situation is:
+       * - refreshing page after returning from payment
+       * - returning to a started payment
+       */
+
+      // set isPayuTransactionInitiated to `true` for specific set of tests
+      if (
+        window.Cypress?.currentTest?.title.includes('set-is-paid-from-ui-true')
+      ) {
+        registerChallengeStore.setIsPayuTransactionInitiated(true);
+      }
+
+      if (
+        isPayuTransactionInitiated.value &&
+        paymentState.value === PaymentState.done
+      ) {
+        // entry-fee/donation was paid - go to payment step
+        onContinue();
+      } else if (
+        isPayuTransactionInitiated.value &&
+        paymentState.value !== PaymentState.done
+      ) {
+        // trigger a periodic registration data refetch + display message
+        registerChallengeStore.startRegisterChallengePeriodicCheck();
+        // go to payment step
+        onContinue();
+      } else if (
+        !isPayuTransactionInitiated.value &&
+        paymentState.value === PaymentState.done
+      ) {
+        // if payment is done, it should always be safe to continue
+        onContinue();
+      }
     });
 
     const organizationType = computed({
@@ -178,7 +226,107 @@ export default defineComponent({
       router.push(routesConf['home']['path']);
     };
 
+    // Payment-related logic
+    const isPaymentAmount = computed<boolean>((): boolean => {
+      return (
+        !!registerChallengeStore.getPaymentAmount &&
+        registerChallengeStore.getPaymentAmount > 0
+      );
+    });
+
+    /**
+     * Show payment form if payment state is not `done` or `unknown`.
+     * Also hide it if payment state is `unknown` as this is a non-valid state
+     * and needs to be fixed by admin.
+     */
+    const isShownPaymentForm = computed<boolean>((): boolean => {
+      return registerChallengeStore.getPaymentState !== PaymentState.done;
+    });
+
+    const isShownRegistrationPaidMessage = computed<boolean>((): boolean => {
+      return registerChallengeStore.getPaymentState === PaymentState.done;
+    });
+
+    const isWaitingForPayamentConfirmation = computed<boolean>((): boolean => {
+      return (
+        isPayuTransactionInitiated.value &&
+        registerChallengeStore.getPaymentState === PaymentState.none
+      );
+    });
+
+    const isShownRegistrationNoAdmissionMessage = computed<boolean>(
+      (): boolean => {
+        return (
+          registerChallengeStore.getPaymentState === PaymentState.noAdmission
+        );
+      },
+    );
+
+    const isShownRegistrationWaitingMessage = computed<boolean>((): boolean => {
+      return registerChallengeStore.getPaymentState === PaymentState.waiting;
+    });
+
+    /**
+     * Show create order button if:
+     * - payment state is not `done` and paymentAmount > 0
+     */
+    const isShownCreateOrderButton = computed<boolean>((): boolean => {
+      return (
+        registerChallengeStore.getPaymentState !== PaymentState.done &&
+        !!isPaymentAmount.value
+      );
+    });
+
+    const isShownPaymentNextStepButton = computed<boolean>((): boolean => {
+      return !isShownCreateOrderButton.value;
+    });
+
+    /**
+     * Explicit conditions for enabling a pass
+     * - payment_state = `done`
+     * - payment_subject = company or school
+     * - payment_subject = voucher && discount = 100
+     */
+    const isEnabledPaymentNextStepButton = computed(() => {
+      const paymentSubject = registerChallengeStore.getPaymentSubject;
+      const voucher = registerChallengeStore.getVoucher;
+      // conditions
+      const isPaymentDone =
+        registerChallengeStore.getPaymentState === PaymentState.done;
+      const isPaymentCompanyOrSchool = [
+        PaymentSubject.company,
+        PaymentSubject.school,
+      ].includes(paymentSubject);
+      const isVoucherFreeEntry =
+        paymentSubject === PaymentSubject.voucher &&
+        voucher?.valid &&
+        voucher?.discount === 100;
+      // composite condition
+      return (
+        isPaymentDone ||
+        (isPaymentCompanyOrSchool && !isPaymentAmount.value) ||
+        isVoucherFreeEntry
+      );
+    });
+
+    const isLoadingPayuOrder = computed(() => {
+      return registerChallengeStore.isLoadingPayuOrder;
+    });
+
+    const onSubmitPayment = () => {
+      registerChallengeStore.createPayuOrder();
+    };
+
+    const contactEmail = rideToWorkByBikeConfig.contactEmail;
+    const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
+
+    const isRegistrationComplete = computed(
+      () => paymentState.value === PaymentState.done,
+    );
+
     return {
+      borderRadius,
+      contactEmail,
       challengeMonth,
       containerFormWidth,
       step,
@@ -211,11 +359,24 @@ export default defineComponent({
       activeIconImgSrcStepper7,
       doneIconImgSrcStepper7,
       merchId,
+      isPaymentAmount,
+      isRegistrationComplete,
+      isShownPaymentForm,
+      isShownCreateOrderButton,
+      isShownPaymentNextStepButton,
+      isShownRegistrationNoAdmissionMessage,
+      isShownRegistrationPaidMessage,
+      isShownRegistrationWaitingMessage,
+      isWaitingForPayamentConfirmation,
+      isEnabledPaymentNextStepButton,
+      isLoadingPayuOrder,
+      onSubmitPayment,
       organizationType,
       organizationStepTitle,
       onBack,
       onContinue,
       onCompleteRegistration,
+      registerChallengeStore,
     };
   },
 });
@@ -292,10 +453,36 @@ export default defineComponent({
             class="bg-white q-mt-lg"
             data-cy="step-2"
           >
+            <!-- Form: Payment -->
             <q-form ref="stepPaymentRef">
-              <register-challenge-payment />
+              <q-banner
+                v-if="isWaitingForPayamentConfirmation"
+                class="bg-warning text-grey-10 q-mb-md"
+                :style="{ borderRadius }"
+                data-cy="step-2-waiting-for-payment-message"
+              >
+                {{ $t('register.challenge.textRegistrationWaitingForPayment') }}
+              </q-banner>
+              <q-banner
+                v-if="isShownRegistrationNoAdmissionMessage"
+                class="bg-negative text-white q-mb-md"
+                :style="{ borderRadius }"
+                data-cy="step-2-no-admission-message"
+              >
+                {{ $t('register.challenge.textRegistrationNoAdmission') }}
+              </q-banner>
+              <register-challenge-payment v-if="isShownPaymentForm" />
+              <!-- Message: Registration paid (displayed after PayU payment has been made) -->
+              <div
+                v-if="isShownRegistrationPaidMessage"
+                v-html="
+                  $t('register.challenge.textRegistrationPaid', {
+                    contactEmail,
+                  })
+                "
+                data-cy="step-2-paid-message"
+              />
             </q-form>
-            <!-- TODO: Handle redirection to payment gateway and back to registration -->
             <q-stepper-navigation class="flex justify-end">
               <q-btn
                 unelevated
@@ -307,9 +494,23 @@ export default defineComponent({
                 data-cy="step-2-back"
               />
               <q-btn
+                v-if="isShownCreateOrderButton"
                 unelevated
                 rounded
                 color="primary"
+                :disable="!isPaymentAmount"
+                :label="$t('register.challenge.buttonSubmitPayment')"
+                :loading="isLoadingPayuOrder"
+                @click="onSubmitPayment"
+                class="q-ml-sm"
+                data-cy="step-2-submit-payment"
+              />
+              <q-btn
+                v-if="isShownPaymentNextStepButton"
+                unelevated
+                rounded
+                color="primary"
+                :disable="!isEnabledPaymentNextStepButton"
                 :label="$t('navigation.continue')"
                 @click="onContinue"
                 class="q-ml-sm"
@@ -494,6 +695,16 @@ export default defineComponent({
             class="bg-white q-mt-lg"
             data-cy="step-7"
           >
+            <q-banner
+              v-if="isShownRegistrationWaitingMessage"
+              class="bg-warning text-grey-10 q-mb-md"
+              :style="{ borderRadius }"
+              data-cy="step-7-registration-waiting-message"
+            >
+              {{
+                $t('register.challenge.textRegistrationWaitingForConfirmation')
+              }}
+            </q-banner>
             <!-- Content: Summary -->
             <register-challenge-summary />
             <!-- Buttons: Summary -->
@@ -513,6 +724,7 @@ export default defineComponent({
                 unelevated
                 rounded
                 color="primary"
+                :disable="!isRegistrationComplete"
                 :label="$t('form.buttonCompleteRegistration')"
                 @click="onCompleteRegistration"
                 class="q-ml-sm"
