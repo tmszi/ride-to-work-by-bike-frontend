@@ -50,10 +50,11 @@ import SliderMerch from './SliderMerch.vue';
 // composables
 import { i18n } from '../../boot/i18n';
 
+// config
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
 // stores
 import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
-
-import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // enums
 import { Gender } from '../types/Profile';
@@ -73,6 +74,7 @@ export default defineComponent({
     SliderMerch,
   },
   setup() {
+    const logger = inject('vuejs3-logger') as Logger | null;
     // show merch checkbox
     const isNotMerch = ref<boolean>(false);
 
@@ -95,7 +97,6 @@ export default defineComponent({
     const tabsMerchRef = ref<typeof QCard | null>(null);
 
     // get merchandise data
-    const logger = inject('vuejs3-logger') as Logger | null;
     const registerChallengeStore = useRegisterChallengeStore();
 
     // load merchandise on mount
@@ -108,16 +109,20 @@ export default defineComponent({
         );
         // find card that contains the merch ID
         const item = merchandiseItems.value.find(
-          (item) => item.id === registerChallengeStore.getMerchId,
+          (item: MerchandiseItem) =>
+            item.id === registerChallengeStore.getMerchId,
         );
         // select gender and size
         if (item) {
+          isNotMerch.value = false;
           logger?.debug(`Found item <${JSON.stringify(item, null, 2)}>.`);
           selectedGender.value = item.gender;
           selectedSize.value = item.id;
         } else {
+          isNotMerch.value = true;
           logger?.debug(
-            `No item found for merch ID <${registerChallengeStore.getMerchId}>.`,
+            `No item found for merch ID <${registerChallengeStore.getMerchId}>,` +
+              ` setting isNotMerch to <${isNotMerch.value}>.`,
           );
         }
       }
