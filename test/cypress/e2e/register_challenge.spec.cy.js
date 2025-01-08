@@ -1574,10 +1574,6 @@ describe('Register Challenge page', () => {
                   win.i18n,
                   registerChallengeResponse,
                 );
-                cy.testRegisterChallengeLoadedStepSix(
-                  win.i18n,
-                  registerChallengeResponse,
-                );
               },
             );
           });
