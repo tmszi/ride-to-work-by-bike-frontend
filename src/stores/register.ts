@@ -208,11 +208,17 @@ export const useRegisterStore = defineStore('register', {
      */
     async registerCoordinator(
       payload: RegisterCoordinatorRequest,
+      redirect: boolean = true,
     ): Promise<void> {
       const { apiFetch } = useApi();
+      const loginStore = useLoginStore();
       this.$log?.debug(
         `Register coordinator payload <${JSON.stringify(payload, null, 2)}>.`,
       );
+      // Append access token into HTTP header
+      const requestTokenHeader_ = { ...requestTokenHeader };
+      requestTokenHeader_.Authorization +=
+        await loginStore.getAccessTokenWithRefresh();
       // register
       this.$log?.info('Post API coordinator registration details.');
       const { success } = await apiFetch<null>({
@@ -220,6 +226,7 @@ export const useRegisterStore = defineStore('register', {
         method: 'post',
         payload,
         translationKey: 'registerCoordinator',
+        headers: Object.assign(requestDefaultHeader(), requestTokenHeader_),
         logger: this.$log,
       });
 
@@ -235,7 +242,7 @@ export const useRegisterStore = defineStore('register', {
         );
 
         // redirect to home page
-        if (this.$router) {
+        if (this.$router && redirect) {
           this.$log?.debug(
             `Coordinator registration succcesfull, redirect to <${routesConf['home']['path']}> URL.`,
           );

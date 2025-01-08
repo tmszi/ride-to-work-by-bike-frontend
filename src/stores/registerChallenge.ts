@@ -8,6 +8,7 @@ import { Notify } from 'quasar';
 // adapters
 import { payuAdapter } from 'src/adapters/payuAdapter';
 import { subsidiaryAdapter } from 'src/adapters/subsidiaryAdapter';
+import { registerCoordinatorAdapter } from 'src/adapters/registerCoordinatorAdapter';
 import { registerChallengeAdapter } from '../adapters/registerChallengeAdapter';
 
 // composables
@@ -20,6 +21,7 @@ import { useApiGetFilteredMerchandise } from 'src/composables/useApiGetFilteredM
 import { useApiPostRegisterChallenge } from '../composables/useApiPostRegisterChallenge';
 import { useApiGetIpAddress } from '../composables/useApiGetIpAddress';
 import { useApiPostPayuCreateOrder } from '../composables/useApiPostPayuCreateOrder';
+import { useApiGetHasOrganizationAdmin } from '../composables/useApiGetHasOrganizationAdmin';
 
 // enums
 import { Gender } from '../components/types/Profile';
@@ -34,9 +36,15 @@ import {
 import { PaymentSubject } from '../components/enums/Payment';
 import { RegisterChallengeStep } from '../components/enums/RegisterChallenge';
 
+// stores
+import { useRegisterStore } from './register';
+
 // types
 import type { Logger } from '../components/types/Logger';
-import type { RegisterChallengePersonalDetailsForm } from '../components/types/RegisterChallenge';
+import type {
+  RegisterChallengeCoordinatorForm,
+  RegisterChallengePersonalDetailsForm,
+} from '../components/types/RegisterChallenge';
 import type { ValidatedCoupon } from '../components/types/Coupon';
 import type {
   MerchandiseCard,
@@ -52,6 +60,7 @@ import type {
   ToApiPayloadStoreState,
 } from '../components/types/ApiRegistration';
 import type { IpAddressResponse } from '../components/types/ApiIpAddress';
+import { deepObjectWithSimplePropsCopy } from 'src/utils';
 
 const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   firstName: '',
@@ -62,6 +71,13 @@ const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
   terms: true,
 };
 
+const emptyFormRegisterCoordinator: RegisterChallengeCoordinatorForm = {
+  jobTitle: '',
+  phone: '',
+  responsibility: false,
+  terms: false,
+};
+
 /**
  * Store for the register challenge page.
  * Holds form values and selected options.
@@ -69,7 +85,7 @@ const emptyFormPersonalDetails: RegisterChallengePersonalDetailsForm = {
 export const useRegisterChallengeStore = defineStore('registerChallenge', {
   state: () => ({
     $log: null as Logger | null,
-    personalDetails: emptyFormPersonalDetails,
+    personalDetails: deepObjectWithSimplePropsCopy(emptyFormPersonalDetails),
     payment: null, // TODO: add data type options
     paymentAmount: null as number | null,
     paymentState: PaymentState.none,
@@ -85,6 +101,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     teams: [] as OrganizationTeam[],
     merchandiseItems: [] as MerchandiseItem[],
     merchandiseCards: {} as Record<Gender, MerchandiseCard[]>,
+    formRegisterCoordinator: deepObjectWithSimplePropsCopy(
+      emptyFormRegisterCoordinator,
+    ),
     isLoadingRegisterChallenge: false,
     ipAddressData: null as IpAddressResponse | null,
     isLoadingSubsidiaries: false,
@@ -95,6 +114,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     isLoadingPayuOrder: false,
     isPayuTransactionInitiated: false,
     checkPaymentStatusRepetitionCount: 0,
+    isSelectedRegisterCoordinator: false,
+    hasOrganizationAdmin: null as boolean | null,
   }),
 
   getters: {
@@ -102,6 +123,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       state.personalDetails,
     getOrganizationType: (state): OrganizationType => state.organizationType,
     getOrganizationId: (state): number | null => state.organizationId,
+    getHasOrganizationAdmin: (state): boolean | null =>
+      state.hasOrganizationAdmin,
     getSubsidiaryId: (state): number | null => state.subsidiaryId,
     getTeamId: (state): number | null => state.teamId,
     getMerchId: (state): number | null => state.merchId,
@@ -115,6 +138,10 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getMerchandiseItems: (state): MerchandiseItem[] => state.merchandiseItems,
     getMerchandiseCards: (state): Record<Gender, MerchandiseCard[]> =>
       state.merchandiseCards,
+    getIsSelectedRegisterCoordinator: (state): boolean =>
+      state.isSelectedRegisterCoordinator,
+    getFormRegisterCoordinator: (state): RegisterChallengeCoordinatorForm =>
+      state.formRegisterCoordinator,
     getSelectedOrganizationLabel: (state): string => {
       if (state.organizationId) {
         const organization = state.organizations.find(
@@ -234,8 +261,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     setOrganizationType(organizationType: OrganizationType) {
       this.organizationType = organizationType;
     },
-    setOrganizationId(organizationId: number | null) {
-      this.organizationId = organizationId;
+    setOrganizationId(id: number | null): void {
+      this.organizationId = id;
+      this.checkOrganizationHasCoordinator();
     },
     setSubsidiaryId(subsidiaryId: number | null) {
       this.subsidiaryId = subsidiaryId;
@@ -275,6 +303,17 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     setIsPayuTransactionInitiated(isPayuTransactionInitiated: boolean) {
       this.isPayuTransactionInitiated = isPayuTransactionInitiated;
+    },
+    setFormRegisterCoordinator(
+      formRegisterCoordinator: RegisterChallengeCoordinatorForm,
+    ) {
+      this.formRegisterCoordinator = formRegisterCoordinator;
+    },
+    setIsSelectedRegisterCoordinator(isSelectedRegisterCoordinator: boolean) {
+      this.isSelectedRegisterCoordinator = isSelectedRegisterCoordinator;
+    },
+    setHasOrganizationAdmin(hasOrganizationAdmin: boolean | null) {
+      this.hasOrganizationAdmin = hasOrganizationAdmin;
     },
     /**
      * Load registration data from API and set store state
@@ -324,11 +363,11 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
        */
       this.setPaymentSubject(parsedResponse.paymentSubject);
       this.$log?.debug(
-        `Payment subject strore updated to <${this.getPaymentSubject}>.`,
+        `Payment subject store updated to <${this.getPaymentSubject}>.`,
       );
       this.setPaymentState(parsedResponse.paymentState);
       this.$log?.debug(
-        `Payment state strore updated to <${this.getPaymentState}>.`,
+        `Payment state store updated to <${this.getPaymentState}>.`,
       );
       /**
        * In case the payment subject has been selected but the organizationType
@@ -652,6 +691,59 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         checkRegisterChallenge,
         rideToWorkByBikeConfig.checkRegisterChallengeStatusIntervalSeconds *
           1000,
+      );
+    },
+    /**
+     * Register coordinator with store data
+     * This is done if the user has selected the "Register coordinator" option.
+     * Function is only called once the full form is validated.
+     * @returns {Promise<void>}
+     */
+    async registerCoordinator(): Promise<void> {
+      if (this.isSelectedRegisterCoordinator && this.getOrganizationId) {
+        this.$log?.debug('Register coordinator with store data.');
+        const registerStore = useRegisterStore();
+        const payload =
+          registerCoordinatorAdapter.registerChallengeToApiPayload({
+            formRegisterCoordinator: this.getFormRegisterCoordinator,
+            organizationId: this.getOrganizationId,
+            personalDetails: this.getPersonalDetails,
+          });
+        this.$log?.debug(
+          `Register coordinator payload <${JSON.stringify(payload)}>.`,
+        );
+        if (!payload) {
+          Notify.create({
+            type: 'negative',
+            message: i18n.global.t(
+              'registerCoordinator.messageNoOrganizationId',
+            ),
+          });
+          return;
+        }
+        await registerStore.registerCoordinator(payload, false);
+        // check if organization has coordinator
+        await this.checkOrganizationHasCoordinator();
+        // if organization is now logged as having a coordinator, reset flag
+        if (this.hasOrganizationAdmin) {
+          this.setIsSelectedRegisterCoordinator(false);
+        }
+      }
+    },
+    /**
+     * Check if currently selected organization has a coordinator
+     * @returns {Promise<void>}
+     */
+    async checkOrganizationHasCoordinator(): Promise<void> {
+      const { hasOrganizationAdmin, checkOrganizationAdmin } =
+        useApiGetHasOrganizationAdmin(this.$log);
+      await checkOrganizationAdmin();
+      this.$log?.debug(
+        `Has organization admin API response data <${hasOrganizationAdmin.value}>.`,
+      );
+      this.setHasOrganizationAdmin(hasOrganizationAdmin.value);
+      this.$log?.debug(
+        `Organization has coordinator store updated to <${this.hasOrganizationAdmin}>.`,
       );
     },
   },

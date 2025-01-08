@@ -38,7 +38,6 @@ import {
 // composables
 import { i18n } from '../../boot/i18n';
 import { useFormatPrice } from '../../composables/useFormatPrice';
-import { useApiGetHasOrganizationAdmin } from '../../composables/useApiGetHasOrganizationAdmin';
 
 // components
 import FormFieldCompany from '../global/FormFieldCompany.vue';
@@ -49,7 +48,7 @@ import FormFieldSliderNumber from '../form/FormFieldSliderNumber.vue';
 import FormFieldTextRequired from '../global/FormFieldTextRequired.vue';
 import FormFieldVoucher from '../form/FormFieldVoucher.vue';
 
-import { defaultPaymentAmountMinComputed } from '../../utils/price_levels.ts';
+import { defaultPaymentAmountMinComputed } from '../../utils/price_levels';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
@@ -181,8 +180,9 @@ export default defineComponent({
     const registerChallengeStore = useRegisterChallengeStore();
 
     // init organization admin status
-    const { hasOrganizationAdmin, checkOrganizationAdmin } =
-      useApiGetHasOrganizationAdmin(logger);
+    const hasOrganizationAdmin = computed<boolean | null>(() => {
+      return registerChallengeStore.getHasOrganizationAdmin;
+    });
     //  Model for 'Entry fee payment' radio button element
     const selectedPaymentSubject = computed<PaymentSubject>({
       get: (): PaymentSubject => registerChallengeStore.getPaymentSubject,
@@ -198,25 +198,29 @@ export default defineComponent({
       set: (value: number | null) =>
         registerChallengeStore.setOrganizationId(value),
     });
-    // watch selected company and check if organization has an administrator
-    watch(selectedCompany, (newVal, oldVal) => {
-      logger?.debug(
-        `Selected organization ID changed from <${oldVal}> to <${newVal}>.`,
-      );
-      if (newVal) {
-        checkOrganizationAdmin();
-      }
-    });
     onMounted(() => {
-      checkOrganizationAdmin();
+      registerChallengeStore.checkOrganizationHasCoordinator();
     });
-    const isRegistrationCoordinator = ref<boolean>(false);
+    const isRegistrationCoordinator = computed<boolean>({
+      get: (): boolean =>
+        registerChallengeStore.getIsSelectedRegisterCoordinator,
+      set: (value: boolean): void =>
+        registerChallengeStore.setIsSelectedRegisterCoordinator(value),
+    });
     const formRegisterCoordinator = reactive({
       jobTitle: '',
       phone: '',
       responsibility: false,
       terms: false,
     });
+    // sync formRegisterCoordinator values with store
+    watch(
+      formRegisterCoordinator,
+      (newVal) => {
+        registerChallengeStore.setFormRegisterCoordinator(newVal);
+      },
+      { deep: true },
+    );
 
     watch(selectedPaymentSubject, (newVal, oldVal) => {
       logger?.debug(

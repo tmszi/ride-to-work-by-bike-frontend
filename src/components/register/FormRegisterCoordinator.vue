@@ -22,7 +22,11 @@
  */
 
 // libraries
+import { Notify } from 'quasar';
 import { defineComponent, inject, reactive, computed } from 'vue';
+
+// adapters
+import { registerCoordinatorAdapter } from 'src/adapters/registerCoordinatorAdapter';
 
 // components
 import FormFieldCheckboxRequired from './../form/FormFieldCheckboxRequired.vue';
@@ -45,7 +49,6 @@ import { useRegisterStore } from '../../stores/register';
 // types
 import type { FormOption } from '../types/Form';
 import type { Logger } from '../types/Logger';
-import type { RegisterCoordinatorRequest } from '../types/Register';
 
 export default defineComponent({
   name: 'FormRegisterCoordinator',
@@ -64,7 +67,7 @@ export default defineComponent({
       firstName: '',
       lastName: '',
       organizationType: OrganizationType.company,
-      organizationId: '',
+      organizationId: null as number | null,
       jobTitle: '',
       newsletter: [] as NewsletterType[],
       phone: '',
@@ -99,20 +102,20 @@ export default defineComponent({
 
     const onSubmit = async (): Promise<void> => {
       // build payload
-      const payload: RegisterCoordinatorRequest = {
-        firstName: formRegisterCoordinator.firstName,
-        jobTitle: formRegisterCoordinator.jobTitle,
-        lastName: formRegisterCoordinator.lastName,
-        newsletter: formRegisterCoordinator.newsletter,
-        organizationId:
-          Number(formRegisterCoordinator.organizationId) ?? undefined,
-        phone: formRegisterCoordinator.phone,
-        responsibility: formRegisterCoordinator.responsibility,
-        terms: formRegisterCoordinator.terms,
-      };
+      const payload =
+        registerCoordinatorAdapter.registerCoordinatorToApiPayload(
+          formRegisterCoordinator,
+        );
       logger?.debug(
         `Register coordinator payload <${JSON.stringify(payload)}>`,
       );
+      if (!payload) {
+        Notify.create({
+          type: 'negative',
+          message: i18n.global.t('registerCoordinator.messageNoOrganizationId'),
+        });
+        return;
+      }
       // register coordinator
       await registerStore.registerCoordinator(payload);
     };
