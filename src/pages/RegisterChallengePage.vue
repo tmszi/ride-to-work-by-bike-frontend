@@ -249,11 +249,15 @@ export default defineComponent({
      * and needs to be fixed by admin.
      */
     const isShownPaymentForm = computed<boolean>((): boolean => {
-      return registerChallengeStore.getPaymentState !== PaymentState.done;
+      return ![PaymentState.noAdmission, PaymentState.done].includes(
+        registerChallengeStore.getPaymentState,
+      );
     });
 
     const isShownRegistrationPaidMessage = computed<boolean>((): boolean => {
-      return registerChallengeStore.getPaymentState === PaymentState.done;
+      return [PaymentState.noAdmission, PaymentState.done].includes(
+        registerChallengeStore.getPaymentState,
+      );
     });
 
     const isWaitingForPayamentConfirmation = computed<boolean>((): boolean => {
@@ -263,10 +267,31 @@ export default defineComponent({
       );
     });
 
-    const isShownRegistrationNoAdmissionMessage = computed<boolean>(
+    /**
+     * Message shown for "no_admission" state caused by payment being rejected
+     * by organization coordinator.
+     */
+    const isShownRegistrationNoAdmissionMessageOrganization = computed<boolean>(
       (): boolean => {
         return (
-          registerChallengeStore.getPaymentState === PaymentState.noAdmission
+          [PaymentSubject.company, PaymentSubject.school].includes(
+            registerChallengeStore.getPaymentSubject,
+          ) && registerChallengeStore.getPaymentState === PaymentState.unknown
+        );
+      },
+    );
+
+    /**
+     * Message shown for "no_admission" state caused by payment being rejected
+     * by PayU. In this case, payment_subject is empty (not stored), so we use
+     * an inverse condition to check for payment_subject.
+     */
+    const isShownRegistrationNoAdmissionMessagePayU = computed<boolean>(
+      (): boolean => {
+        return (
+          ![PaymentSubject.company, PaymentSubject.school].includes(
+            registerChallengeStore.getPaymentSubject,
+          ) && registerChallengeStore.getPaymentState === PaymentState.unknown
         );
       },
     );
@@ -300,8 +325,10 @@ export default defineComponent({
       const paymentSubject = registerChallengeStore.getPaymentSubject;
       const voucher = registerChallengeStore.getVoucher;
       // conditions
-      const isPaymentDone =
-        registerChallengeStore.getPaymentState === PaymentState.done;
+      const isPaymentDone = [
+        PaymentState.noAdmission,
+        PaymentState.done,
+      ].includes(registerChallengeStore.getPaymentState);
       const isPaymentCompanyOrSchool = [
         PaymentSubject.company,
         PaymentSubject.school,
@@ -377,7 +404,8 @@ export default defineComponent({
       isShownPaymentForm,
       isShownCreateOrderButton,
       isShownPaymentNextStepButton,
-      isShownRegistrationNoAdmissionMessage,
+      isShownRegistrationNoAdmissionMessageOrganization,
+      isShownRegistrationNoAdmissionMessagePayU,
       isShownRegistrationPaidMessage,
       isShownRegistrationWaitingMessage,
       isWaitingForPayamentConfirmation,
@@ -479,12 +507,20 @@ export default defineComponent({
                 {{ $t('register.challenge.textRegistrationWaitingForPayment') }}
               </q-banner>
               <q-banner
-                v-if="isShownRegistrationNoAdmissionMessage"
+                v-if="isShownRegistrationNoAdmissionMessageOrganization"
                 class="bg-negative text-white q-mb-md"
                 :style="{ borderRadius }"
                 data-cy="step-2-no-admission-message"
               >
                 {{ $t('register.challenge.textRegistrationNoAdmission') }}
+              </q-banner>
+              <q-banner
+                v-if="isShownRegistrationNoAdmissionMessagePayU"
+                class="bg-negative text-white q-mb-md"
+                :style="{ borderRadius }"
+                data-cy="step-2-no-admission-message-payu"
+              >
+                {{ $t('register.challenge.textRegistrationNoAdmissionPayU') }}
               </q-banner>
               <register-challenge-payment v-if="isShownPaymentForm" />
               <!-- Message: Registration paid (displayed after PayU payment has been made) -->

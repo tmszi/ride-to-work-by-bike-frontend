@@ -18,14 +18,14 @@
         "personal_data_opt_in": true,
         "discount_coupon": "",
         "payment_subject": "individual",
-        "payment_type": "CARD_TOKEN",
-        "payment_status": "done",
+        "payment_type": "",
+        "payment_status": "no_admission",
         "payment_amount": 390
       },
       "organization_type": "company",
-      "team_id": 2451,
-      "organization_id": 987,
-      "subsidiary_id": 1358,
+      "team_id": null,
+      "organization_id": null,
+      "subsidiary_id": null,
       "t_shirt_size_id": null
     }
   ]
