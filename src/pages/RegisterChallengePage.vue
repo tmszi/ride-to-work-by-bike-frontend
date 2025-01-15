@@ -42,6 +42,7 @@ import RegisterChallengePayment from 'src/components/register/RegisterChallengeP
 import RegisterChallengeSummary from 'src/components/register/RegisterChallengeSummary.vue';
 import ShowOrganizationIds from 'src/components/debug/ShowOrganizationIds.vue';
 import TopBarCountdown from 'src/components/global/TopBarCountdown.vue';
+import RegisterChallengePaymentMessages from '../components/register/RegisterChallengePaymentMessages.vue';
 
 // composables
 import { useStepperValidation } from 'src/composables/useStepperValidation';
@@ -69,6 +70,7 @@ export default defineComponent({
     RegisterChallengeSummary,
     ShowOrganizationIds,
     TopBarCountdown,
+    RegisterChallengePaymentMessages,
   },
   setup() {
     const challengeMonth = rideToWorkByBikeConfig.challengeMonth;
@@ -245,69 +247,12 @@ export default defineComponent({
     });
 
     /**
-     * Show payment form if payment state is not `done` or `unknown`.
-     * Also hide it if payment state is `unknown` as this is a non-valid state
-     * and needs to be fixed by admin.
-     */
-    const isShownPaymentForm = computed<boolean>((): boolean => {
-      return ![PaymentState.noAdmission, PaymentState.done].includes(
-        registerChallengeStore.getPaymentState,
-      );
-    });
-
-    const isShownRegistrationPaidMessage = computed<boolean>((): boolean => {
-      return [PaymentState.noAdmission, PaymentState.done].includes(
-        registerChallengeStore.getPaymentState,
-      );
-    });
-
-    const isWaitingForPayamentConfirmation = computed<boolean>((): boolean => {
-      return (
-        isPayuTransactionInitiated.value &&
-        registerChallengeStore.getPaymentState === PaymentState.none
-      );
-    });
-
-    /**
-     * Message shown for "no_admission" state caused by payment being rejected
-     * by organization coordinator.
-     */
-    const isShownRegistrationNoAdmissionMessageOrganization = computed<boolean>(
-      (): boolean => {
-        return (
-          [PaymentSubject.company, PaymentSubject.school].includes(
-            registerChallengeStore.getPaymentSubject,
-          ) && registerChallengeStore.getPaymentState === PaymentState.unknown
-        );
-      },
-    );
-
-    /**
-     * Message shown for "no_admission" state caused by payment being rejected
-     * by PayU. In this case, payment_subject is empty (not stored), so we use
-     * an inverse condition to check for payment_subject.
-     */
-    const isShownRegistrationNoAdmissionMessagePayU = computed<boolean>(
-      (): boolean => {
-        return (
-          ![PaymentSubject.company, PaymentSubject.school].includes(
-            registerChallengeStore.getPaymentSubject,
-          ) && registerChallengeStore.getPaymentState === PaymentState.unknown
-        );
-      },
-    );
-
-    const isShownRegistrationWaitingMessage = computed<boolean>((): boolean => {
-      return registerChallengeStore.getPaymentState === PaymentState.waiting;
-    });
-
-    /**
      * Show create order button if:
-     * - payment state is not `done` and paymentAmount > 0
+     * - payment state is not not yet successful and paymentAmount > 0
      */
     const isShownCreateOrderButton = computed<boolean>((): boolean => {
       return (
-        registerChallengeStore.getPaymentState !== PaymentState.done &&
+        !registerChallengeStore.getIsPaymentSuccessful &&
         !!isPaymentAmount.value
       );
     });
@@ -318,22 +263,17 @@ export default defineComponent({
 
     /**
      * Explicit conditions for enabling a pass
-     * - payment_state = `done`
-     * - payment_subject = company or school
-     * - payment_subject = voucher && discount = 100
+     * - paymentState is successful
+     * - paymentSubject = company or school
+     * - paymentSubject = voucher and voucher discount = 100
      */
     const isEnabledPaymentNextStepButton = computed(() => {
       const paymentSubject = registerChallengeStore.getPaymentSubject;
       const voucher = registerChallengeStore.getVoucher;
       // conditions
-      const isPaymentDone = [
-        PaymentState.noAdmission,
-        PaymentState.done,
-      ].includes(registerChallengeStore.getPaymentState);
-      const isPaymentCompanyOrSchool = [
-        PaymentSubject.company,
-        PaymentSubject.school,
-      ].includes(paymentSubject);
+      const isPaymentDone = registerChallengeStore.getIsPaymentSuccessful;
+      const isPaymentCompanyOrSchool =
+        registerChallengeStore.getIsPaymentSubjectOrganization;
       const isVoucherFreeEntry =
         paymentSubject === PaymentSubject.voucher &&
         voucher?.valid &&
@@ -370,14 +310,24 @@ export default defineComponent({
           );
         }
       }
+      // create PayU order
       await registerChallengeStore.createPayuOrder();
     };
 
     const contactEmail = rideToWorkByBikeConfig.contactEmail;
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
 
+    const isRegistrationEntryFeePaidViaPayu = computed((): boolean => {
+      const isEntryFeePaid =
+        registerChallengeStore.getIsPaymentSuccessful &&
+        registerChallengeStore.getIsPaymentCategoryEntryFee;
+      const isNoAdmission =
+        registerChallengeStore.getPaymentState === PaymentState.noAdmission;
+      return isEntryFeePaid || isNoAdmission;
+    });
+
     const isRegistrationComplete = computed(
-      () => paymentState.value === PaymentState.done,
+      () => registerChallengeStore.getIsRegistrationComplete,
     );
 
     return {
@@ -417,14 +367,9 @@ export default defineComponent({
       merchId,
       isPaymentAmount,
       isRegistrationComplete,
-      isShownPaymentForm,
+      isRegistrationEntryFeePaidViaPayu,
       isShownCreateOrderButton,
       isShownPaymentNextStepButton,
-      isShownRegistrationNoAdmissionMessageOrganization,
-      isShownRegistrationNoAdmissionMessagePayU,
-      isShownRegistrationPaidMessage,
-      isShownRegistrationWaitingMessage,
-      isWaitingForPayamentConfirmation,
       isEnabledPaymentNextStepButton,
       isLoadingPayuOrder,
       isLoadingRegisterChallenge,
@@ -461,6 +406,7 @@ export default defineComponent({
             $t(`register.challenge.titleRegisterToChallenge.${challengeMonth}`)
           }}
         </h1>
+
         <q-stepper
           animated
           header-nav
@@ -514,40 +460,21 @@ export default defineComponent({
           >
             <!-- Form: Payment -->
             <q-form ref="stepPaymentRef">
-              <q-banner
-                v-if="isWaitingForPayamentConfirmation"
-                class="bg-warning text-grey-10 q-mb-md"
-                :style="{ borderRadius }"
-                data-cy="step-2-waiting-for-payment-message"
-              >
-                {{ $t('register.challenge.textRegistrationWaitingForPayment') }}
-              </q-banner>
-              <q-banner
-                v-if="isShownRegistrationNoAdmissionMessageOrganization"
-                class="bg-negative text-white q-mb-md"
-                :style="{ borderRadius }"
-                data-cy="step-2-no-admission-message"
-              >
-                {{ $t('register.challenge.textRegistrationNoAdmission') }}
-              </q-banner>
-              <q-banner
-                v-if="isShownRegistrationNoAdmissionMessagePayU"
-                class="bg-negative text-white q-mb-md"
-                :style="{ borderRadius }"
-                data-cy="step-2-no-admission-message-payu"
-              >
-                {{ $t('register.challenge.textRegistrationNoAdmissionPayU') }}
-              </q-banner>
-              <register-challenge-payment v-if="isShownPaymentForm" />
-              <!-- Message: Registration paid (displayed after PayU payment has been made) -->
+              <!-- Payment messages -->
+              <register-challenge-payment-messages data-cy="payment-messages" />
+              <!-- Text entry fee paid (displayed after PayU payment has been made) -->
               <div
-                v-if="isShownRegistrationPaidMessage"
+                v-if="isRegistrationEntryFeePaidViaPayu"
                 v-html="
                   $t('register.challenge.textRegistrationPaid', {
                     contactEmail,
                   })
                 "
                 data-cy="step-2-paid-message"
+              />
+              <!-- Payment form -->
+              <register-challenge-payment
+                v-if="!isRegistrationEntryFeePaidViaPayu"
               />
             </q-form>
             <q-stepper-navigation class="flex justify-end">
@@ -772,16 +699,6 @@ export default defineComponent({
             class="bg-white q-mt-lg"
             data-cy="step-7"
           >
-            <q-banner
-              v-if="isShownRegistrationWaitingMessage"
-              class="bg-warning text-grey-10 q-mb-md"
-              :style="{ borderRadius }"
-              data-cy="step-7-registration-waiting-message"
-            >
-              {{
-                $t('register.challenge.textRegistrationWaitingForConfirmation')
-              }}
-            </q-banner>
             <!-- Content: Summary -->
             <register-challenge-summary />
             <!-- Buttons: Summary -->

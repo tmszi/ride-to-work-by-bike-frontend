@@ -36,6 +36,7 @@ import {
 } from '../components/types/Organization';
 import { PaymentSubject } from '../components/enums/Payment';
 import { RegisterChallengeStep } from '../components/enums/RegisterChallenge';
+import { PaymentCategory } from '../components/types/ApiPayu';
 
 // stores
 import { useRegisterStore } from './register';
@@ -121,6 +122,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     hasOrganizationAdmin: null as boolean | null,
     isUserOrganizationAdmin: null as boolean | null,
     isLoadingUserOrganizationAdmin: false,
+    paymentCategory: PaymentCategory.none,
   }),
 
   getters: {
@@ -143,6 +145,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getMerchandiseItems: (state): MerchandiseItem[] => state.merchandiseItems,
     getMerchandiseCards: (state): Record<Gender, MerchandiseCard[]> =>
       state.merchandiseCards,
+    getPaymentCategory: (state): PaymentCategory => state.paymentCategory,
     getIsSelectedRegisterCoordinator: (state): boolean =>
       state.isSelectedRegisterCoordinator,
     getFormRegisterCoordinator: (state): RegisterChallengeCoordinatorForm =>
@@ -220,6 +223,31 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getIpAddress: (state): string => state.ipAddressData?.ip || '',
     getIsPayuTransactionInitiated: (state): boolean =>
       state.isPayuTransactionInitiated,
+    getIsPaymentCategoryDonation: (state): boolean => {
+      return (
+        state.paymentCategory === PaymentCategory.donation ||
+        state.paymentCategory === PaymentCategory.entryFeeDonation
+      );
+    },
+    getIsPaymentCategoryEntryFee: (state): boolean => {
+      return (
+        state.paymentCategory === PaymentCategory.entryFee ||
+        state.paymentCategory === PaymentCategory.entryFeeDonation
+      );
+    },
+    getIsPaymentSuccessful: (state): boolean => {
+      return [PaymentState.done, PaymentState.noAdmission].includes(
+        state.paymentState,
+      );
+    },
+    getIsPaymentUnsuccessful: (state): boolean => {
+      return state.paymentState === PaymentState.unknown;
+    },
+    getIsPaymentSubjectOrganization: (state): boolean => {
+      return [PaymentSubject.company, PaymentSubject.school].includes(
+        state.paymentSubject,
+      );
+    },
     getIsPersonalDetailsComplete(): boolean {
       return (
         this.getPersonalDetails.firstName !== '' &&
@@ -230,14 +258,35 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       );
     },
     getIsPaymentComplete(): boolean {
-      return [PaymentState.noAdmission, PaymentState.done].includes(
-        this.getPaymentState,
-      );
+      const isPaymentStateSuccess = [
+        PaymentState.noAdmission,
+        PaymentState.done,
+      ].includes(this.getPaymentState);
+      const isPaymentCategoryDonation =
+        this.getPaymentCategory === PaymentCategory.donation;
+      const isPaymentSubjectVoucher =
+        this.getPaymentSubject === PaymentSubject.voucher;
+      // payment not successful
+      if (!isPaymentStateSuccess) {
+        return false;
+      }
+      // complete - successful payment of entry fee
+      else if (isPaymentStateSuccess && !isPaymentCategoryDonation) {
+        return true;
+      }
+      // complete - status = voucher (100% discount) + successful donation
+      else if (
+        isPaymentStateSuccess &&
+        isPaymentCategoryDonation &&
+        isPaymentSubjectVoucher
+      ) {
+        return true;
+      }
+      return false;
     },
     getIsOrganizationTypeComplete(): boolean {
       return this.getOrganizationType !== OrganizationType.none;
     },
-
     getIsOrganizationIdComplete(): boolean {
       return this.getOrganizationId !== null;
     },
@@ -286,6 +335,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     setMerchId(merchId: number | null) {
       this.merchId = merchId;
+    },
+    setPaymentCategory(paymentCategory: PaymentCategory) {
+      this.paymentCategory = paymentCategory;
     },
     setPaymentState(paymentState: PaymentState) {
       this.paymentState = paymentState;
@@ -375,21 +427,64 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       );
       /**
        * The paymentAmount value is sent for subject = 'company' or 'school'.
-       * It indicates what was the price for which the user registered.
-       * We store the amount because the price may change.
+       * TODO: It is sent to the API after the TEAM step is completed.
+       * If sent earlier, we cannot determine the right coordinator.
+       * paymentAmount indicates what was the price for which the user
+       * registered. We store the amount because the price changes.
        */
       /**
        * The paymentVoucher value is sent when discounted payment is made.
        * We do not need the name value (unless for information purposes)
        * as the payment must be made immediately.
+       * If voucher is saved and paymentAmount is null, we set the voucher
+       * as a full discount voucher.
        */
-      this.setPaymentSubject(parsedResponse.paymentSubject);
+      const isVoucherFullDiscount =
+        parsedResponse.voucher &&
+        (!parsedResponse.paymentAmount ||
+          parsedResponse.paymentCategory === PaymentCategory.donation);
+      if (isVoucherFullDiscount) {
+        this.setVoucher({
+          valid: true,
+          discount: 100,
+          name: parsedResponse.voucher,
+        });
+      }
+      /**
+       * Update payment subject to API response value if not exception case
+       * Exception case is a donation payment made when organization pays the
+       * starting fee. This sends back paymentSubject for the donation
+       * payment. However, we need the paymentSubject for the entry fee
+       * payment.
+       */
+      const isPaymentOrganizationDonation =
+        parsedResponse.paymentSubject === PaymentSubject.individual &&
+        parsedResponse.paymentCategory === PaymentCategory.donation;
+      if (isPaymentOrganizationDonation) {
+        // exception case - donation payment made by organization
+        this.$log?.debug(
+          `Donation payment made by organization <${isPaymentOrganizationDonation}>.`,
+        );
+        if (parsedResponse.organizationType === OrganizationType.company) {
+          this.setPaymentSubject(PaymentSubject.company);
+        } else if (
+          parsedResponse.organizationType === OrganizationType.school
+        ) {
+          this.setPaymentSubject(PaymentSubject.school);
+        }
+      } else {
+        this.setPaymentSubject(parsedResponse.paymentSubject);
+      }
       this.$log?.debug(
         `Payment subject store updated to <${this.getPaymentSubject}>.`,
       );
       this.setPaymentState(parsedResponse.paymentState);
       this.$log?.debug(
         `Payment state store updated to <${this.getPaymentState}>.`,
+      );
+      this.setPaymentCategory(parsedResponse.paymentCategory);
+      this.$log?.debug(
+        `Payment category store updated to <${this.getPaymentCategory}>.`,
       );
       /**
        * In case the payment subject has been selected but the organizationType
