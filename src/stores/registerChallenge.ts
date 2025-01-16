@@ -529,19 +529,32 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       step: RegisterChallengeStep,
     ): Promise<RegisterChallengePostResponse | null> {
       // payload map defines what data is sent to the API for each step
+      const isPaymentOrganization = this.getIsPaymentSubjectOrganization;
+      /**
+       * Defines what data is sent to the API for each step
+       * Data with `null` value is discarded by the
+       * registerChallengeAdapter.toApiPayload function.
+       */
       const payloadMap: Record<RegisterChallengeStep, unknown> = {
         [RegisterChallengeStep.personalDetails]: {
           personalDetails: this.personalDetails,
         },
         [RegisterChallengeStep.payment]: {
-          paymentSubject: this.paymentSubject,
-          // we send only the default payment amount for organization
-          paymentAmount: this.getDefaultPaymentAmountCompany,
+          // only send payment subject if payment subject is not organization
+          paymentSubject: isPaymentOrganization ? null : this.paymentSubject,
+          // null value is discarded, so we always send voucher
           voucher: this.voucher,
         },
         [RegisterChallengeStep.participation]: {},
         [RegisterChallengeStep.organization]: {},
-        [RegisterChallengeStep.team]: { teamId: this.teamId },
+        [RegisterChallengeStep.team]: {
+          teamId: this.teamId,
+          // if payment subject is organization, we send payment subject and amount
+          paymentSubject: isPaymentOrganization ? this.paymentSubject : null,
+          paymentAmount: isPaymentOrganization
+            ? this.getDefaultPaymentAmountCompany
+            : null,
+        },
         [RegisterChallengeStep.merch]: {
           merchId: this.merchId,
           telephone: this.telephone,
@@ -556,6 +569,13 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       this.$log?.debug(
         `Submitting <${step}> payload <${JSON.stringify(payload, null, 2)}>.`,
       );
+      // skip API call if payload is empty
+      if (Object.keys(payload).length === 0) {
+        this.$log?.debug(
+          `Empty payload <${JSON.stringify(payload, null, 2)}>, skipping API call.`,
+        );
+        return null;
+      }
       // post payload to API
       return this.postRegisterChallenge(payload);
     },
