@@ -30,6 +30,9 @@ import FormFieldNewsletter from './FormFieldNewsletter.vue';
 // composables
 import { i18n } from '../../boot/i18n';
 
+// config
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
 // stores
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
 
@@ -70,9 +73,13 @@ export default defineComponent({
       },
     ];
 
+    const urlAppDataPrivacyPolicy =
+      rideToWorkByBikeConfig.urlAppDataPrivacyPolicy;
+
     return {
       genderOptions,
       personalDetails,
+      urlAppDataPrivacyPolicy,
     };
   },
 });
@@ -166,9 +173,8 @@ export default defineComponent({
             <span>
               {{ $t('form.labelPrivacyConsent') }}
               <!-- Link: terms -->
-              <!-- TODO: Link to terms page -->
               <a
-                href="#"
+                :href="urlAppDataPrivacyPolicy"
                 target="_blank"
                 class="text-primary"
                 @click.stop
