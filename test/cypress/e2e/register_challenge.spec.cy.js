@@ -198,8 +198,16 @@ describe('Register Challenge page', () => {
                   );
                 },
               );
-              // intercept without specific response (it is not used)
-              cy.interceptRegisterChallengePostApi(config, win.i18n);
+              // intercept with default "payment_status": "none"
+              cy.fixture(
+                'apiPostRegisterChallengeResponsePaymentNone.json',
+              ).then((registerChallengeResponse) => {
+                cy.interceptRegisterChallengePostApi(
+                  config,
+                  win.i18n,
+                  registerChallengeResponse,
+                );
+              });
               cy.interceptMerchandiseNoneGetApi(config, win.i18n);
               cy.interceptIpAddressGetApi(config);
               cy.interceptPayuCreateOrderPostApi(config, win.i18n);
@@ -1764,6 +1772,95 @@ describe('Register Challenge page', () => {
         });
       });
     });
+
+    it('allows to complete registration with voucher payment FULL', () => {
+      cy.get('@config').then((config) => {
+        cy.get('@i18n').then((i18n) => {
+          passToStep2();
+          cy.dataCy(getRadioOption(PaymentSubject.voucher))
+            .should('be.visible')
+            .click();
+          cy.applyFullVoucher(config, i18n);
+          // go to next step
+          cy.dataCy('step-2-continue').should('be.visible').click();
+          // override POST register-challenge response (payment status "done")
+          cy.fixture('apiPostRegisterChallengeResponsePaymentDone.json').then(
+            (response) => {
+              cy.interceptRegisterChallengePostApi(config, i18n, response);
+            },
+          );
+          // select participation - company
+          cy.dataCy('form-field-option').should('be.visible').first().click();
+          // go to next step
+          cy.dataCy('step-3-continue').should('be.visible').click();
+          // select company
+          cy.dataCy('form-select-table-company')
+            .should('be.visible')
+            .find('.q-radio')
+            .first()
+            .click();
+          cy.fixture('apiGetSubsidiariesResponse.json').then(
+            (apiGetSubsidiariesResponse) => {
+              cy.fixture('apiGetSubsidiariesResponseNext.json').then(
+                (apiGetSubsidiariesResponseNext) => {
+                  cy.waitForSubsidiariesApi(
+                    apiGetSubsidiariesResponse,
+                    apiGetSubsidiariesResponseNext,
+                  );
+                },
+              );
+            },
+          );
+          // select address
+          cy.dataCy('form-company-address')
+            .find('.q-field__append')
+            .last()
+            .should('be.visible')
+            .click();
+          // select option
+          cy.get('.q-menu')
+            .should('be.visible')
+            .within(() => {
+              cy.get('.q-item').first().click();
+            });
+          // go to next step
+          cy.dataCy('step-4-continue').should('be.visible').click();
+          // select first available team (this is the second team, first is full)
+          cy.dataCy('form-select-table-team')
+            .should('be.visible')
+            .find('.q-radio:not(.disabled)')
+            .first()
+            .click();
+          // go to next step
+          cy.dataCy('step-5-continue').should('be.visible').click();
+          // select first merch option
+          cy.dataCy('form-card-merch-female')
+            .first()
+            .find('[data-cy="form-card-merch-link"]')
+            .click();
+          // close dialog
+          cy.dataCy('dialog-close').click();
+          // verify dialog is closed
+          cy.dataCy('dialog-merch').should('not.exist');
+          // fill in phone number
+          cy.fixture('apiPostRegisterChallengeMerchandiseRequest.json').then(
+            (request) => {
+              cy.dataCy('form-merch-phone-input')
+                .find('input')
+                .type(request.telephone);
+            },
+          );
+          // enable telephone opt-in
+          cy.dataCy('form-merch-phone-opt-in-input').click();
+          // go to next step
+          cy.dataCy('step-6-continue').should('be.visible').click();
+          // complete registration
+          cy.dataCy('step-7-continue')
+            .should('be.visible')
+            .and('not.be.disabled');
+        });
+      });
+    });
   });
 
   context('registration in progress, individual payment "done"', () => {
@@ -1821,7 +1918,15 @@ describe('Register Challenge page', () => {
           },
         );
         // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
+        cy.fixture('apiPostRegisterChallengeResponsePaymentNoAdmission').then(
+          (registerChallengeResponse) => {
+            cy.interceptRegisterChallengePostApi(
+              config,
+              defLocale,
+              registerChallengeResponse,
+            );
+          },
+        );
         cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.viewport('macbook-16');
@@ -1881,7 +1986,15 @@ describe('Register Challenge page', () => {
           },
         );
         // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
+        cy.fixture('apiPostRegisterChallengeResponsePaymentUnknown').then(
+          (registerChallengeResponse) => {
+            cy.interceptRegisterChallengePostApi(
+              config,
+              defLocale,
+              registerChallengeResponse,
+            );
+          },
+        );
         cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.viewport('macbook-16');
@@ -1917,7 +2030,15 @@ describe('Register Challenge page', () => {
             cy.interceptRegisterChallengeGetApi(config, defLocale, response);
           },
         );
-        cy.interceptRegisterChallengePostApi(config, defLocale);
+        cy.fixture('apiPostRegisterChallengeResponsePaymentNone.json').then(
+          (registerChallengeResponse) => {
+            cy.interceptRegisterChallengePostApi(
+              config,
+              defLocale,
+              registerChallengeResponse,
+            );
+          },
+        );
         cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.viewport('macbook-16');
@@ -2179,7 +2300,15 @@ describe('Register Challenge page', () => {
           },
         );
         // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
+        cy.fixture('apiPostRegisterChallengeResponsePaymentUnknown.json').then(
+          (registerChallengeResponse) => {
+            cy.interceptRegisterChallengePostApi(
+              config,
+              defLocale,
+              registerChallengeResponse,
+            );
+          },
+        );
         cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.viewport('macbook-16');
@@ -2215,7 +2344,15 @@ describe('Register Challenge page', () => {
           },
         );
         // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
+        cy.fixture('apiPostRegisterChallengeResponsePaymentWaiting').then(
+          (registerChallengeResponse) => {
+            cy.interceptRegisterChallengePostApi(
+              config,
+              defLocale,
+              registerChallengeResponse,
+            );
+          },
+        );
         cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       // config is defined without hash in the URL
@@ -2343,7 +2480,15 @@ describe('Register Challenge page', () => {
             cy.interceptRegisterChallengeGetApi(config, defLocale, response);
           });
           // intercept common response (not currently used)
-          cy.interceptRegisterChallengePostApi(config, defLocale);
+          cy.fixture('apiPostRegisterChallengeResponsePaymentWaiting').then(
+            (registerChallengeResponse) => {
+              cy.interceptRegisterChallengePostApi(
+                config,
+                defLocale,
+                registerChallengeResponse,
+              );
+            },
+          );
           cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
         });
         // config is defined without hash in the URL
@@ -2417,7 +2562,15 @@ describe('Register Challenge page', () => {
           },
         );
         // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
+        cy.fixture('apiPostRegisterChallengeResponsePaymentNoAdmission').then(
+          (registerChallengeResponse) => {
+            cy.interceptRegisterChallengePostApi(
+              config,
+              defLocale,
+              registerChallengeResponse,
+            );
+          },
+        );
         cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       // config is defined without hash in the URL

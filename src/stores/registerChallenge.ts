@@ -252,7 +252,6 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       return (
         this.getPersonalDetails.firstName !== '' &&
         this.getPersonalDetails.lastName !== '' &&
-        this.getPersonalDetails.nickname !== '' &&
         this.getPersonalDetails.gender !== Gender.none &&
         this.getPersonalDetails.terms === true
       );
@@ -609,6 +608,18 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       );
 
       const response = await registerChallenge(payload);
+
+      // set paymentState from API POST response
+      if (response?.personal_details?.payment_status) {
+        this.setPaymentState(
+          response.personal_details.payment_status as PaymentState,
+        );
+        this.$log?.debug(
+          `Update payment state store value to <${this.getPaymentState}>` +
+            ' from the API response.',
+        );
+      }
+
       this.isLoadingRegisterChallenge = false;
 
       return response;
