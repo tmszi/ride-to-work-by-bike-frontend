@@ -1517,6 +1517,19 @@ describe('Register Challenge page', () => {
             .find('.q-radio')
             .first()
             .click();
+          // wait for subsidiaries to load
+          cy.fixture('apiGetSubsidiariesResponse.json').then(
+            (apiGetSubsidiariesResponse) => {
+              cy.fixture('apiGetSubsidiariesResponseNext.json').then(
+                (apiGetSubsidiariesResponseNext) => {
+                  cy.waitForSubsidiariesApi(
+                    apiGetSubsidiariesResponse,
+                    apiGetSubsidiariesResponseNext,
+                  );
+                },
+              );
+            },
+          );
           // select address
           cy.dataCy('form-company-address').should('be.visible').click();
           // select option
