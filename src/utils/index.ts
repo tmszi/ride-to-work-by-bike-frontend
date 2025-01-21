@@ -1,6 +1,7 @@
 // types
 import type { AxiosRequestHeaders } from 'axios';
 import { ConfigGlobal } from '../components/types';
+import type { Countdown } from '../components/types/Countdown';
 
 /**
  * Get global app config as lazy function allow to use
@@ -92,7 +93,31 @@ const deepObjectWithSimplePropsCopy = <T>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
 };
 
+/**
+ * Calculate the countdown intervals
+ * Returns the countdown object with days, hours, minutes and seconds
+ * @param {number} timeDifferenceMs - Time difference in milliseconds
+ * @returns {Countdown} - Countdown object
+ */
+const calculateCountdownIntervals = (timeDifferenceMs: number): Countdown => {
+  // convert time difference to seconds
+  const totalSeconds = Math.floor(timeDifferenceMs / 1000);
+  // calculate each unit
+  const days = Math.floor(totalSeconds / (24 * 60 * 60));
+  const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+
+  return {
+    days,
+    hours,
+    minutes,
+    seconds,
+  };
+};
+
 export {
+  calculateCountdownIntervals,
   bearerTokeAuth,
   deepObjectWithSimplePropsCopy,
   requestDefaultHeader,

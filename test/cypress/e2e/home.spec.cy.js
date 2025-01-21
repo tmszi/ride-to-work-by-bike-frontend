@@ -4,6 +4,8 @@ import {
   testLanguageSwitcher,
   testMobileHeader,
 } from '../support/commonTests';
+import { defLocale } from '../../../src/i18n/def_locale';
+import { calculateCountdownIntervals } from '../../../src/utils';
 
 // variables
 const failTestTitle = 'allows user to scroll to top using the footer button';
@@ -340,21 +342,22 @@ describe('Home page', () => {
   context('before challenge', () => {
     beforeEach(() => {
       cy.clock(systemTimeChallengeInactive, ['Date']).then(() => {
-        cy.visit(Cypress.config('baseUrl'));
-        cy.viewport('macbook-16');
-
-        // load config an i18n objects as aliases
+        // load config
         cy.task('getAppConfig', process).then((config) => {
           // alias config
           cy.wrap(config).as('config');
-          cy.window().should('have.property', 'i18n');
-          cy.window().then((win) => {
-            // alias i18n
-            cy.wrap(win.i18n).as('i18n');
-            cy.interceptThisCampaignGetApi(config, win.i18n);
-          });
+          // intercept campaign API
+          cy.interceptThisCampaignGetApi(config, defLocale);
         });
-        cy.reload();
+
+        cy.visit(Cypress.config('baseUrl'));
+        cy.viewport('macbook-16');
+        // load i18n
+        cy.window().should('have.property', 'i18n');
+        cy.window().then((win) => {
+          // alias i18n
+          cy.wrap(win.i18n).as('i18n');
+        });
       });
     });
 
@@ -398,6 +401,30 @@ describe('Home page', () => {
         cy.dataCy('newsletter-feature').should('be.visible');
         // list of follow
         cy.dataCy('list-card-follow').should('be.visible');
+      });
+    });
+
+    it('shows correct countdown to competition start', () => {
+      cy.waitForThisCampaignApi();
+      cy.fixture('apiGetThisCampaign.json').then((campaign) => {
+        const competitionPhase = campaign.results[0].phase_set.find(
+          (phase) => phase.phase_type === 'competition',
+        );
+        const competitionStart = new Date(competitionPhase.date_from).getTime();
+        const currentDate = new Date(systemTimeChallengeInactive).getTime();
+        // calculate time difference in milliseconds
+        const timeDifference = competitionStart - currentDate;
+
+        const { days, hours, minutes, seconds } =
+          calculateCountdownIntervals(timeDifference);
+
+        // check countdown values
+        cy.dataCy('countdown-event').within(() => {
+          cy.dataCy('countdown-days').contains(days.toString());
+          cy.dataCy('countdown-hours').contains(hours.toString());
+          cy.dataCy('countdown-minutes').contains(minutes.toString());
+          cy.dataCy('countdown-seconds').contains(seconds.toString());
+        });
       });
     });
   });

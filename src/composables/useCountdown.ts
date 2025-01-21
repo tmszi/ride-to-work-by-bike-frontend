@@ -1,11 +1,13 @@
 // libraries
-import { ref, watchEffect, onBeforeUnmount, Ref } from 'vue';
+import { ref, watchEffect, onBeforeUnmount, Ref, ComputedRef } from 'vue';
+import { date } from 'quasar';
 
 // types
 import { Countdown } from 'src/components/types';
+import { calculateCountdownIntervals } from '../utils';
 
 export const useCountdown = (
-  releaseDate: string,
+  releaseDate: ComputedRef<string>,
 ): { countdown: Ref<Countdown> } => {
   const countdown = ref<Countdown>({
     days: 0,
@@ -17,7 +19,23 @@ export const useCountdown = (
   let countdownInterval: NodeJS.Timeout | null = null;
 
   const startCountdown = (): void => {
-    const targetDate = new Date(releaseDate).getTime();
+    // Clear any existing interval
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+    }
+
+    // Validate the date string
+    if (!releaseDate.value || !date.isValid(releaseDate.value)) {
+      countdown.value = {
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
+      return;
+    }
+
+    const targetDate = new Date(releaseDate.value).getTime();
 
     countdownInterval = setInterval((): void => {
       const now = new Date().getTime();
@@ -36,7 +54,7 @@ export const useCountdown = (
     countdownInterval: NodeJS.Timeout | null,
   ): void {
     if (timeDifference > 0) {
-      setCountdownValues(timeDifference);
+      countdown.value = calculateCountdownIntervals(timeDifference);
     } else {
       if (countdownInterval) {
         clearInterval(countdownInterval);
@@ -44,17 +62,7 @@ export const useCountdown = (
     }
   }
 
-  function setCountdownValues(timeDifference: number): void {
-    countdown.value = {
-      days: Math.floor(timeDifference / (1000 * 60 * 60 * 24)),
-      hours: Math.floor(
-        (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-      ),
-      minutes: Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60)),
-      seconds: Math.floor((timeDifference % (1000 * 60)) / 1000),
-    };
-  }
-
+  // watch for changes in releaseDate and restart countdown
   watchEffect((): void => {
     startCountdown();
   });

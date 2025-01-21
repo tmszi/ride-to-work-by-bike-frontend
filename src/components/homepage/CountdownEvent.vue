@@ -22,16 +22,13 @@
  */
 
 import { colors, date } from 'quasar';
-import { defineComponent } from 'vue';
-// import { useI18n } from 'vue-i18n'
+import { defineComponent, computed } from 'vue';
 
 // composables
 import { useCountdown } from '../../composables/useCountdown';
 
 // config
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
-
-const { formatDate } = date;
 
 export default defineComponent({
   name: 'CountdownEvent',
@@ -43,7 +40,8 @@ export default defineComponent({
   },
   setup(props) {
     const fontSize = '48px';
-    const { countdown } = useCountdown(props.releaseDate);
+
+    const { countdown } = useCountdown(computed(() => props.releaseDate));
 
     // colors
     const { getPaletteColor, changeAlpha } = colors;
@@ -55,13 +53,13 @@ export default defineComponent({
 
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCard;
 
-    // currently not working see https://github.com/intlify/vue-i18n-next/issues/1193
-    // const { locale } = useI18n({ useScope: 'global' })
-    let formatString = 'D. M.';
-    // if (locale.value === 'en') {
-    //   formatString = 'D MMM';
-    // }
-    const formattedDate = formatDate(new Date(props.releaseDate), formatString);
+    const releaseDateComputed = computed(() => {
+      if (!props.releaseDate || !date.isValid(props.releaseDate)) {
+        return '';
+      } else {
+        return new Date(props.releaseDate);
+      }
+    });
 
     if (window.Cypress) {
       window.countdownEvent = { fontSize: fontSize };
@@ -71,7 +69,7 @@ export default defineComponent({
       borderRadius,
       secondaryOpacity,
       countdown,
-      formattedDate,
+      releaseDateComputed,
       fontSize,
     };
   },
@@ -94,7 +92,13 @@ export default defineComponent({
         class="text-body1 text-weight-bold text-grey-10 q-px-lg"
         data-cy="title"
       >
-        {{ $t('index.countdown.title', { date: formattedDate }) }}
+        {{
+          $t('index.countdown.title', {
+            date: releaseDateComputed
+              ? $d(releaseDateComputed, 'monthDay')
+              : releaseDateComputed,
+          })
+        }}
       </div>
       <!-- Countdown -->
       <div class="row items-center justify-evenly q-mt-md">
