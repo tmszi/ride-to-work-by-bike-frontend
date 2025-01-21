@@ -821,19 +821,12 @@ describe('Register Challenge page', () => {
         // check no merch checkbox
         cy.dataCy('form-merch-no-merch-checkbox').should('be.visible').click();
         cy.waitForMerchandiseNoneApi();
-        // go to next step
+        // next step button is enabled
         cy.dataCy('step-6-continue')
           .should('be.visible')
           .and('not.be.disabled')
           .click();
-        cy.dataCy('step-6')
-          .find('.q-stepper__step-content')
-          .should('not.exist');
-        cy.dataCy('step-7')
-          .find('.q-stepper__step-content')
-          .should('be.visible');
-        // go back to step 6
-        cy.dataCy('step-7-back').should('be.visible').click();
+        // validation does not pass (phone is required)
         cy.dataCy('step-6')
           .find('.q-stepper__step-content')
           .should('be.visible');
