@@ -522,11 +522,12 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     /**
      * Submit a registration step
-     * @param step - The step being submitted
+     * @param {RegisterChallengeStep} step - The step being submitted
+     * @returns {Promise<RegisterChallengePostResponse | null | true>} - API response or true if no data to send
      */
     async submitStep(
       step: RegisterChallengeStep,
-    ): Promise<RegisterChallengePostResponse | null> {
+    ): Promise<RegisterChallengePostResponse | null | true> {
       // payload map defines what data is sent to the API for each step
       const isPaymentOrganization = this.getIsPaymentSubjectOrganization;
       /**
@@ -587,7 +588,12 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         this.$log?.debug(
           `Empty payload <${JSON.stringify(payload, null, 2)}>, skipping API call.`,
         );
-        return null;
+        /**
+         * If request does not send because of empty payload
+         * (paymentSubject company and no voucher)
+         * return true for free pass through stepper response validation
+         */
+        return true;
       }
       // post payload to API
       return this.postRegisterChallenge(payload);
