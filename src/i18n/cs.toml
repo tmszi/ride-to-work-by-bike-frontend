@@ -578,6 +578,7 @@ descriptionResetFinished = "Právě jsme vám na e-mail {contactEmail} zaslali o
 labelEmail = "E-mail"
 labelPassword = "Heslo"
 labelPasswordReset = "E-mail"
+linkBackToLogin = "Zpět na přihlášení"
 messageEmailReqired = "Prosím vyplňte e-mail"
 messageEmailInvalid = "Prosím vyplňte platný e-mail"
 messageFacebookAuthNotAuthorized = "Přihlášení přes Facebook se nezdařilo"
@@ -744,14 +745,17 @@ messagePasswordStrong = "Heslo musí obsahovat alespoň 6 znaků a alespoň 1 p�
 messagePasswordConfirmRequired = "Prosím vyplňte heslo"
 messagePasswordConfirmNotMatch = "Hesla se neshodují"
 messagePrivacyConsentRequired = "Musíte souhlasit se zpracováním osobních údajů"
-submitRegister = "Registrovat se"
 submitConfirmation = "Potvrdit e-mail"
+submitRegister = "Registrovat se"
+submitResetPassword = "Obnovit heslo"
 textEmailVerification = "<p>Právě jsme vám na e-mail <b>{email}</b> poslali pozvánku do systému Do práce na kole.</p><p>Pokud ji nemůžete najít, koukněte i do spamu.</p>"
 textNoActiveChallenge = "Momentálně žádná z výzev Do práce na kole neprobíhá. Můžete se zaregistrovat, rádi vás informujeme, jakmile vypíšeme další."
 titleEmailVerification = "Pokračujte potvrzením e-mailu"
 titleRegister = "Registrace"
+titleResetPassword = "Obnovení hesla"
 titleEmailConfirmation = "Potvrzení e-mailu"
 textEmailConfirmation = "Prosím potvrďte svoji e-mailovou adresu:<br>{email}."
+textResetPassword = "Prosím vyplňte nové heslo a potvrďte ho."
 
 [register.buttons]
 buttonGoogle = "Registrovat přes Google"
@@ -823,6 +827,11 @@ messagePasswordConfirmNotMatch = "Hesla se neshodují"
 messageResponsibilityRequired = "Musíte souhlasit se zajištěním startovného."
 messageTermsRequired = "Musíte souhlasit se zpracováním osobních údajů"
 hintPassword = "Musí obsahovat alespoň 6 znaků a alespoň 1 písmeno."
+
+[resetPasswordConfirm]
+apiMessageError = "Chyba při změně hesla."
+apiMessageErrorWithMessage = "Chyba při změně hesla. Chyba: {error}"
+apiMessageSuccess = "Heslo bylo úspěšně změněno."
 
 [results]
 buttonPastChallenges = "Výsledky z dřívějších výzev"

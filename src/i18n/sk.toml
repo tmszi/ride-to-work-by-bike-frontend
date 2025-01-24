@@ -575,6 +575,7 @@ descriptionResetFinished = "Práve sme vám poslali e-mail s odkazom na obnoveni
 labelEmail = "E-mail"
 labelPassword = "Heslo"
 labelPasswordReset = "E-mail"
+linkBackToLogin = "Späť na prihlásenie"
 messageEmailReqired = "Vyplňte prosím svoj e-mail"
 messageEmailInvalid = "Vyplňte prosím platný e-mail"
 messageFacebookAuthNotAuthorized = "Prihlásenie cez Facebook sa nepodarilo"
@@ -739,14 +740,17 @@ messagePasswordStrong = "Heslo musí obsahovať aspoň 6 znakov a aspoň 1 písm
 messagePasswordConfirmRequired = "Vyplňte prosím heslo"
 messagePasswordConfirmNotMatch = "Heslá sa nezhodujú"
 messagePrivacyConsentRequired = "Musíte súhlasiť s spracovaním osobných údajov"
-submitRegister = "Zaregistrujte sa"
 submitConfirmation = "Potvrdiť e-mail"
+submitRegister = "Zaregistrujte sa"
+submitResetPassword = "Obnoviť heslo"
 textEmailVerification = "<p>Práve sme vám na e-mail <b>{email}</b> poslali pozvánku do systému Do práce na bicykli.</p><p>Ak ju nemôžete nájsť, pozrite sa aj do spamu.</p>"
 textNoActiveChallenge = "Momentálne neprebieha žiadna výzva Do práce na bicykli. Môžete sa zaregistrovať a my vás radi budeme informovať, keď vypíšeme ďalšiu."
 titleEmailVerification = "Pokračujte potvrdením e-mailu"
 titleRegister = "Registrácia"
+titleResetPassword = "Obnovenie hesla"
 titleEmailConfirmation = "Potvrdenie e-mailovej adresy"
 textEmailConfirmation = "Prosím potvrďte svoju e-mailovú adresu:<br>{email}."
+textResetPassword = "Prosím vyplňte nové heslo a potvrďte ho."
 
 [register.buttons]
 buttonGoogle = "Registrácia cez Google"
@@ -818,6 +822,11 @@ messagePasswordConfirmNotMatch = "Heslá sa nezhodujú"
 messageResponsibilityRequired = "Musíte súhlasiť s poskytnutím štartovného."
 messageTermsRequired = "Musíte súhlasiť so spracovaním osobných údajov"
 hintPassword = "Musí obsahovať aspoň 6 znakov a aspoň 1 písmeno."
+
+[resetPasswordConfirm]
+apiMessageError = "Chyba pri zmene hesla."
+apiMessageErrorWithMessage = "Chyba pri zmene hesla. Chyba: {error}"
+apiMessageSuccess = "Heslo bolo úspešne zmenené."
 
 [results]
 buttonPastChallenges = "Výsledky predošlých výziev"

@@ -575,6 +575,7 @@ descriptionResetFinished = "We have just emailed you a link to reset your passwo
 labelEmail = "E-mail"
 labelPassword = "Password"
 labelPasswordReset = "E-mail"
+linkBackToLogin = "Back to login"
 messageEmailReqired = "Please fill in your e-mail"
 messageEmailInvalid = "Please fill in a valid email"
 messageFacebookAuthNotAuthorized = "Login via Facebook failed"
@@ -739,14 +740,17 @@ messagePasswordStrong = "Password must contain at least 6 characters and at leas
 messagePasswordConfirmRequired = "Please fill in the password"
 messagePasswordConfirmNotMatch = "Passwords don't match"
 messagePrivacyConsentRequired = "You must consent to the processing of personal data"
-submitRegister = "Register now"
 submitConfirmation = "Confirm email"
+submitRegister = "Register now"
+submitResetPassword = "Reset password"
 textEmailVerification = "<p>We have just sent an invitation to the Ride to Work by Bike system to your email <b>{email}</b>.</p><p>If you can't find it, please check your spam folder.</p>"
 textNoActiveChallenge = "Currently, no challenge is active. You can still register, we will inform you as soon as we launch the next one."
 titleEmailVerification = "Continue by confirming your email"
 titleRegister = "Registration"
+titleResetPassword = "Reset password"
 titleEmailConfirmation = "Email address confirmation"
 textEmailConfirmation = "Please confirm your email address:<br>{email}."
+textResetPassword = "Please fill in a new password and confirm it."
 
 [register.buttons]
 buttonGoogle = "Register via Google"
@@ -818,6 +822,11 @@ messagePasswordConfirmNotMatch = "Passwords don't match"
 messageResponsibilityRequired = "You must agree to provide an entry fee."
 messageTermsRequired = "You must consent to the processing of personal data"
 hintPassword = "It must contain at least 6 characters and at least 1 letter."
+
+[resetPasswordConfirm]
+apiMessageError = "Error changing password."
+apiMessageErrorWithMessage = "Error changing password. Error: {error}"
+apiMessageSuccess = "Password was successfully changed."
 
 [results]
 buttonPastChallenges = "View previous challenges"
