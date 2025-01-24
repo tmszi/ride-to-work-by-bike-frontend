@@ -94,6 +94,17 @@ export const useValidation = () => {
     return isLong && allNumbers;
   };
 
+  /**
+   * Check if the value is a valid ZIP code
+   * @param {string} value - The value to check
+   * @returns {boolean} - True if the value is a valid ZIP code, false otherwise
+   */
+  const isZip = (value: string): boolean => {
+    const zipNumber = Number(value);
+    // check if value is number and in range
+    return !isNaN(zipNumber) && zipNumber >= 10000 && zipNumber <= 99999;
+  };
+
   return {
     isEmail,
     isEmailList,
@@ -103,5 +114,6 @@ export const useValidation = () => {
     isPhone,
     isStrongPassword,
     isBusinessId,
+    isZip,
   };
 };
