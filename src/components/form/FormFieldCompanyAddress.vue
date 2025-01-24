@@ -124,6 +124,7 @@ export default defineComponent({
         );
       }
     });
+    // on selectedSubsidiary change, emit new value as update:modelValue
     watch(selectedSubsidiary, (newValue, oldValue) => {
       logger?.debug(
         `Selected subsidiary changed from <${JSON.stringify(oldValue, null, 2)}>` +
@@ -135,6 +136,23 @@ export default defineComponent({
         emit('update:modelValue', null);
       }
     });
+    // on props.modelValue change, set select value
+    watch(
+      () => props.modelValue,
+      (newValue, oldValue) => {
+        if (newValue !== oldValue) {
+          logger?.debug(
+            `Selected subsidiary changed from <${oldValue}>` +
+              ` to <${newValue}>.`,
+          );
+          setSelectedSubsidiary();
+          logger?.debug(
+            'Set subsidiary form field option to' +
+              ` <${JSON.stringify(selectedSubsidiary.value, null, 2)}>.`,
+          );
+        }
+      },
+    );
 
     const options = computed<FormSelectOption[]>((): FormSelectOption[] =>
       store.getSubsidiaries?.map(
@@ -286,7 +304,7 @@ export default defineComponent({
         {{ labelAddress }}
       </label>
       <div class="col-12 col-sm" data-cy="col-input">
-        <!-- Input: Autocomplete -->
+        <!-- Subsidiary input: Autocomplete -->
         <q-select
           dense
           outlined
