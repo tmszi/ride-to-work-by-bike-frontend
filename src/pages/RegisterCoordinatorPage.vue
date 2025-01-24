@@ -17,7 +17,8 @@
  */
 
 // libraries
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 // components
 import LoginRegisterHeader from 'components/global/LoginRegisterHeader.vue';
@@ -25,6 +26,10 @@ import FormRegisterCoordinator from 'components/register/FormRegisterCoordinator
 
 // config
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
+import { routesConf } from 'src/router/routes_conf';
+
+// stores
+import { useRegisterChallengeStore } from 'stores/registerChallenge';
 
 export default defineComponent({
   name: 'RegisterCoordinatorPage',
@@ -33,14 +38,33 @@ export default defineComponent({
     FormRegisterCoordinator,
   },
   setup() {
+    const registerChallengeStore = useRegisterChallengeStore();
+    const router = useRouter();
+
+    onMounted(async () => {
+      await registerChallengeStore.checkIsUserOrganizationAdmin();
+      // if user is admin of organization, redirect to home page
+      if (registerChallengeStore.getIsUserOrganizationAdmin) {
+        if (router) {
+          logger?.debug(
+            `User is organization admin <${registerChallengeStore.getIsUserOrganizationAdmin}>,` +
+              ` redirect to home page <${routesConf['home'].path}> URL.`,
+          );
+          router.push(routesConf['home'].path);
+        }
+      }
+    });
+
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCard;
     const challengeMonth = rideToWorkByBikeConfig.challengeMonth;
     const containerFormWidth = rideToWorkByBikeConfig.containerFormWidth;
+    const urlRegisterAsUser = routesConf['register_challenge'].path;
 
     return {
       borderRadius,
       challengeMonth,
       containerFormWidth,
+      urlRegisterAsUser,
     };
   },
 });
@@ -77,6 +101,16 @@ export default defineComponent({
           v-html="$t('register.coordinator.info')"
           data-cy="info-content"
         ></div>
+        <!-- Link: Register as a participant -->
+        <div class="q-mt-md">
+          <router-link
+            :to="urlRegisterAsUser"
+            class="text-grey-10"
+            data-cy="info-link-register-as-participant"
+          >
+            {{ $t('register.form.linkRegisterAsParticipant') }}
+          </router-link>
+        </div>
       </div>
 
       <div
