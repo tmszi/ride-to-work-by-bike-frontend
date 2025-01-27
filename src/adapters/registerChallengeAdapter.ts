@@ -118,6 +118,10 @@ export const registerChallengeAdapter = {
     if (storeState.voucher) {
       payload.discount_coupon = storeState.voucher?.name;
     }
+    // if voucher is empty make sure it is reset
+    if (storeState.voucher === null) {
+      payload.discount_coupon = '';
+    }
     if (storeState.teamId !== undefined) {
       payload.team_id = storeState.teamId;
     }
