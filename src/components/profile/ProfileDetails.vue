@@ -7,9 +7,7 @@
  * Note: This component is used on `ProfilePage` in `ProfileTabs` component.
  *
  * @components
- * - `AddressDisplay`: Component to display an address.
  * - `DetailsItem`: Component to display a row of data.
- * - `FormUpdateEmail`: Component to render a form for updating email.
  * - `FormUpdateGender`: Component to render a form for updating gender.
  * - `FormUpdateNickname`: Component to render a form for updating nickname.
  * - `LanguageSwitcher`: Component to render a language switcher.
@@ -24,12 +22,15 @@
  */
 
 // libraries
-import { computed, defineComponent, reactive, ref } from 'vue';
+import { Notify } from 'quasar';
+import { computed, defineComponent, inject, onMounted } from 'vue';
+
+// adapters
+import { registerChallengeAdapter } from '../../adapters/registerChallengeAdapter';
+import { subsidiaryAdapter } from '../../adapters/subsidiaryAdapter';
 
 // components
-import AddressDisplay from '../global/AddressDisplay.vue';
 import DetailsItem from '../profile/DetailsItem.vue';
-import FormUpdateEmail from '../form/FormUpdateEmail.vue';
 import FormUpdateGender from '../form/FormUpdateGender.vue';
 import FormUpdateNickname from '../form/FormUpdateNickname.vue';
 import LanguageSwitcher from '../global/LanguageSwitcher.vue';
@@ -39,22 +40,31 @@ import DeleteAccount from './DeleteAccount.vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
+import { useApiPutRegisterChallenge } from '../../composables/useApiPutRegisterChallenge';
+import { useOrganizations } from '../../composables/useOrganizations';
 
 // enums
-import { PaymentState } from '../types/Profile';
+import { Gender } from '../types/Profile';
+import { PaymentSubject } from '../../components/enums/Payment';
 
 // fixtures
 import formPersonalDetails from '../../../test/cypress/fixtures/formPersonalDetails.json';
 
+// stores
+import { useLoginStore } from '../../stores/login';
+import { useRegisterChallengeStore } from '../../stores/registerChallenge';
+
 // types
-import type { Profile } from '../types/Profile';
+import type { Logger } from '../types/Logger';
+import type { ToApiPayloadStoreState } from '../../components/types/ApiRegistration';
+
+// utils
+import { getGenderLabel } from '../../utils/get_gender_label';
 
 export default defineComponent({
   name: 'ProfileDetails',
   components: {
-    AddressDisplay,
     DetailsItem,
-    FormUpdateEmail,
     FormUpdateGender,
     FormUpdateNickname,
     LanguageSwitcher,
@@ -63,51 +73,217 @@ export default defineComponent({
     DeleteAccount,
   },
   setup() {
+    // TODO: Enable additional elements
+    const isEnabledCoordinatorContact = false;
+    const isEnabledDeleteAccount = false;
+    const isEnabledDownloadInvoice = false;
+    const isEnabledPackageState = false;
+    const isEnabledTrackingNumber = false;
+
+    const logger = inject('vuejs3-logger') as Logger | null;
     const iconSize = '18px';
 
-    const profile: Profile = reactive(formPersonalDetails as Profile);
+    const loginStore = useLoginStore();
+    const user = computed(() => loginStore.getUser);
 
-    const allowContactPhone = ref(false);
+    const registerChallengeStore = useRegisterChallengeStore();
+    // refresh on mounted
+    onMounted(async () => {
+      await registerChallengeStore.loadRegisterChallengeToStore();
+      // load all data
+      if (!registerChallengeStore.getOrganizations.length) {
+        registerChallengeStore.loadOrganizationsToStore(logger);
+      }
+      if (!registerChallengeStore.getTeams.length) {
+        registerChallengeStore.loadTeamsToStore(logger);
+      }
+      if (!registerChallengeStore.getSubsidiaries.length) {
+        registerChallengeStore.loadSubsidiariesToStore(logger);
+      }
+      if (!registerChallengeStore.getMerchandiseItems.length) {
+        registerChallengeStore.loadMerchandiseToStore(logger);
+      }
+    });
+
+    // profile details
+    const profile = computed(() => {
+      return registerChallengeStore.getPersonalDetails;
+    });
+
+    const registrationId = computed(() => {
+      return registerChallengeStore.getRegistrationId;
+    });
+
+    const { getOrganizationLabels } = useOrganizations();
+    const organizationType = computed(() => {
+      return getOrganizationLabels(registerChallengeStore.getOrganizationType)
+        .labelShort;
+    });
+
+    const organization = computed(() => {
+      const org = registerChallengeStore.getOrganizations.find(
+        (organization) =>
+          organization.id === registerChallengeStore.getOrganizationId,
+      );
+      if (org) {
+        return org.name;
+      }
+      return '';
+    });
+
+    const subsidiary = computed(() => {
+      const sub = registerChallengeStore.getSubsidiaries.find(
+        (subsidiary) =>
+          subsidiary.id === registerChallengeStore.getSubsidiaryId,
+      );
+      if (sub) {
+        return subsidiaryAdapter.fromFormCompanyAddressFieldsToString(
+          sub.address,
+        );
+      }
+      return '';
+    });
+
+    const team = computed(() => {
+      const team = registerChallengeStore.getTeams.find(
+        (team) => team.id === registerChallengeStore.getTeamId,
+      );
+      if (team) {
+        return team.name;
+      }
+      return '';
+    });
+
+    const merchandiseItem = computed(() => {
+      return registerChallengeStore.getMerchandiseItems.find(
+        (item) => item.id === registerChallengeStore.getMerchId,
+      );
+    });
+
+    const merchandiseItemLabel = computed(() => {
+      if (merchandiseItem.value) {
+        return merchandiseItem.value.label;
+      }
+      // if no merch is selected (ID not found in merchandiseItems)
+      else if (registerChallengeStore.getMerchId) {
+        return i18n.global.t('form.merch.labelNoMerch');
+      }
+      return '';
+    });
+
+    const merchandiseItemSize = computed(() => {
+      if (merchandiseItem.value) {
+        return merchandiseItem.value.size;
+      }
+      return '';
+    });
+
+    const phone = computed(() => {
+      return registerChallengeStore.getTelephone;
+    });
+
+    const isPaymentComplete = computed(() => {
+      return registerChallengeStore.getIsPaymentComplete;
+    });
+
+    const paymentSubject = computed(() => {
+      return registerChallengeStore.getPaymentSubject;
+    });
 
     const labelPaymentState = computed(() => {
-      switch (profile.paymentState) {
-        case PaymentState.paidByOrganization:
-          return i18n.global.t('profile.labelPaymentStatePaidByCompany');
-        case PaymentState.paid:
-          return i18n.global.t('profile.labelPaymentStatePaid');
-        default:
-          return i18n.global.t('profile.labelPaymentStateNotPaid');
+      if (isPaymentComplete.value) {
+        switch (paymentSubject.value) {
+          case PaymentSubject.company:
+          case PaymentSubject.school:
+            return i18n.global.t('profile.labelPaymentStatePaidByCompany');
+          case PaymentSubject.individual:
+          case PaymentSubject.voucher:
+            return i18n.global.t('profile.labelPaymentStatePaid');
+          default:
+            return i18n.global.t('profile.labelPaymentStateNotPaid');
+        }
+      } else {
+        return i18n.global.t('profile.labelPaymentStateNotPaid');
       }
     });
 
     const iconPaymentColor = computed(() => {
-      return [PaymentState.paid, PaymentState.paidByOrganization].includes(
-        profile.paymentState,
-      )
-        ? 'green'
-        : 'red';
+      return isPaymentComplete.value ? 'positive' : 'negative';
     });
 
     const iconPaymentState = computed(() => {
-      return [PaymentState.paid, PaymentState.paidByOrganization].includes(
-        profile.paymentState,
-      )
+      return isPaymentComplete.value
         ? 'mdi-check-circle-outline'
         : 'mdi-close-circle-outline';
     });
 
-    const onDownloadInvoice = () => {
-      // TODO: Implement download invoice
+    const telephoneOptIn = computed({
+      get: () => registerChallengeStore.getTelephoneOptIn,
+      set: async (value) => {
+        await onUpdateRegisterChallengeDetails({ telephoneOptIn: value });
+      },
+    });
+
+    // update register challenge data
+    const { isLoading, updateChallenge } = useApiPutRegisterChallenge(
+      registerChallengeStore.$log,
+    );
+    const onUpdateRegisterChallengeDetails = async (
+      data: ToApiPayloadStoreState,
+    ): Promise<void> => {
+      const payload = registerChallengeAdapter.toApiPayload(data);
+      // post payload to API
+      if (registrationId.value) {
+        await updateChallenge(registrationId.value, payload);
+        registerChallengeStore.loadRegisterChallengeToStore();
+      } else {
+        Notify.create({
+          message: i18n.global.t('profile.messageProfileIdMissing'),
+          color: 'negative',
+        });
+      }
     };
 
+    /**
+     * Get gender label
+     * @param {Gender | null} gender - Gender enum value or null
+     * @returns {string} - Gender label or empty string
+     */
+    const genderLabel = (gender: Gender | null): string => {
+      if (!gender) {
+        return '';
+      }
+      return getGenderLabel(gender, i18n);
+    };
+
+    // TODO: Implement download invoice
+    const onDownloadInvoice = () => {};
+
     return {
-      allowContactPhone,
+      telephoneOptIn,
       iconPaymentColor,
       iconPaymentState,
       iconSize,
+      isLoading,
       labelPaymentState,
+      merchandiseItemLabel,
+      merchandiseItemSize,
+      organization,
+      organizationType,
+      phone,
       profile,
+      subsidiary,
+      team,
       onDownloadInvoice,
+      onUpdateRegisterChallengeDetails,
+      formPersonalDetails,
+      user,
+      genderLabel,
+      isEnabledCoordinatorContact,
+      isEnabledDeleteAccount,
+      isEnabledDownloadInvoice,
+      isEnabledPackageState,
+      isEnabledTrackingNumber,
     };
   },
 });
@@ -137,36 +313,30 @@ export default defineComponent({
           <form-update-nickname
             :on-close="close"
             :value="profile.nickname"
-            @update:value="profile.nickname = $event"
+            :loading="isLoading"
+            @update:value="
+              onUpdateRegisterChallengeDetails({
+                personalDetails: { nickname: $event },
+              })
+            "
             data-cy="profile-details-form-nickname"
           />
         </template>
       </details-item>
       <!-- Email -->
       <details-item
-        editable
         :label="$t('profile.labelEmail')"
-        :value="profile.email"
+        :value="user.email"
         :dialog-title="$t('profile.titleUpdateEmail')"
         :empty-label="$t('profile.labelEmailEmpty')"
         class="q-mb-lg"
         data-cy="profile-details-email"
-      >
-        <template #form="{ close }">
-          <!-- Form: Update email -->
-          <form-update-email
-            :on-close="close"
-            :value="profile.email"
-            @update:value="profile.email = $event"
-            data-cy="profile-details-form-email"
-          />
-        </template>
-      </details-item>
+      />
       <!-- Gender -->
       <details-item
         editable
         :label="$t('profile.labelGender')"
-        :value="profile.gender"
+        :value="genderLabel(profile.gender)"
         :dialog-title="$t('profile.titleUpdateGender')"
         :empty-label="$t('profile.labelGenderEmpty')"
         class="q-mb-lg"
@@ -177,7 +347,12 @@ export default defineComponent({
           <form-update-gender
             :on-close="close"
             :value="profile.gender"
-            @update:value="profile.gender = $event"
+            :loading="isLoading"
+            @update:value="
+              onUpdateRegisterChallengeDetails({
+                personalDetails: { gender: $event },
+              })
+            "
             data-cy="profile-details-form-gender"
           />
         </template>
@@ -185,7 +360,7 @@ export default defineComponent({
       <!-- Language -->
       <details-item
         :label="$t('profile.labelLanguage')"
-        :value="profile.language"
+        :value="formPersonalDetails.language"
         :empty-label="$t('profile.labelLanguageEmpty')"
         class="q-mb-lg"
         data-cy="profile-details-language"
@@ -211,31 +386,28 @@ export default defineComponent({
         <!-- Organization type -->
         <details-item
           :label="$t('profile.labelOrganizationType')"
-          :value="profile.organizationType"
+          :value="organizationType"
           class="col-12 col-sm-6"
           data-cy="profile-details-organization-type"
         />
         <!-- Organization -->
         <details-item
           :label="$t('profile.labelOrganization')"
-          :value="profile.organization"
+          :value="organization"
           class="col-12 col-sm-6"
           data-cy="profile-details-organization"
         />
         <!-- Address / Subsidiary -->
         <details-item
           :label="$t('profile.labelAddressSubsidiary')"
+          :value="subsidiary"
           class="col-12 col-sm-6"
           data-cy="profile-details-address-subsidiary"
-        >
-          <template #value>
-            <address-display :address="profile.subsidiary.address" />
-          </template>
-        </details-item>
+        />
         <!-- Team -->
         <details-item
           :label="$t('profile.labelTeam')"
-          :value="profile.team"
+          :value="team"
           class="col-12 col-sm-6"
           data-cy="profile-details-team"
         />
@@ -252,54 +424,44 @@ export default defineComponent({
         <!-- Package -->
         <details-item
           :label="$t('profile.labelPackage')"
-          :value="profile.package.title"
+          :value="merchandiseItemLabel"
           class="col-12 col-sm-6"
           data-cy="profile-details-package"
-        >
-          <template #value>
-            <a
-              :href="profile.package.url"
-              data-cy="profile-details-package-link"
-            >
-              {{ profile.package.title }}
-            </a>
-          </template>
-        </details-item>
+        />
         <!-- Size -->
         <details-item
           :label="$t('profile.labelSize')"
-          :value="profile.package.size"
+          :value="merchandiseItemSize"
           class="col-12 col-sm-6"
           data-cy="profile-details-size"
         />
         <!-- State -->
         <details-item
+          v-if="isEnabledPackageState"
           :label="$t('profile.labelState')"
-          :value="profile.package.state"
+          :value="formPersonalDetails.package.state"
           class="col-12 col-sm-6"
           data-cy="profile-details-state"
         />
         <!-- Tracking number -->
         <details-item
+          v-if="isEnabledTrackingNumber"
           :label="$t('profile.labelTrackingNumber')"
-          :value="profile.package.trackingNumber"
+          :value="formPersonalDetails.package.trackingNumber"
           class="col-12 col-sm-6"
           data-cy="profile-details-tracking-number"
         />
         <!-- Delivery address -->
         <details-item
           :label="$t('profile.labelDeliveryAddress')"
+          :value="subsidiary"
           class="col-12 col-sm-6"
           data-cy="profile-details-delivery-address"
-        >
-          <template #value>
-            <address-display :address="profile.deliveryAddress" />
-          </template>
-        </details-item>
+        />
         <!-- Phone number -->
         <details-item
           :label="$t('profile.labelPhone')"
-          :value="profile.phone"
+          :value="phone"
           class="col-12 col-sm-6"
           data-cy="profile-details-phone"
         />
@@ -319,7 +481,6 @@ export default defineComponent({
         <!-- Package -->
         <details-item
           :label="$t('profile.labelPaymentState')"
-          :value="profile.package.title"
           class="col-12 col-md-6 items-center"
           data-cy="profile-details-payment-state"
         >
@@ -337,7 +498,7 @@ export default defineComponent({
             </div>
           </template>
         </details-item>
-        <div class="col-12 col-md-6">
+        <div v-if="isEnabledDownloadInvoice" class="col-12 col-md-6">
           <q-btn
             unelevated
             rounded
@@ -357,20 +518,22 @@ export default defineComponent({
       </div>
     </div>
 
-    <!-- Delete account -->
-    <delete-account data-cy="delete-account" />
-
     <!-- Contact participation -->
     <div class="q-mt-xl">
       <q-toggle
-        :label="$t('profile.labelAllowContactPhone')"
-        v-model="allowContactPhone"
-        data-cy="profile-allow-contact-phone"
+        v-model="telephoneOptIn"
+        :disable="isLoading"
+        :label="$t('profile.labelTelephoneOptIn')"
+        data-cy="profile-details-telephone-opt-in"
       />
     </div>
 
+    <!-- Delete account -->
+    <delete-account v-if="isEnabledDeleteAccount" data-cy="delete-account" />
+
     <!-- Coordinator contact -->
     <profile-coordinator-contact
+      v-if="isEnabledCoordinatorContact"
       class="q-mt-xl"
       data-cy="profile-coordinator-contact"
     />
