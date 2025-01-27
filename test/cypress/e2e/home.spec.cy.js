@@ -1,5 +1,5 @@
 import {
-  systemTimeChallengeInactive,
+  systemTimeRegistrationPhaseInactive,
   testDesktopSidebar,
   testLanguageSwitcher,
   testMobileHeader,
@@ -333,7 +333,7 @@ describe('Home page', () => {
 
   context('before challenge', () => {
     beforeEach(() => {
-      cy.clock(systemTimeChallengeInactive, ['Date']).then(() => {
+      cy.clock(systemTimeRegistrationPhaseInactive, ['Date']).then(() => {
         // load config
         cy.task('getAppConfig', process).then((config) => {
           // alias config
@@ -403,7 +403,9 @@ describe('Home page', () => {
           (phase) => phase.phase_type === 'competition',
         );
         const competitionStart = new Date(competitionPhase.date_from).getTime();
-        const currentDate = new Date(systemTimeChallengeInactive).getTime();
+        const currentDate = new Date(
+          systemTimeRegistrationPhaseInactive,
+        ).getTime();
         // calculate time difference in milliseconds
         const timeDifference = competitionStart - currentDate;
 
