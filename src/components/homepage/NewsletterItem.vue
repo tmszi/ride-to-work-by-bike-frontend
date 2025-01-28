@@ -12,14 +12,18 @@
  * If not subscribed, the button links to an Ecomail newsletter subscription.
  *
  * @props
- * - `item` (NewsletterItemType, required): The newsletter item to be
- *   displayed. It includes properties like icon, title, and following status.
+ * - `modelValue` (Array<NewsletterType>, required): Array of newsletter IDs
+ *    that the user is currently subscribed to.
+ * - `item` (NewsletterItemType, required): The newsletter item to display.
+ * - `loading` (Boolean, optional): Whether the component is in loading state,
+ *    disabling the toggle button. Defaults to false.
  *
  * @emits
- * - `follow` - Event indicating the user's choice to subscribe.
+ * - `update:modelValue`: Emitted when the subscription state changes.
+ *    Payload is the new array of subscribed newsletter IDs.
  *
  * @example
- * <newsletter-item :item="singleNewsletter" @follow="onFollow" />
+ * <newsletter-item v-model="followedNewsletters" :item="newsletterItem" />
  *
  * @see [Figma Design](https://www.figma.com/file/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?type=design&node-id=4858%3A105656&mode=dev)
  */
@@ -32,22 +36,31 @@ import { colors } from 'quasar';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // types
-import { NewsletterItem as NewsletterItemType } from '../types';
+import { NewsletterItem as NewsletterItemType, NewsletterType } from '../types';
 
 const { getPaletteColor, changeAlpha } = colors;
 
 export default defineComponent({
   name: 'NewsletterItem',
   props: {
+    modelValue: {
+      type: Array as () => NewsletterType[],
+      required: true,
+    },
     item: {
       type: Object as () => NewsletterItemType,
       required: true,
     },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['follow'],
+  emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const buttonColor = computed((): string => {
-      return props.item.following ? 'grey-10' : 'primary';
+    const model = computed({
+      get: () => props.modelValue,
+      set: (value) => emit('update:modelValue', value),
     });
 
     const colorPrimaryOpacity = changeAlpha(
@@ -55,19 +68,19 @@ export default defineComponent({
       rideToWorkByBikeConfig.colorPrimaryOpacity,
     );
 
-    const onFollow = (): void => {
-      emit('follow');
-    };
-
     const avatarSize = '38px';
     const iconSize = '18px';
 
+    const isFollowing = computed(() => {
+      return model.value.includes(props.item.id);
+    });
+
     return {
       avatarSize,
-      buttonColor,
       colorPrimaryOpacity,
       iconSize,
-      onFollow,
+      model,
+      isFollowing,
     };
   },
 });
@@ -102,21 +115,17 @@ export default defineComponent({
       </div>
     </div>
     <!-- Button -->
-    <q-btn
-      rounded
-      unelevated
-      :href="item.url"
-      :color="buttonColor"
-      :outline="item.following"
-      :disable="item.following"
+    <q-toggle
+      v-model="model"
+      :val="item.id"
+      :disable="loading"
+      color="primary"
       class="min-w-200"
-      target="_blank"
-      @click="onFollow"
-      data-cy="newsletter-item-button"
+      data-cy="newsletter-item-toggle"
     >
       <!-- Icon -->
       <q-icon
-        v-show="item.following"
+        v-show="isFollowing"
         name="check"
         :size="iconSize"
         color="grey-10"
@@ -124,13 +133,13 @@ export default defineComponent({
         data-cy="newsletter-follow-icon"
       />
       <!-- Label -->
-      <span v-if="item.following">
+      <span v-if="isFollowing">
         {{ $t('index.newsletterFeature.following') }}
       </span>
-      <span v-if="!item.following">
+      <span v-if="!isFollowing">
         {{ $t('index.newsletterFeature.follow') }}
       </span>
-    </q-btn>
+    </q-toggle>
   </div>
 </template>
 
