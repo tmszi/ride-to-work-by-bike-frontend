@@ -1457,7 +1457,7 @@ Cypress.Commands.add('applyFullVoucher', (config, i18n) => {
  * @param {I18n} i18n - i18n instance
  */
 Cypress.Commands.add('applyInvalidVoucher', (config, i18n) => {
-  const invalid = 'INVALID';
+  const invalid = 'INVALID TOKEN WITH SPACES';
   cy.fixture('apiGetDiscountCouponResponseEmpty').then((responseEmpty) => {
     // intercept coupon endpoint
     cy.interceptDiscountCouponGetApi(config, i18n, invalid, responseEmpty);

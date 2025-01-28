@@ -62,6 +62,7 @@ export default defineComponent({
     const registerChallengeStore = useRegisterChallengeStore();
 
     const code = ref('');
+    const codeFormatted = computed(() => code.value.replace(/\s/g, ''));
     const voucher = computed<ValidatedCoupon | null>({
       get: (): ValidatedCoupon | null => registerChallengeStore.getVoucher,
       set: (voucher: ValidatedCoupon | null) => {
@@ -79,7 +80,7 @@ export default defineComponent({
     const onSubmitVoucher = async (): Promise<void> => {
       if (formFieldTextRequiredRef.value.inputRef.validate()) {
         const validatedCoupon: ValidatedCoupon = await validateCoupon(
-          code.value,
+          codeFormatted.value,
         );
 
         if (validatedCoupon.valid) {
