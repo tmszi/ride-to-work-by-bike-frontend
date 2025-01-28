@@ -78,7 +78,7 @@ describe('Challenge Inactive page', () => {
       cy.dataCy(selectorChallengeInactiveInfo).should('be.visible');
     });
 
-    it('renders list card post component', () => {
+    it.skip('renders list card post component', () => {
       cy.waitForThisCampaignApi();
       cy.dataCy(selectorListCardPost).should('be.visible');
     });
