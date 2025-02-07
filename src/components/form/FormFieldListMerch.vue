@@ -49,6 +49,7 @@ import SliderMerch from './SliderMerch.vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
+import { defaultLocale } from '../../i18n/def_locale';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
@@ -63,6 +64,8 @@ import { Gender } from '../types/Profile';
 import type { FormOption } from '../types/Form';
 import type { MerchandiseCard, MerchandiseItem } from '../types/Merchandise';
 import type { Logger } from '../types/Logger';
+
+import { getApiBaseUrlWithLang } from '../../utils/get_api_base_url_with_lang';
 
 export default defineComponent({
   name: 'FormFieldListMerch',
@@ -345,6 +348,14 @@ export default defineComponent({
       return i18n.global.t('form.merch.labelPhoneOptInWithMerch');
     });
 
+    const urlSizeConversionChart = computed(() => {
+      return getApiBaseUrlWithLang(
+        logger,
+        rideToWorkByBikeConfig.urlSizeConversionChart,
+        defaultLocale,
+        i18n,
+      );
+    });
     return {
       currentItemLabelSize,
       formMerchRef,
@@ -370,6 +381,7 @@ export default defineComponent({
       onCheckboxUpdate,
       isLoading,
       merchandiseCards,
+      urlSizeConversionChart,
     };
   },
 });
@@ -496,6 +508,16 @@ export default defineComponent({
         class="q-mt-sm"
         data-cy="form-field-merch-size"
       />
+    </div>
+
+    <div class="q-mb-md">
+      <a
+        class="text-primary"
+        :href="urlSizeConversionChart"
+        target="_blank"
+        data-cy="form-merch-size-conversion-chart-link"
+        >{{ $t('form.merch.labelUrlSizeConversionChartLink') }}</a
+      >
     </div>
 
     <!-- Input: Phone number -->
