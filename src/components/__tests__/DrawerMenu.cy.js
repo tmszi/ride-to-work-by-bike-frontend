@@ -1,10 +1,11 @@
 import DrawerMenu from '../global/DrawerMenu.vue';
 import { i18n } from '../../boot/i18n';
 import { colors } from 'quasar';
-import { getMenuBottom, menuTop } from '../../mocks/layout';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 import { defaultLocale } from 'src/i18n/def_locale';
 import { getApiBaseUrlWithLang } from 'src/utils/get_api_base_url_with_lang';
+import { useMenu } from 'src/composables/useMenu';
+
 import {
   failOnStatusCode,
   httpSuccessfullStatus,
@@ -26,26 +27,77 @@ const selectorDrawerMenuItemIcon = 'drawer-menu-item-icon';
 const iconSize = 18;
 const fontSize = '16px';
 
-describe('DrawerMenu', () => {
-  context('menu top', () => {
-    beforeEach(() => {
-      cy.mount(DrawerMenu, {
-        props: {
-          items: menuTop,
-        },
-      });
-      cy.wrap(menuTop).as('menu');
-    });
+const { getMenuBottom, getMenuTop } = useMenu();
 
-    it('has translation for all strings', () => {
-      cy.testLanguageStringsInContext(
-        menuTop.map((item) => item.title),
-        'drawerMenu',
-        i18n,
-      );
+describe('DrawerMenu', () => {
+  context('menu top - user is not coordinator', () => {
+    beforeEach(() => {
+      cy.wrap(
+        getMenuTop({
+          isUserOrganizationAdmin: false,
+        }),
+      ).then((menuTop) => {
+        cy.mount(DrawerMenu, {
+          props: {
+            items: menuTop,
+          },
+        });
+        cy.wrap(menuTop).as('menu');
+      });
     });
 
     coreTests();
+
+    it('has translation for all strings', () => {
+      cy.get('@menu').then((menuTop) => {
+        cy.testLanguageStringsInContext(
+          menuTop.map((item) => item.title),
+          'drawerMenu',
+          i18n,
+        );
+      });
+    });
+
+    it('does not render coordinator item', () => {
+      cy.dataCy(selectorDrawerMenuItem)
+        .contains(i18n.global.t('drawerMenu.coordinator'))
+        .should('not.exist');
+    });
+  });
+
+  context('menu top - user is coordinator', () => {
+    beforeEach(() => {
+      cy.wrap(
+        getMenuTop({
+          isUserOrganizationAdmin: true,
+        }),
+      ).then((menuTop) => {
+        cy.mount(DrawerMenu, {
+          props: {
+            items: menuTop,
+          },
+        });
+        cy.wrap(menuTop).as('menu');
+      });
+    });
+
+    coreTests();
+
+    it('has translation for all strings', () => {
+      cy.get('@menu').then((menuTop) => {
+        cy.testLanguageStringsInContext(
+          menuTop.map((item) => item.title),
+          'drawerMenu',
+          i18n,
+        );
+      });
+    });
+
+    it('renders coordinator item', () => {
+      cy.dataCy(selectorDrawerMenuItem)
+        .contains(i18n.global.t('drawerMenu.coordinator'))
+        .should('be.visible');
+    });
   });
 
   context('menu bottom', () => {

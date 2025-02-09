@@ -1,6 +1,5 @@
 import { routesConf } from '../../../src/router/routes_conf';
 import { testDesktopSidebar, testMobileHeader } from '../support/commonTests';
-import { menuTop, getMenuBottom } from '../../../src/mocks/layout';
 
 describe('Community page', () => {
   context('desktop', () => {
@@ -22,20 +21,6 @@ describe('Community page', () => {
 
     coreTests();
     testDesktopSidebar();
-
-    it('renders left drawer', () => {
-      cy.task('getAppConfig', process).then((config) => {
-        cy.dataCy('q-drawer').should('be.visible');
-        cy.dataCy('drawer-header').should('be.visible');
-        cy.dataCy('user-select-desktop').should('be.visible');
-        if (menuTop.length > 0) {
-          cy.dataCy('drawer-menu-top').should('be.visible');
-        }
-        if (getMenuBottom(config.urlDonate).length > 0) {
-          cy.dataCy('drawer-menu-bottom').should('be.visible');
-        }
-      });
-    });
   });
 
   context('mobile', () => {

@@ -15,8 +15,6 @@ import { calculateCountdownIntervals } from '../../../src/utils';
 // variables
 const failTestTitle = 'allows user to scroll to top using the footer button';
 const fontFamily = 'Poppins';
-const bottomPanelItemsIncludingMenu = 4;
-const bottomPanelDialogItems = 3;
 
 describe('Home page', () => {
   Cypress.on('fail', (err, runnable) => {
@@ -25,6 +23,18 @@ describe('Home page', () => {
       return false;
     }
   });
+
+  beforeEach(() => {
+    // load config an i18n objects as aliases
+    cy.task('getAppConfig', process).then((config) => {
+      // alias config
+      cy.wrap(config).as('config');
+      // intercept campaign API
+      cy.interceptThisCampaignGetApi(config, defLocale);
+    });
+    cy.viewport('macbook-16');
+  });
+
   context('desktop', () => {
     beforeEach(() => {
       cy.visit(Cypress.config('baseUrl'));
@@ -203,9 +213,30 @@ describe('Home page', () => {
     });
   });
 
-  context('mobile', () => {
+  context('mobile - user is not a coordinator', () => {
     beforeEach(() => {
+      cy.task('getAppConfig', process).then((config) => {
+        cy.wrap(config).as('config');
+        // intercept is user organization admin API
+        cy.fixture('apiGetIsUserOrganizationAdminResponseFalse').then(
+          (response) => {
+            cy.interceptIsUserOrganizationAdminGetApi(
+              config,
+              defLocale,
+              response,
+            );
+          },
+        );
+      });
+      // visit index page
       cy.visit(Cypress.config('baseUrl'));
+      // wait for API intercepts
+      cy.waitForThisCampaignApi();
+      cy.fixture('apiGetIsUserOrganizationAdminResponseFalse').then(
+        (response) => {
+          cy.waitForIsUserOrganizationAdminApi(response);
+        },
+      );
       cy.viewport('iphone-6');
     });
 
@@ -214,17 +245,51 @@ describe('Home page', () => {
     testMobileHeader();
 
     it('allows user to show and hide bottom panel on mobile', () => {
-      cy.dataCy('footer-panel-menu').should('be.visible');
-      cy.dataCy('footer-panel-menu')
-        .should('be.visible')
-        .find('.q-item')
-        .should('have.length', bottomPanelItemsIncludingMenu);
-      cy.dataCy('footer-panel-menu-hamburger').click();
-      cy.dataCy('footer-panel-menu-dialog').should('be.visible');
-      cy.dataCy('footer-panel-menu-dialog')
-        .should('be.visible')
-        .find('.q-item')
-        .should('have.length', bottomPanelDialogItems);
+      cy.get('@config').then((config) => {
+        cy.checkMobileBottomPanel(config, false);
+      });
+    });
+
+    it(failTestTitle, () => {
+      cy.window().its('scrollY').should('equal', 0);
+    });
+  });
+
+  context('mobile - user is coordinator', () => {
+    beforeEach(() => {
+      cy.task('getAppConfig', process).then((config) => {
+        cy.wrap(config).as('config');
+        // intercept is user organization admin API
+        cy.fixture('apiGetIsUserOrganizationAdminResponseTrue').then(
+          (response) => {
+            cy.interceptIsUserOrganizationAdminGetApi(
+              config,
+              defLocale,
+              response,
+            );
+          },
+        );
+      });
+      // visit index page
+      cy.visit(Cypress.config('baseUrl'));
+      // wait for API intercepts
+      cy.waitForThisCampaignApi();
+      cy.fixture('apiGetIsUserOrganizationAdminResponseTrue').then(
+        (response) => {
+          cy.waitForIsUserOrganizationAdminApi(response);
+        },
+      );
+      cy.viewport('iphone-6');
+    });
+
+    coreTests();
+    testLanguageSwitcher();
+    testMobileHeader();
+
+    it('allows user to show and hide bottom panel on mobile', () => {
+      cy.get('@config').then((config) => {
+        cy.checkMobileBottomPanel(config, true);
+      });
     });
 
     it.skip('allows user to display and submit contact form', () => {
