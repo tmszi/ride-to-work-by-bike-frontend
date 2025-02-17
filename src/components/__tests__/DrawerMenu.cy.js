@@ -27,6 +27,12 @@ const selectorDrawerMenuItemIcon = 'drawer-menu-item-icon';
 const iconSize = 18;
 const fontSize = '16px';
 
+const {
+  urlRideToWorkByBikeOldFrontendDjangoApp,
+  urlRideToWorkByBikeOldFrontendDjangoAppAdmin,
+} = rideToWorkByBikeConfig;
+const rtwbbOldFrontendDjangoAdminUrl = `${urlRideToWorkByBikeOldFrontendDjangoApp}/${urlRideToWorkByBikeOldFrontendDjangoAppAdmin}`;
+
 const { getMenuBottom, getMenuTop } = useMenu();
 
 describe('DrawerMenu', () => {
@@ -35,6 +41,8 @@ describe('DrawerMenu', () => {
       cy.wrap(
         getMenuTop({
           isUserOrganizationAdmin: false,
+          isUserStaff: false,
+          urlAdmin: rtwbbOldFrontendDjangoAdminUrl,
         }),
       ).then((menuTop) => {
         cy.mount(DrawerMenu, {
@@ -70,6 +78,8 @@ describe('DrawerMenu', () => {
       cy.wrap(
         getMenuTop({
           isUserOrganizationAdmin: true,
+          isUserStaff: false,
+          urlAdmin: rtwbbOldFrontendDjangoAdminUrl,
         }),
       ).then((menuTop) => {
         cy.mount(DrawerMenu, {
@@ -97,6 +107,74 @@ describe('DrawerMenu', () => {
       cy.dataCy(selectorDrawerMenuItem)
         .contains(i18n.global.t('drawerMenu.coordinator'))
         .should('be.visible');
+    });
+  });
+
+  context('menu top - user staff', () => {
+    beforeEach(() => {
+      const urlAdmin = getApiBaseUrlWithLang(
+        null,
+        rtwbbOldFrontendDjangoAdminUrl,
+        defaultLocale,
+        i18n,
+      );
+      cy.wrap(
+        getMenuTop({
+          isUserOrganizationAdmin: false,
+          isUserStaff: true,
+          urlAdmin,
+        }),
+      ).then((menuTop) => {
+        cy.mount(DrawerMenu, {
+          props: {
+            items: menuTop,
+          },
+        });
+        cy.wrap(menuTop).as('menu');
+      });
+    });
+
+    coreTests();
+
+    it('has translation for all strings', () => {
+      cy.get('@menu').then((menuTop) => {
+        cy.testLanguageStringsInContext(
+          menuTop.map((item) => item.title),
+          'drawerMenu',
+          i18n,
+        );
+      });
+    });
+
+    it('renders administration item', () => {
+      cy.dataCy(selectorDrawerMenuItem)
+        .contains(i18n.global.t('drawerMenu.admin'))
+        .should('be.visible')
+        .and(
+          'have.attr',
+          'href',
+          getApiBaseUrlWithLang(
+            null,
+            rtwbbOldFrontendDjangoAdminUrl,
+            defaultLocale,
+            i18n,
+          ),
+        )
+        .should('have.attr', 'target', '_blank')
+        .invoke('attr', 'href')
+        .then((href) => {
+          cy.request({
+            url: href,
+            failOnStatusCode: failOnStatusCode,
+            headers: { ...userAgentHeader },
+          }).then((resp) => {
+            if (resp.status === httpTooManyRequestsStatus) {
+              cy.log(httpTooManyRequestsStatusMessage);
+              return;
+            }
+            expect(resp.status).to.eq(httpSuccessfullStatus);
+          });
+        });
     });
   });
 

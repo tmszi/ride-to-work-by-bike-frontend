@@ -13,12 +13,20 @@ export const useMenu = () => {
    * Get the top menu items
    * @param {ComputedRef<boolean | null> | boolean | null}
    *   isUserOrganizationAdmin - Whether the user is an organization admin
+   * @param {ComputedRef<boolean | null> | boolean | null}
+   *   isUserStaff - Whether the user is staff member
+   * @param {ComputedRef<string> | string } urlAdmin - RTWBB old Django frontend
+   *                                                   app admin URL
    * @returns {Link[]} - Array of top menu items
    */
   const getMenuTop = ({
     isUserOrganizationAdmin,
+    isUserStaff,
+    urlAdmin,
   }: {
     isUserOrganizationAdmin: ComputedRef<boolean | null> | boolean | null;
+    isUserStaff: ComputedRef<boolean | null> | boolean | null;
+    urlAdmin: ComputedRef<string> | string;
   }): Link[] => {
     let menuTop: Link[] = [
       {
@@ -64,6 +72,19 @@ export const useMenu = () => {
         title: 'profile',
       },
     ];
+
+    if (unref(isUserStaff)) {
+      menuTop = [
+        ...menuTop,
+        {
+          url: '',
+          icon: 'svguse:icons/drawer_menu/icons.svg#lucide:settings-2',
+          name: 'admin',
+          title: 'admin',
+          href: unref(urlAdmin),
+        },
+      ];
+    }
 
     return menuTop;
   };

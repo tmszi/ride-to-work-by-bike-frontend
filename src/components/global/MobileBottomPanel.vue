@@ -46,14 +46,31 @@ export default defineComponent({
     const isUserOrganizationAdmin = computed(
       () => registerChallengeStore.isUserOrganizationAdmin,
     );
+    const isUserStaff = computed(() => registerChallengeStore.getIsUserStaff);
     const { getMenuTop, getMenuBottom } = useMenu();
 
     const { mobileBottomPanelVisibleItems } = rideToWorkByBikeConfig;
     const logger = inject('vuejs3-logger') as Logger | null;
 
+    const {
+      urlRideToWorkByBikeOldFrontendDjangoApp,
+      urlRideToWorkByBikeOldFrontendDjangoAppAdmin,
+    } = rideToWorkByBikeConfig;
+    const rtwbbOldFrontendDjangoAdminUrl = `${urlRideToWorkByBikeOldFrontendDjangoApp}/${urlRideToWorkByBikeOldFrontendDjangoAppAdmin}`;
+
+    const urlAdmin = computed(() => {
+      return getApiBaseUrlWithLang(
+        logger,
+        rtwbbOldFrontendDjangoAdminUrl,
+        defaultLocale,
+        i18n,
+      );
+    });
     const menuTop = computed((): Link[] => {
       return getMenuTop({
         isUserOrganizationAdmin: isUserOrganizationAdmin,
+        isUserStaff,
+        urlAdmin,
       });
     });
     const menuPanel = computed((): Link[] => {

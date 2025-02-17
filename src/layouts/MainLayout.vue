@@ -83,9 +83,27 @@ export default defineComponent({
     const isUserOrganizationAdmin = computed(
       () => registerChallengeStore.isUserOrganizationAdmin,
     );
+    const isUserStaff = computed(() => registerChallengeStore.getIsUserStaff);
+
+    const {
+      urlRideToWorkByBikeOldFrontendDjangoApp,
+      urlRideToWorkByBikeOldFrontendDjangoAppAdmin,
+    } = rideToWorkByBikeConfig;
+    const rtwbbOldFrontendDjangoAdminUrl = `${urlRideToWorkByBikeOldFrontendDjangoApp}/${urlRideToWorkByBikeOldFrontendDjangoAppAdmin}`;
+
+    const urlAdmin = computed(() => {
+      return getApiBaseUrlWithLang(
+        logger,
+        rtwbbOldFrontendDjangoAdminUrl,
+        defaultLocale,
+        i18n,
+      );
+    });
     const menuTop = computed((): Link[] => {
       return getMenuTop({
         isUserOrganizationAdmin,
+        isUserStaff,
+        urlAdmin,
       });
     });
 
