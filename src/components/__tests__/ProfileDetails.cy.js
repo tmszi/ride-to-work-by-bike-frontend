@@ -62,8 +62,7 @@ const dataSelectorValue = '[data-cy="details-item-value"]';
 // variables
 const genderFemaleKey = 'global.woman';
 const genderMaleKey = 'global.man';
-const newEmail = 'ride@dopracenakole.cz';
-const password = 'password';
+const password = '123456a';
 
 describe('<ProfileDetails>', () => {
   it('has translation for all strings', () => {
@@ -446,200 +445,173 @@ describe('<ProfileDetails>', () => {
 
 function coreTests() {
   it('renders component', () => {
-    cy.fixture('loggedUser.json').then((user) => {
-      cy.fixture('apiGetRegisterChallengeProfile.json').then((response) => {
-        cy.wrap(useLoginStore()).then((loginStore) => {
-          const personalDetails = response.results[0].personal_details;
-          // set user
-          loginStore.setUser(user);
-          // component
-          cy.dataCy(selectorPersonalDetails).should('be.visible');
-          // page title
-          cy.dataCy(selectorTitlePersonalDetails)
+    cy.fixture('apiGetRegisterChallengeProfile.json').then((response) => {
+      const personalDetails = response.results[0].personal_details;
+      // component
+      cy.dataCy(selectorPersonalDetails).should('be.visible');
+      // page title
+      cy.dataCy(selectorTitlePersonalDetails)
+        .should('be.visible')
+        .within(() => {
+          cy.dataCy('section-heading-title')
             .should('be.visible')
-            .within(() => {
-              cy.dataCy('section-heading-title')
-                .should('be.visible')
-                .and('contain', i18n.global.t('profile.titlePersonalDetails'));
-            });
-          // row nickname
-          cy.dataCy(selectorNickname)
-            .should('be.visible')
-            .and('contain', personalDetails.nickname);
-          // row email
-          cy.dataCy(selectorEmail)
-            .should('be.visible')
-            .and('contain', user.email);
-          // row gender
-          cy.dataCy(selectorGender)
-            .should('be.visible')
-            .and('contain', getGenderLabel(personalDetails.sex, i18n));
-          // row language
-          cy.dataCy(selectorLanguage).should('be.visible');
-          cy.dataCy(selectorLanguageSwitcher).should('be.visible');
-
-          // title challenge details
-          cy.dataCy(selectorTitleChallengeDetails)
-            .should('be.visible')
-            .within(() => {
-              cy.dataCy('section-heading-title')
-                .should('be.visible')
-                .and('contain', i18n.global.t('profile.titleChallengeDetails'));
-            });
-          // row organizationType label
-          cy.dataCy(selectorOrganizationType)
-            .should('be.visible')
-            .find(dataSelectorLabel)
-            .should('contain', i18n.global.t('profile.labelOrganizationType'));
-          // row organizationType value
-          cy.wrap(
-            getOrganizationLabels(response.results[0].organization_type)
-              .labelShort,
-          ).then((organizationType) => {
-            cy.dataCy(selectorOrganizationType)
-              .find(dataSelectorValue)
-              .should('contain', organizationType);
-          });
-          // row organization
-          cy.fixture('formFieldCompany.json').then(
-            (formFieldCompanyResponse) => {
-              cy.dataCy(selectorOrganization)
-                .find(dataSelectorLabel)
-                .should('contain', i18n.global.t('profile.labelOrganization'));
-              cy.dataCy(selectorOrganization)
-                .should('be.visible')
-                .find(dataSelectorValue)
-                .should('contain', formFieldCompanyResponse.results[0].name);
-            },
-          );
-          // row address/subsidiary
-          cy.fixture('apiGetSubsidiariesResponse.json').then(
-            (apiGetSubsidiariesResponse) => {
-              cy.dataCy(selectorAddressSubsidiary)
-                .find(dataSelectorLabel)
-                .should(
-                  'contain',
-                  i18n.global.t('profile.labelAddressSubsidiary'),
-                );
-              cy.dataCy(selectorAddressSubsidiary)
-                .find(dataSelectorValue)
-                .should('be.visible')
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.street,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.street_number,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.psc,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.city,
-                );
-            },
-          );
-          // row address/subsidiary
-          cy.fixture('apiGetTeamsResponse.json').then((apiGetTeamsResponse) => {
-            cy.dataCy(selectorTeam)
-              .find(dataSelectorLabel)
-              .should('contain', i18n.global.t('profile.labelTeam'));
-            cy.dataCy(selectorTeam)
-              .find(dataSelectorValue)
-              .should('contain', apiGetTeamsResponse.results[0].name);
-          });
-          // title challenge details
-          cy.dataCy(selectorTitleStarterPackage)
-            .should('be.visible')
-            .within(() => {
-              cy.dataCy('section-heading-title')
-                .should('be.visible')
-                .and('contain', i18n.global.t('profile.titleStarterPackage'));
-            });
-          // row package
-          cy.fixture('apiGetMerchandiseResponse.json').then(
-            (apiGetMerchandiseResponse) => {
-              cy.dataCy(selectorPackage)
-                .find(dataSelectorLabel)
-                .should('contain', i18n.global.t('profile.labelPackage'));
-              cy.dataCy(selectorPackage)
-                .find(dataSelectorValue)
-                .should('contain', apiGetMerchandiseResponse.results[0].name);
-              // row package
-              cy.dataCy(selectorSize)
-                .find(dataSelectorLabel)
-                .should('contain', i18n.global.t('profile.labelSize'));
-              cy.dataCy(selectorSize)
-                .find(dataSelectorValue)
-                .should('contain', apiGetMerchandiseResponse.results[0].size);
-            },
-          );
-          // row package
-          // cy.dataCy(selectorState)
-          //   .find(dataSelectorLabel)
-          //   .should('contain', i18n.global.t('profile.labelState'));
-          // cy.dataCy(selectorState)
-          //   .find(dataSelectorValue)
-          //   .should('contain', formPersonalDetails.package.state);
-          // row tracking number
-          // cy.dataCy(selectorTrackingNumber)
-          //   .find(dataSelectorLabel)
-          //   .should('contain', i18n.global.t('profile.labelTrackingNumber'));
-          // cy.dataCy(selectorTrackingNumber)
-          //   .find(dataSelectorValue)
-          //   .should('contain', formPersonalDetails.package.trackingNumber);
-          // delivery address
-          cy.fixture('apiGetSubsidiariesResponse.json').then(
-            (apiGetSubsidiariesResponse) => {
-              cy.dataCy(selectorDeliveryAddress)
-                .find(dataSelectorLabel)
-                .should(
-                  'contain',
-                  i18n.global.t('profile.labelDeliveryAddress'),
-                );
-              cy.dataCy(selectorDeliveryAddress)
-                .find(dataSelectorValue)
-                .should('be.visible')
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.recipient,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.street,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.street_number,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.psc,
-                )
-                .and(
-                  'contain',
-                  apiGetSubsidiariesResponse.results[0].address.city,
-                );
-            },
-          );
-          // phone
-          cy.dataCy(selectorPhone)
-            .find(dataSelectorLabel)
-            .should('contain', i18n.global.t('profile.labelPhone'));
-          cy.dataCy(selectorPhone)
-            .find(dataSelectorValue)
-            .should('contain', response.results[0].personal_details.telephone);
-          // contact participation
-          cy.dataCy(selectorTelephoneOptIn)
-            .should('be.visible')
-            .and('contain', i18n.global.t('profile.labelTelephoneOptIn'));
-          // coordinator contact
-          // cy.dataCy(selectorProfileCoordinatorContact).should('be.visible');
+            .and('contain', i18n.global.t('profile.titlePersonalDetails'));
         });
+      // row nickname
+      cy.dataCy(selectorNickname)
+        .should('be.visible')
+        .and('contain', personalDetails.nickname);
+      // row email
+      cy.dataCy(selectorEmail)
+        .should('be.visible')
+        .and('contain', personalDetails.email);
+      // row gender
+      cy.dataCy(selectorGender)
+        .should('be.visible')
+        .and('contain', getGenderLabel(personalDetails.sex, i18n));
+      // row language
+      cy.dataCy(selectorLanguage).should('be.visible');
+      cy.dataCy(selectorLanguageSwitcher).should('be.visible');
+
+      // title challenge details
+      cy.dataCy(selectorTitleChallengeDetails)
+        .should('be.visible')
+        .within(() => {
+          cy.dataCy('section-heading-title')
+            .should('be.visible')
+            .and('contain', i18n.global.t('profile.titleChallengeDetails'));
+        });
+      // row organizationType label
+      cy.dataCy(selectorOrganizationType)
+        .should('be.visible')
+        .find(dataSelectorLabel)
+        .should('contain', i18n.global.t('profile.labelOrganizationType'));
+      // row organizationType value
+      cy.wrap(
+        getOrganizationLabels(response.results[0].organization_type).labelShort,
+      ).then((organizationType) => {
+        cy.dataCy(selectorOrganizationType)
+          .find(dataSelectorValue)
+          .should('contain', organizationType);
       });
+      // row organization
+      cy.fixture('formFieldCompany.json').then((formFieldCompanyResponse) => {
+        cy.dataCy(selectorOrganization)
+          .find(dataSelectorLabel)
+          .should('contain', i18n.global.t('profile.labelOrganization'));
+        cy.dataCy(selectorOrganization)
+          .should('be.visible')
+          .find(dataSelectorValue)
+          .should('contain', formFieldCompanyResponse.results[0].name);
+      });
+      // row address/subsidiary
+      cy.fixture('apiGetSubsidiariesResponse.json').then(
+        (apiGetSubsidiariesResponse) => {
+          cy.dataCy(selectorAddressSubsidiary)
+            .find(dataSelectorLabel)
+            .should('contain', i18n.global.t('profile.labelAddressSubsidiary'));
+          cy.dataCy(selectorAddressSubsidiary)
+            .find(dataSelectorValue)
+            .should('be.visible')
+            .and(
+              'contain',
+              apiGetSubsidiariesResponse.results[0].address.street,
+            )
+            .and(
+              'contain',
+              apiGetSubsidiariesResponse.results[0].address.street_number,
+            )
+            .and('contain', apiGetSubsidiariesResponse.results[0].address.psc)
+            .and('contain', apiGetSubsidiariesResponse.results[0].address.city);
+        },
+      );
+      // row address/subsidiary
+      cy.fixture('apiGetTeamsResponse.json').then((apiGetTeamsResponse) => {
+        cy.dataCy(selectorTeam)
+          .find(dataSelectorLabel)
+          .should('contain', i18n.global.t('profile.labelTeam'));
+        cy.dataCy(selectorTeam)
+          .find(dataSelectorValue)
+          .should('contain', apiGetTeamsResponse.results[0].name);
+      });
+      // title challenge details
+      cy.dataCy(selectorTitleStarterPackage)
+        .should('be.visible')
+        .within(() => {
+          cy.dataCy('section-heading-title')
+            .should('be.visible')
+            .and('contain', i18n.global.t('profile.titleStarterPackage'));
+        });
+      // row package
+      cy.fixture('apiGetMerchandiseResponse.json').then(
+        (apiGetMerchandiseResponse) => {
+          cy.dataCy(selectorPackage)
+            .find(dataSelectorLabel)
+            .should('contain', i18n.global.t('profile.labelPackage'));
+          cy.dataCy(selectorPackage)
+            .find(dataSelectorValue)
+            .should('contain', apiGetMerchandiseResponse.results[0].name);
+          // row package
+          cy.dataCy(selectorSize)
+            .find(dataSelectorLabel)
+            .should('contain', i18n.global.t('profile.labelSize'));
+          cy.dataCy(selectorSize)
+            .find(dataSelectorValue)
+            .should('contain', apiGetMerchandiseResponse.results[0].size);
+        },
+      );
+      // row package
+      // cy.dataCy(selectorState)
+      //   .find(dataSelectorLabel)
+      //   .should('contain', i18n.global.t('profile.labelState'));
+      // cy.dataCy(selectorState)
+      //   .find(dataSelectorValue)
+      //   .should('contain', formPersonalDetails.package.state);
+      // row tracking number
+      // cy.dataCy(selectorTrackingNumber)
+      //   .find(dataSelectorLabel)
+      //   .should('contain', i18n.global.t('profile.labelTrackingNumber'));
+      // cy.dataCy(selectorTrackingNumber)
+      //   .find(dataSelectorValue)
+      //   .should('contain', formPersonalDetails.package.trackingNumber);
+      // delivery address
+      cy.fixture('apiGetSubsidiariesResponse.json').then(
+        (apiGetSubsidiariesResponse) => {
+          cy.dataCy(selectorDeliveryAddress)
+            .find(dataSelectorLabel)
+            .should('contain', i18n.global.t('profile.labelDeliveryAddress'));
+          cy.dataCy(selectorDeliveryAddress)
+            .find(dataSelectorValue)
+            .should('be.visible')
+            .and(
+              'contain',
+              apiGetSubsidiariesResponse.results[0].address.recipient,
+            )
+            .and(
+              'contain',
+              apiGetSubsidiariesResponse.results[0].address.street,
+            )
+            .and(
+              'contain',
+              apiGetSubsidiariesResponse.results[0].address.street_number,
+            )
+            .and('contain', apiGetSubsidiariesResponse.results[0].address.psc)
+            .and('contain', apiGetSubsidiariesResponse.results[0].address.city);
+        },
+      );
+      // phone
+      cy.dataCy(selectorPhone)
+        .find(dataSelectorLabel)
+        .should('contain', i18n.global.t('profile.labelPhone'));
+      cy.dataCy(selectorPhone)
+        .find(dataSelectorValue)
+        .should('contain', response.results[0].personal_details.telephone);
+      // contact participation
+      cy.dataCy(selectorTelephoneOptIn)
+        .should('be.visible')
+        .and('contain', i18n.global.t('profile.labelTelephoneOptIn'));
+      // coordinator contact
+      // cy.dataCy(selectorProfileCoordinatorContact).should('be.visible');
     });
   });
 
@@ -753,86 +725,147 @@ function coreTests() {
     });
   });
 
-  it.skip('allows to edit email', () => {
-    cy.fixture('formPersonalDetails').then((personalDetails) => {
-      // email value
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorValue)
-        .should('be.visible')
-        .and('have.text', personalDetails.email);
-      // email edit button
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorEdit)
-        .should('be.visible')
-        .click();
-      // email edit form
-      cy.dataCy(selectorFormEmail).should('be.visible');
-      // change email
-      cy.dataCy(selectorFormEmail)
-        .find(dataSelectorInputEmail)
-        .should('be.visible')
-        .clear();
-      cy.dataCy(selectorFormEmail).find(dataSelectorInputEmail).type(newEmail);
-      cy.dataCy(selectorFormEmail)
-        .find(dataSelectorInputPassword)
-        .type(password);
-      // cancel
-      cy.dataCy(selectorFormEmail).find(dataSelectorButtonCancel).click();
-      // email is the same
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorValue)
-        .should('be.visible')
-        .and('have.text', personalDetails.email);
-      // change email
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorEdit)
-        .should('be.visible')
-        .click();
-      cy.dataCy(selectorFormEmail)
-        .find(dataSelectorInputEmail)
-        .should('be.visible')
-        .clear();
-      cy.dataCy(selectorFormEmail).find(dataSelectorInputEmail).type(newEmail);
-      cy.dataCy(selectorFormEmail)
-        .find(dataSelectorInputPassword)
-        .type(password);
-      // save
-      cy.dataCy(selectorFormEmail).find(dataSelectorButtonSave).click();
-      // email is different
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorValue)
-        .should('be.visible')
-        .and('have.text', newEmail);
-      // deleting email is not possible
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorEdit)
-        .should('be.visible')
-        .click();
-      cy.dataCy(selectorFormEmail)
-        .should('be.visible')
-        .find(dataSelectorInputEmail)
-        .clear();
-      cy.dataCy(selectorFormEmail).find(dataSelectorButtonSave).click();
-      cy.dataCy(selectorFormEmail).should('be.visible');
-      // fill in original email
-      cy.dataCy(selectorFormEmail)
-        .should('be.visible')
-        .find(dataSelectorInputEmail)
-        .type(personalDetails.email);
-      // cannot save without password
-      cy.dataCy(selectorFormEmail).find(dataSelectorButtonSave).click();
-      cy.dataCy(selectorFormEmail).should('be.visible');
-      // fill in password
-      cy.dataCy(selectorFormEmail)
-        .find(dataSelectorInputPassword)
-        .type(password);
-      // save (enter)
-      cy.dataCy(selectorFormEmail).find(dataSelectorInputEmail).type('{enter}');
-      cy.dataCy(selectorEmail)
-        .find(dataSelectorValue)
-        .should('be.visible')
-        .and('have.text', personalDetails.email);
-    });
+  it('allows to edit email', () => {
+    cy.fixture('loginRegisterResponseChallengeActive.json').then(
+      (loginRegisterResponseChallengeActive) => {
+        cy.fixture('apiGetRegisterChallengeProfile.json').then((response) => {
+          cy.fixture('apiGetRegisterChallengeProfileUpdatedEmail.json').then(
+            (responseNew) => {
+              const personalDetails = response.results[0].personal_details;
+              const personalDetailsNew =
+                responseNew.results[0].personal_details;
+              // set current user to store
+              cy.wrap(useLoginStore()).then((loginStore) => {
+                loginStore.setUser(loginRegisterResponseChallengeActive.user);
+              });
+              // email value
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorValue)
+                .should('be.visible')
+                .and('have.text', personalDetails.email);
+              // email edit button
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorEdit)
+                .should('be.visible')
+                .click();
+              // email edit form
+              cy.dataCy(selectorFormEmail).should('be.visible');
+              // change email
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputEmail)
+                .should('be.visible')
+                .clear();
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputEmail)
+                .type(personalDetailsNew.email);
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputPassword)
+                .type(password);
+              // cancel
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorButtonCancel)
+                .click();
+              // email is the same
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorValue)
+                .should('be.visible')
+                .and('have.text', personalDetails.email);
+              // change email
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorEdit)
+                .should('be.visible')
+                .click();
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputEmail)
+                .should('be.visible')
+                .clear();
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputEmail)
+                .type(personalDetailsNew.email);
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputPassword)
+                .type(password);
+              // intercept login API for checking the password
+              cy.interceptLoginApi(
+                rideToWorkByBikeConfig,
+                i18n,
+                loginRegisterResponseChallengeActive,
+              );
+              // intercept register-challenge POST request
+              cy.interceptRegisterChallengePutApi(
+                rideToWorkByBikeConfig,
+                i18n,
+                personalDetails.id,
+                responseNew,
+              );
+              // override intercept register-challenge GET request
+              cy.interceptRegisterChallengeGetApi(
+                rideToWorkByBikeConfig,
+                i18n,
+                responseNew,
+              );
+              // save
+              cy.dataCy(selectorFormEmail).find(dataSelectorButtonSave).click();
+              // confirm password
+              cy.wait('@loginRequest');
+              // update register-challenge
+              cy.wait('@putRegisterChallenge');
+              // re-authenticate
+              cy.wait('@loginRequest');
+              // email is different
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorValue)
+                .should('be.visible')
+                .and('have.text', personalDetailsNew.email);
+              // deleting email is not possible
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorEdit)
+                .should('be.visible')
+                .click();
+              cy.dataCy(selectorFormEmail)
+                .should('be.visible')
+                .find(dataSelectorInputEmail)
+                .clear();
+              cy.dataCy(selectorFormEmail).find(dataSelectorButtonSave).click();
+              cy.dataCy(selectorFormEmail).should('be.visible');
+              // fill in original email
+              cy.dataCy(selectorFormEmail)
+                .should('be.visible')
+                .find(dataSelectorInputEmail)
+                .type(personalDetails.email);
+              // cannot save without password
+              cy.dataCy(selectorFormEmail).find(dataSelectorButtonSave).click();
+              cy.dataCy(selectorFormEmail).should('be.visible');
+              // fill in password
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputPassword)
+                .type(password);
+              // override intercept POST request
+              cy.interceptRegisterChallengePutApi(
+                rideToWorkByBikeConfig,
+                i18n,
+                personalDetails.id,
+                response,
+              );
+              // override intercept GET request
+              cy.interceptRegisterChallengeGetApi(
+                rideToWorkByBikeConfig,
+                i18n,
+                response,
+              );
+              // save (enter)
+              cy.dataCy(selectorFormEmail)
+                .find(dataSelectorInputEmail)
+                .type('{enter}');
+              cy.dataCy(selectorEmail)
+                .find(dataSelectorValue)
+                .should('be.visible')
+                .and('have.text', personalDetails.email);
+            },
+          );
+        });
+      },
+    );
   });
 
   it('allows to edit gender', () => {

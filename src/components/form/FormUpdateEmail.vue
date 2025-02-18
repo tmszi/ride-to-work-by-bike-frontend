@@ -24,11 +24,18 @@
  */
 
 // libraries
-import { defineComponent, onMounted, ref } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
+import { Notify } from 'quasar';
 
 // components
 import FormFieldEmail from '../global/FormFieldEmail.vue';
 import FormFieldPassword from '../global/FormFieldPassword.vue';
+
+// composables
+import { i18n } from '../../boot/i18n';
+
+// store
+import { useLoginStore } from '../../stores/login';
 
 export default defineComponent({
   name: 'FormUpdateEmail',
@@ -55,6 +62,9 @@ export default defineComponent({
     const inputValue = ref<string>('');
     const password = ref<string>('');
 
+    const loginStore = useLoginStore();
+    const currentEmail = computed(() => loginStore.getUserEmail);
+
     onMounted(() => {
       inputValue.value = props.value;
     });
@@ -63,8 +73,32 @@ export default defineComponent({
       props.onClose();
     };
 
-    const onUpdateEmail = (): void => {
-      emit('update:value', inputValue.value);
+    const onUpdateEmail = async (): Promise<void> => {
+      // authenticate to confirm password
+      const response = await loginStore.login(
+        {
+          username: currentEmail.value,
+          password: password.value,
+        },
+        {
+          redirectAfterLogin: false,
+          showErrorMessage: false,
+          showSuccessMessage: false,
+        },
+      );
+
+      if (!response) {
+        Notify.create({
+          message: i18n.global.t('notify.emailUpdateWrongPassword'),
+          color: 'negative',
+        });
+        return;
+      }
+
+      emit('update:value', {
+        email: inputValue.value,
+        password: password.value,
+      });
       props.onClose();
     };
 
