@@ -24,6 +24,7 @@ import { useApiPostPayuCreateOrder } from '../composables/useApiPostPayuCreateOr
 import { useApiGetHasOrganizationAdmin } from '../composables/useApiGetHasOrganizationAdmin';
 import { useApiIsUserOrganizationAdmin } from '../composables/useApiIsUserOrganizationAdmin';
 import { useApiGetDiscountCoupon } from '../composables/useApiGetDiscountCoupon';
+import { useApiGetMyTeam } from '../composables/useApiGetMyTeam';
 
 // enums
 import { Gender } from '../components/types/Profile';
@@ -39,6 +40,7 @@ import { RegisterChallengeStep } from '../components/enums/RegisterChallenge';
 import { PaymentCategory } from '../components/types/ApiPayu';
 
 // stores
+import { useChallengeStore } from './challenge';
 import { useRegisterStore } from './register';
 
 // types
@@ -52,8 +54,8 @@ import type {
   MerchandiseCard,
   MerchandiseItem,
 } from '../components/types/Merchandise';
+import type { MyTeamResults } from '../components/types/Results';
 import { i18n } from '../boot/i18n';
-import { useChallengeStore } from './challenge';
 import { PriceLevelCategory } from '../components/enums/Challenge';
 import type {
   RegisterChallengePostPayload,
@@ -94,6 +96,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     teams: [] as OrganizationTeam[],
     merchandiseItems: [] as MerchandiseItem[],
     merchandiseCards: {} as Record<Gender, MerchandiseCard[]>,
+    myTeam: null as MyTeamResults | null,
     formRegisterCoordinator: deepObjectWithSimplePropsCopy(
       emptyFormRegisterCoordinator,
     ),
@@ -135,6 +138,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getMerchandiseItems: (state): MerchandiseItem[] => state.merchandiseItems,
     getMerchandiseCards: (state): Record<Gender, MerchandiseCard[]> =>
       state.merchandiseCards,
+    getMyTeam: (state): MyTeamResults | null => state.myTeam,
     getPaymentCategory: (state): PaymentCategory => state.paymentCategory,
     getIsSelectedRegisterCoordinator: (state): boolean =>
       state.isSelectedRegisterCoordinator,
@@ -325,6 +329,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     setMerchId(merchId: number | null) {
       this.merchId = merchId;
+    },
+    setMyTeam(myTeam: MyTeamResults | null) {
+      this.myTeam = myTeam;
     },
     setPaymentCategory(paymentCategory: PaymentCategory) {
       this.paymentCategory = paymentCategory;
@@ -534,7 +541,69 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       if (this.voucher && this.paymentSubject !== PaymentSubject.voucher) {
         this.setVoucher(null);
       }
-      // payload map defines what data is sent to the API for each step
+      // if step = team, check team max members before submitting
+      if (step === RegisterChallengeStep.team) {
+        const challengeStore = useChallengeStore();
+        const maxTeamMembers = challengeStore.getMaxTeamMembers;
+        // refetch teams
+        await this.loadTeamsToStore(this.$log);
+        // load my team info
+        await this.loadMyTeamToStore(this.$log);
+        // check selected team max members
+        const myTeam = this.getMyTeam;
+        this.$log?.debug(`My team <${JSON.stringify(myTeam, null, 2)}>.`);
+        const selectedTeam = this.teams.find((team) => team.id === this.teamId);
+        this.$log?.debug(
+          `Selected team <${JSON.stringify(selectedTeam, null, 2)}>.`,
+        );
+        // selected team members or max team members are not set - error
+        if (!selectedTeam?.members || !maxTeamMembers) {
+          this.$log?.debug(
+            'Selected team members <${selectedTeam?.members}>,' +
+              ' max. team members <${maxTeamMembers}>.',
+          );
+          Notify.create({
+            type: 'negative',
+            message: i18n.global.t(
+              'postRegisterChallenge.messageTeamMaxMembersUnavailable',
+            ),
+          });
+          // reset team ID
+          this.setTeamId(null);
+          this.$log?.debug('Reset team ID to <${this.getTeamId}>.');
+          return null;
+        }
+        // check if selected team is full
+        const isSelectedTeamMembersCountMax: boolean =
+          selectedTeam?.members.length >= maxTeamMembers;
+        this.$log?.debug(
+          `Is selected team full <${isSelectedTeamMembersCountMax}>.`,
+        );
+        // check if selected team is my team
+        const isSelectedTeamMyTeam: boolean = myTeam?.id === selectedTeam.id;
+        this.$log?.debug(`Selected team is my team <${isSelectedTeamMyTeam}>.`);
+        /**
+         * If selected team is full and it is not my team,
+         * notify the user and reset team ID.
+         * If selected team is full and it is my team,
+         * let user proceed (we should not make user leave the team once they
+         * are already an approved member).
+         */
+        if (isSelectedTeamMembersCountMax && !isSelectedTeamMyTeam) {
+          Notify.create({
+            type: 'negative',
+            message: i18n.global.t(
+              'postRegisterChallenge.messageTeamMaxMembersReached',
+            ),
+          });
+          this.$log?.info('Team max members reached.');
+          // reset team ID
+          this.setTeamId(null);
+          this.$log?.debug('Reset team ID to <${this.getTeamId}>.');
+          return null;
+        }
+      }
+
       const isPaymentOrganization = this.getIsPaymentSubjectOrganization;
       /**
        * Defines what data is sent to the API for each step
@@ -682,6 +751,22 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         this.teams = teams.value;
         logger?.debug(`Loaded teams <${this.teams}> saved into store.`);
         this.isLoadingTeams = false;
+      }
+    },
+    async loadMyTeamToStore(logger: Logger | null) {
+      const { team, loadTeam } = useApiGetMyTeam(logger);
+      if (this.teamId) {
+        logger?.info('Load my team data.');
+        await loadTeam();
+        if (team.value) {
+          logger?.debug(
+            `Setting my team <${JSON.stringify(team.value, null, 2)}>.`,
+          );
+          this.setMyTeam(team.value);
+          logger?.debug(
+            `My team set to <${JSON.stringify(this.getMyTeam, null, 2)}>.`,
+          );
+        }
       }
     },
     async loadMerchandiseToStore(logger: Logger | null) {
@@ -976,6 +1061,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       'teams',
       'merchandiseItems',
       'merchandiseCards',
+      'myTeam',
       'isLoadingRegisterChallenge',
       'isLoadingSubsidiaries',
       'isLoadingOrganizations',

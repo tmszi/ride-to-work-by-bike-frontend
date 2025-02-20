@@ -93,6 +93,11 @@ apiMessageError = "Fetching merchandise failed."
 apiMessageErrorWithMessage = "Fetching merchandise failed. Error: {error}"
 apiMessageSuccess = "Merchandise fetched successfully."
 
+[getMyTeam]
+apiMessageError = "Failed to load team."
+apiMessageErrorWithMessage = "Failed to load team. Error: {error}"
+apiMessageSuccess = "Team was successfully loaded."
+
 [getFilteredMerchandise]
 apiMessageError = "Fetching filtered merchandise by code failed."
 apiMessageErrorWithMessage = "Fetching filtered merchandise by code failed. Error: {error}"
@@ -660,6 +665,8 @@ labelScheduled = "After challenge"
 apiMessageError = "Error saving registration status."
 apiMessageErrorWithMessage = "Error saving registration status. Error: {error}"
 apiMessageSuccess = "Registration status was successfully saved."
+messageTeamMaxMembersUnavailable = "Failed to get team members count. Please try again later."
+messageTeamMaxMembersReached = "Team is full. You cannot add more members."
 
 [profile]
 buttonDeleteAccount = "Delete"

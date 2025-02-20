@@ -57,7 +57,8 @@ export interface ConfigGlobal {
   apiBase: string;
   apiBaseRtwbbFeed: string;
   apiBaseIpAddress: string;
-  apiVersion: string;
+  apiDefaultVersion: string;
+  apiVersion2: string;
   apiDefaultLang: string;
   urlApiDiscountCoupon: string;
   urlApiHasOrganizationAdmin: string;
@@ -69,6 +70,7 @@ export interface ConfigGlobal {
   urlApiOrganizations: string;
   urlApiLoginFacebook: string;
   urlApiMerchandise: string;
+  urlApiMyTeam: string;
   urlApiPayuCreateOrder: string;
   urlAppDataPrivacyPolicy: string;
   urlAppDataTermsOfService: string;

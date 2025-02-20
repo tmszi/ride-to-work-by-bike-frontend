@@ -1080,36 +1080,43 @@ Cypress.Commands.add('fillAndSubmitLoginForm', () => {
  * Wait for intercept teams API calls and compare request/response object
  * Wait for `@getTeams` and `@getTeamsNextPage` intercepts
  */
-Cypress.Commands.add('waitForTeamsGetApi', () => {
-  cy.fixture('apiGetTeamsResponse').then((teamsResponse) => {
-    cy.fixture('apiGetTeamsResponseNext').then((teamsResponseNext) => {
-      cy.wait(['@getTeams', '@getTeamsNextPage']).spread(
-        (getTeams, getTeamsNextPage) => {
-          expect(getTeams.request.headers.authorization).to.include(
-            bearerTokeAuth,
-          );
-          if (getTeams.response) {
-            expect(getTeams.response.statusCode).to.equal(
-              httpSuccessfullStatus,
+Cypress.Commands.add(
+  'waitForTeamsGetApi',
+  (teamsResponse = null, teamsResponseNext = null) => {
+    cy.fixture('apiGetTeamsResponse').then((defaultTeamsResponse) => {
+      cy.fixture('apiGetTeamsResponseNext').then((defaultTeamsResponseNext) => {
+        cy.wait(['@getTeams', '@getTeamsNextPage']).spread(
+          (getTeams, getTeamsNextPage) => {
+            expect(getTeams.request.headers.authorization).to.include(
+              bearerTokeAuth,
             );
-            expect(getTeams.response.body).to.deep.equal(teamsResponse);
-          }
-          expect(getTeamsNextPage.request.headers.authorization).to.include(
-            bearerTokeAuth,
-          );
-          if (getTeamsNextPage.response) {
-            expect(getTeamsNextPage.response.statusCode).to.equal(
-              httpSuccessfullStatus,
+            if (getTeams.response) {
+              expect(getTeams.response.statusCode).to.equal(
+                httpSuccessfullStatus,
+              );
+              expect(getTeams.response.body).to.deep.equal(
+                teamsResponse ? teamsResponse : defaultTeamsResponse,
+              );
+            }
+            expect(getTeamsNextPage.request.headers.authorization).to.include(
+              bearerTokeAuth,
             );
-            expect(getTeamsNextPage.response.body).to.deep.equal(
-              teamsResponseNext,
-            );
-          }
-        },
-      );
+            if (getTeamsNextPage.response) {
+              expect(getTeamsNextPage.response.statusCode).to.equal(
+                httpSuccessfullStatus,
+              );
+              expect(getTeamsNextPage.response.body).to.deep.equal(
+                teamsResponseNext
+                  ? teamsResponseNext
+                  : defaultTeamsResponseNext,
+              );
+            }
+          },
+        );
+      });
     });
-  });
-});
+  },
+);
 
 /**
  * Intercept team POST API call
@@ -2017,11 +2024,11 @@ Cypress.Commands.add(
         .and('contain', subsidiariesResponse.results[0].address.city);
       // go to next step
       cy.dataCy('step-4-continue').should('be.visible').click();
-      // team is preselected
+      // first available team is preselected (2nd team in fixture results)
       cy.dataCy('form-select-table-team')
-        .should('be.visible')
-        .find('.q-radio__inner')
+        .find('.q-radio:not(.disabled)')
         .first()
+        .find('.q-radio__inner')
         .should('have.class', 'q-radio__inner--truthy');
       // go to next step
       cy.dataCy('step-5-continue').should('be.visible').click();
@@ -2769,3 +2776,53 @@ Cypress.Commands.add(
     });
   },
 );
+
+/**
+ * Intercept my team GET API call
+ * Provides `@getMyTeam` alias
+ * @param {Config} config - App global config
+ * @param {I18n|String} i18n - i18n instance or locale lang string e.g. en
+ * @param {Object} responseBody - Override default response body
+ * @param {Number} responseStatusCode - Override default response HTTP status code
+ */
+Cypress.Commands.add(
+  'interceptMyTeamGetApi',
+  (config, i18n, responseBody = null, responseStatusCode = null) => {
+    const { apiBase, apiDefaultLang, urlApiMyTeam } = config;
+    const apiBaseUrl = getApiBaseUrlWithLang(
+      null,
+      apiBase,
+      apiDefaultLang,
+      i18n,
+    );
+    const urlApiMyTeamLocalized = `${apiBaseUrl}${urlApiMyTeam}`;
+
+    cy.fixture('apiGetMyTeamResponse.json').then((defaultResponse) => {
+      cy.intercept('GET', urlApiMyTeamLocalized, {
+        statusCode: responseStatusCode || httpSuccessfullStatus,
+        body: responseBody || defaultResponse,
+      }).as('getMyTeam');
+    });
+  },
+);
+
+/**
+ * Wait for intercept my team API call and compare response object
+ * Wait for `@getMyTeam` intercept
+ * @param {Object} expectedResponse - Expected response body
+ */
+Cypress.Commands.add('waitForMyTeamGetApi', (expectedResponse = null) => {
+  cy.fixture('apiGetMyTeamResponse.json').then((defaultResponse) => {
+    cy.wait('@getMyTeam').then((getMyTeam) => {
+      expect(getMyTeam.request.headers.authorization).to.include(
+        bearerTokeAuth,
+      );
+      if (getMyTeam.response) {
+        expect(getMyTeam.response.statusCode).to.equal(httpSuccessfullStatus);
+        expect(getMyTeam.response.body).to.deep.equal(
+          expectedResponse || defaultResponse,
+        );
+      }
+    });
+  });
+});
