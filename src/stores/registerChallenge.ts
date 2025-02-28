@@ -767,6 +767,10 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
             `My team set to <${JSON.stringify(this.getMyTeam, null, 2)}>.`,
           );
         }
+      } else {
+        logger?.debug(
+          `No team ID <${this.teamId}>, skipping my team data loading.`,
+        );
       }
     },
     async loadMerchandiseToStore(logger: Logger | null) {
@@ -1061,7 +1065,6 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       'teams',
       'merchandiseItems',
       'merchandiseCards',
-      'myTeam',
       'isLoadingRegisterChallenge',
       'isLoadingSubsidiaries',
       'isLoadingOrganizations',
