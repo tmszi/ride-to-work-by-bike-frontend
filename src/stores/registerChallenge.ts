@@ -116,6 +116,11 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     isSelectedRegisterCoordinator: false,
     hasOrganizationAdmin: null as boolean | null,
     isUserOrganizationAdmin: null as boolean | null,
+    /**
+     * Required for indicating state when merch was saved into DB
+     * and allow router to redirect to the home page URL
+     */
+    isMerchandiseSavedIntoDb: true,
   }),
 
   getters: {
@@ -301,7 +306,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         this.getIsOrganizationIdComplete &&
         this.getIsSubsidiaryIdComplete &&
         this.getIsTeamIdComplete &&
-        this.getIsMerchIdComplete
+        this.getIsMerchIdComplete &&
+        this.getIsMerchandiseSavedIntoDb
       );
     },
     getIsUserOrganizationAdmin: (state): boolean | null =>
@@ -309,6 +315,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getIsLoadingUserOrganizationAdmin: (state): boolean =>
       state.isLoadingUserOrganizationAdmin,
     getIsUserStaff: (state): boolean | null => state.personalDetails.isStaff,
+    getIsMerchandiseSavedIntoDb: (state): boolean =>
+      state.isMerchandiseSavedIntoDb,
   },
 
   actions: {
@@ -388,6 +396,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     },
     setIsUserOrganizationAdmin(isUserOrganizationAdmin: boolean | null) {
       this.isUserOrganizationAdmin = isUserOrganizationAdmin;
+    },
+    setIsMerchandiseSavedIntoDb(isMerchandiseSavedIntoDb: boolean) {
+      this.isMerchandiseSavedIntoDb = isMerchandiseSavedIntoDb;
     },
     /**
      * Load registration data from API and set store state
