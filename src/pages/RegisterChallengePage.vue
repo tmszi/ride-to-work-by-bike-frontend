@@ -142,7 +142,6 @@ export default defineComponent({
     const isPayuTransactionInitiated = computed(
       () => registerChallengeStore.getIsPayuTransactionInitiated,
     );
-    const paymentState = computed(() => registerChallengeStore.getPaymentState);
 
     const router = useRouter();
 
@@ -156,7 +155,8 @@ export default defineComponent({
       }
       await registerChallengeStore.loadRegisterChallengeToStore();
       /**
-       * Depending on the paymentState, and isPayuTransactionInitiated flag
+       * Depending on whether payment is successful,
+       * and isPayuTransactionInitiated flag
        * we determine if situation is:
        * - refreshing page after returning from payment
        * - returning to a started payment
@@ -171,13 +171,13 @@ export default defineComponent({
 
       if (
         isPayuTransactionInitiated.value &&
-        paymentState.value === PaymentState.done
+        registerChallengeStore.getIsPaymentSuccessful
       ) {
         // entry-fee/donation was paid - go to payment step
         onContinue();
       } else if (
         isPayuTransactionInitiated.value &&
-        paymentState.value !== PaymentState.done
+        !registerChallengeStore.getIsPaymentSuccessful
       ) {
         // trigger a periodic registration data refetch + display message
         registerChallengeStore.startRegisterChallengePeriodicCheck();
@@ -185,7 +185,7 @@ export default defineComponent({
         onContinue();
       } else if (
         !isPayuTransactionInitiated.value &&
-        paymentState.value === PaymentState.done
+        registerChallengeStore.getIsPaymentSuccessful
       ) {
         // if payment is done, it should always be safe to continue
         onContinue();
@@ -289,6 +289,10 @@ export default defineComponent({
       );
     });
 
+    const isPeriodicCheckInProgress = computed<boolean>(
+      () => registerChallengeStore.getIsPeriodicCheckInProgress,
+    );
+
     const isLoadingPayuOrder = computed(() => {
       return registerChallengeStore.isLoadingPayuOrder;
     });
@@ -333,6 +337,22 @@ export default defineComponent({
       () => registerChallengeStore.getIsRegistrationComplete,
     );
 
+    const secondsToWaitDef = ref(
+      rideToWorkByBikeConfig.checkRegisterChallengeStatusMaxRepetitions *
+        rideToWorkByBikeConfig.checkRegisterChallengeStatusIntervalSeconds,
+    );
+
+    const secondsToWait = computed(() => {
+      return secondsToWaitDef;
+    });
+
+    const payCheckWaitLoadingTimer = setInterval(() => {
+      if (secondsToWaitDef.value <= 0 || !isPeriodicCheckInProgress.value) {
+        clearInterval(payCheckWaitLoadingTimer);
+      }
+      secondsToWaitDef.value -= 1;
+    }, 1000);
+
     return {
       borderRadius,
       contactEmail,
@@ -369,6 +389,7 @@ export default defineComponent({
       doneIconImgSrcStepper7,
       merchId,
       isPaymentAmount,
+      isPeriodicCheckInProgress,
       isRegistrationComplete,
       isRegistrationEntryFeePaidViaPayu,
       isShownCreateOrderButton,
@@ -384,6 +405,7 @@ export default defineComponent({
       onCompleteRegistration,
       registerChallengeStore,
       competitionStart,
+      secondsToWait,
     };
   },
 });
@@ -462,7 +484,7 @@ export default defineComponent({
             :done-icon="doneIconImgSrcStepper2"
             :done="step > 2"
             :header-nav="step > 2"
-            class="bg-white q-mt-lg"
+            class="relative-position bg-white q-mt-lg"
             data-cy="step-2"
           >
             <!-- Form: Payment -->
@@ -487,6 +509,7 @@ export default defineComponent({
                 v-if="!isRegistrationEntryFeePaidViaPayu"
               />
             </q-form>
+            <!-- Navigation -->
             <q-stepper-navigation class="flex justify-end">
               <q-btn
                 unelevated
@@ -523,6 +546,19 @@ export default defineComponent({
                 data-cy="step-2-continue"
               />
             </q-stepper-navigation>
+            <!-- Loader -->
+            <q-inner-loading
+              :showing="isPeriodicCheckInProgress"
+              color="primary"
+              :label="
+                $t('register.challenge.textWaitingForPaymentLoader', {
+                  seconds: secondsToWait.value,
+                })
+              "
+              label-class="text-primary"
+              label-style="max-width: 200px; font-weight: 600;"
+              data-cy="waiting-for-payment-loader"
+            />
           </q-step>
           <!-- Step: Organization type -->
           <q-step
