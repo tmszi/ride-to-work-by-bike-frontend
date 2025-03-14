@@ -72,6 +72,7 @@ describe('<ProfileDetails>', () => {
     cy.testLanguageStringsInContext(
       [
         'buttonDownloadInvoice',
+        'inviteTeamMembers',
         'descriptionNickname',
         'labelAddressSubsidiary',
         'labelDeliveryAddress',

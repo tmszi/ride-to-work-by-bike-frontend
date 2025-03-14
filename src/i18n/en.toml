@@ -276,6 +276,7 @@ save = "Save"
 select = "Select"
 selected = "Selected"
 skip = "Skip"
+submit = "Submit"
 
 [form]
 buttonCompleteRegistration = "Complete registration"
@@ -305,6 +306,7 @@ labelConfirmBillingDetails = "I confirm that the billing information above is co
 labelCoordinatorResponsibility = "I will arrange for the company to pay all or part of the entry fee for our employee team(s)."
 labelDonorEntryFee = "My organisation would like to support AutoMat and pay a charity entry fee of 500 CZK excluding VAT per person"
 labelEmail = "Email"
+labelEmailAddresses = "Email addresses"
 labelFamilyShort = "Family"
 labelFirstName = "First Name"
 labelGender = "Gender"
@@ -686,10 +688,13 @@ messageTeamMaxMembersUnavailable = "Failed to get team members count. Please try
 messageTeamMaxMembersReached = "Team is full. You cannot add more members."
 
 [profile]
+buttonAddEmailField = "Add another email"
 buttonDeleteAccount = "Delete"
 buttonDownloadInvoice = "Download payment confirmation"
 buttonFillQuestionnaire = "Fill in questionnaire"
+buttonRemoveEmailField = "Remove email"
 descriptionNickname = "Appears in public results instead of your name"
+inviteTeamMembers = "Invite members"
 labelAddressSubsidiary = "Address / Subsidiary:"
 labelDeleteAccount = "Delete account and all associated data"
 labelDeleteAccountDescription = "Deleting your account will delete all your data. Do you want to continue?"
@@ -962,6 +967,11 @@ apiMessageAlreadyConfirmed = "Email already confirmed."
 apiMessageError = "Error sending confirmation email."
 apiMessageErrorWithMessage = "Error sending confirmation email. Error: {error}"
 apiMessageSuccess = "Confirmation email was successfully sent."
+
+[sendTeamMembershipInvitationEmail]
+apiMessageError = "Error sending invitation. Please check the entered addresses."
+apiMessageErrorWithMessage = "Error sending invitation. Error: {error}"
+apiMessageSuccess = "Invitation has been sent successfully"
 
 [statsBar]
 labelFrequency = "regularity"
