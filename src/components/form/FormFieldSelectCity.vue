@@ -6,7 +6,7 @@
  * It is commonly used in `CommunityPage` and `PrizesPage`.
  *
  * @props
- * - `modelValue` (number|null): The select value.
+ * - `modelValue` (string|null) - Selected city slug.
  *   It should be of type `string`.
  *
  * @events
@@ -24,26 +24,34 @@ import { computed, defineComponent, inject, onMounted } from 'vue';
 import { useApiGetCities } from '../../composables/useApiGetCities';
 
 // types
-import { Logger } from '../../components/types/Logger';
+import type { FormOption } from '../../components/types/Form';
+import type { Logger } from '../../components/types/Logger';
 
 export default defineComponent({
   name: 'FormFieldSelectCity',
   emits: ['update:modelValue'],
   props: {
     modelValue: {
-      type: Number as () => number | null,
+      type: String as () => string | null,
       required: false,
       default: null,
     },
   },
   setup(props, { emit }) {
     const city = computed({
-      get: (): number | null => props.modelValue,
-      set: (value: number | null): void => emit('update:modelValue', value),
+      get: (): string | null => props.modelValue,
+      set: (value: string | null): void => emit('update:modelValue', value),
     });
 
     const logger = inject('vuejs3-logger') as Logger | null;
-    const { isLoading, options, loadCities } = useApiGetCities(logger);
+    const { isLoading, cities, loadCities } = useApiGetCities(logger);
+
+    const options = computed<FormOption[]>(() =>
+      cities.value.map((city) => ({
+        label: city.name,
+        value: city.slug,
+      })),
+    );
 
     onMounted(() => {
       loadCities();

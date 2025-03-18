@@ -54,6 +54,7 @@ export interface ConfigGlobal {
   iDontWantMerchandiseItemCode: string;
   notifyMessagePosition: string;
   mobileBottomPanelVisibleItems: number;
+  indexPageVisibleOfferCount: number;
   apiBase: string;
   apiBaseRtwbbFeed: string;
   apiBaseIpAddress: string;
@@ -95,6 +96,7 @@ export interface ConfigGlobal {
   checkIsThisCampaignCompetitionPhaseTypeInterval: string;
   googleLoginAppId: string;
   facebookLoginAppId: string;
+  apiBaseRtwbbFeedBearerToken: string;
   secretString: string;
   facebookLoginSdkVersion: string;
   facebookLoginSdkOptions: string;
