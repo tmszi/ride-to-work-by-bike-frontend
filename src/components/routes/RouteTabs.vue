@@ -4,6 +4,10 @@
  *
  * @description * Use this component to render tabs on the Routes page.
  *
+ * @props
+ * - `locked` (RouteTab[]): Array of tab names that are locked - disabled.
+ * - `hidden` (RouteTab[]): Array of tab names that are hidden - not displayed.
+ *
  * @slots
  * - `calendar`: For calendar view.
  * - `list`: For list view.
@@ -59,24 +63,28 @@ export default defineComponent({
       type: Array as () => RouteTab[],
       default: () => [],
     },
+    hidden: {
+      type: Array as () => RouteTab[],
+      default: () => [],
+    },
   },
   setup(props) {
     const activeTab = ref('');
-    // list locked tabs - exposed for testing and further logic
-    const lockedTabs = props.locked;
     // getter function for locked state
     const isLocked = (tab: RouteTab): boolean => {
-      if (!lockedTabs.length) return false;
-      return lockedTabs.includes(tab);
+      return props.locked.includes(tab);
+    };
+    const isHidden = (tab: RouteTab): boolean => {
+      return props.hidden.includes(tab);
     };
 
     return {
       activeTab,
-      lockedTabs,
       routeList,
       routesConf,
       RouteTab,
       isLocked,
+      isHidden,
     };
   },
 });
@@ -95,6 +103,7 @@ export default defineComponent({
       data-cy="route-tabs"
     >
       <q-route-tab
+        v-if="!isHidden(RouteTab.calendar)"
         :to="routesConf['routes_calendar'].path"
         :name="RouteTab.calendar"
         icon="mdi-calendar-blank"
@@ -105,6 +114,7 @@ export default defineComponent({
         data-cy="route-tabs-button-calendar"
       />
       <q-route-tab
+        v-if="!isHidden(RouteTab.list)"
         :to="routesConf['routes_list'].path"
         :name="RouteTab.list"
         icon="mdi-format-list-bulleted"
@@ -115,6 +125,7 @@ export default defineComponent({
         data-cy="route-tabs-button-list"
       />
       <q-route-tab
+        v-if="!isHidden(RouteTab.map)"
         :to="routesConf['routes_map'].path"
         :name="RouteTab.map"
         icon="mdi-map"
@@ -125,6 +136,7 @@ export default defineComponent({
         data-cy="route-tabs-button-map"
       />
       <q-route-tab
+        v-if="!isHidden(RouteTab.app)"
         :to="routesConf['routes_app'].path"
         :name="RouteTab.app"
         icon="mdi-cellphone"
@@ -141,24 +153,37 @@ export default defineComponent({
     <q-tab-panels v-model="activeTab" animated>
       <!-- Panel: Calendar -->
       <q-tab-panel
+        v-if="!isHidden(RouteTab.calendar)"
         :name="RouteTab.calendar"
         data-cy="route-tabs-panel-calendar"
       >
         <routes-calendar />
       </q-tab-panel>
       <!-- Panel: List -->
-      <q-tab-panel :name="RouteTab.list" data-cy="route-tabs-panel-list">
+      <q-tab-panel
+        v-if="!isHidden(RouteTab.list)"
+        :name="RouteTab.list"
+        data-cy="route-tabs-panel-list"
+      >
         <div class="text-h6">{{ $t('routes.tabList') }}</div>
         <route-list-edit :routes="routeList" data-cy="route-list-edit" />
         <route-list-display :routes="routeList" data-cy="route-list-display" />
       </q-tab-panel>
       <!-- Panel: Map -->
-      <q-tab-panel :name="RouteTab.map" data-cy="route-tabs-panel-map">
+      <q-tab-panel
+        v-if="!isHidden(RouteTab.map)"
+        :name="RouteTab.map"
+        data-cy="route-tabs-panel-map"
+      >
         <div class="text-h6">{{ $t('routes.tabMap') }}</div>
         <RoutesMap />
       </q-tab-panel>
       <!-- Panel: App -->
-      <q-tab-panel :name="RouteTab.app" data-cy="route-tabs-panel-app">
+      <q-tab-panel
+        v-if="!isHidden(RouteTab.app)"
+        :name="RouteTab.app"
+        data-cy="route-tabs-panel-app"
+      >
         <div class="text-h6">{{ $t('routes.tabApp') }}</div>
         <routes-apps data-cy="routes-apps" />
       </q-tab-panel>
