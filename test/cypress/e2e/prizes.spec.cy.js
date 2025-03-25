@@ -100,7 +100,7 @@ describe('Prizes page', () => {
       });
     });
 
-    it('renders empty state for offers and prizes', () => {
+    it('renders empty state for offers, prizes and events', () => {
       cy.get('@i18n').then((i18n) => {
         // empty offers
         cy.dataCy('discount-offers-title').should('be.visible');
@@ -114,6 +114,13 @@ describe('Prizes page', () => {
         cy.dataCy('available-prizes-list').should('not.exist');
         cy.dataCy('available-prizes-item').should('not.exist');
         cy.contains(i18n.global.t('prizes.textPrizesEmpty')).should(
+          'be.visible',
+        );
+        // empty events
+        cy.dataCy('events-title').should('be.visible');
+        cy.dataCy('events-list').should('not.exist');
+        cy.dataCy('events-item').should('not.exist');
+        cy.contains(i18n.global.t('prizes.textEventsEmpty')).should(
           'be.visible',
         );
       });
@@ -303,6 +310,61 @@ function coreTests() {
       cy.dataCy('available-prizes-item').each((item, index) => {
         cy.wrap(item).should('contain', prizes[index].title);
       });
+    });
+  });
+
+  it('renders a list of events', () => {
+    cy.get('@i18n').then((i18n) => {
+      cy.dataCy('events-title')
+        .should('be.visible')
+        .then(($el) => {
+          cy.wrap(i18n.global.t('prizes.titleEvents')).then((translation) => {
+            expect($el.text()).to.equal(translation);
+          });
+        });
+      cy.dataCy('events-list').should('be.visible');
+      cy.fixture('apiGetOffersResponse.json').then((offers) => {
+        // check if list has correct number of items
+        cy.wrap(
+          offers.filter((offer) => !isOfferValidMoreThanOneDay(offer)),
+        ).then((displayedOffers) => {
+          cy.dataCy('events-item')
+            .should('be.visible')
+            .and('have.length', displayedOffers.length);
+          // check that each item has correct data
+          cy.dataCy('events-item').each((item, index) => {
+            cy.wrap(item).should('contain', displayedOffers[index].title);
+          });
+        });
+      });
+    });
+  });
+
+  it('allows to filter the list of events by selecting a city', () => {
+    cy.waitForOffersApi();
+    cy.dataCy('form-field-select-city').should('be.visible');
+    cy.dataCy('form-field-select-city').find('.q-field__append').click();
+    cy.get('.q-menu')
+      .should('be.visible')
+      .within(() => {
+        cy.get('.q-item').first().click();
+      });
+    cy.fixture('apiGetOffersResponseAlternative.json').then((posts) => {
+      cy.waitForOffersApi(posts);
+      // display list of events
+      cy.dataCy('events-list').should('be.visible');
+      // check if list has correct number of items
+      cy.wrap(posts.filter((post) => !isOfferValidMoreThanOneDay(post))).then(
+        (displayedEvents) => {
+          cy.dataCy('events-item')
+            .should('be.visible')
+            .and('have.length', displayedEvents.length);
+          // check that each item has correct data
+          cy.dataCy('events-item').each((item, index) => {
+            cy.wrap(item).should('contain', displayedEvents[index].title);
+          });
+        },
+      );
     });
   });
 

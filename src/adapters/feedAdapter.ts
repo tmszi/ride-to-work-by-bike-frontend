@@ -4,7 +4,8 @@ import { isOfferValidMoreThanOneDay } from '../utils/get_offer_valid';
 
 // enums
 import { CardOfferMetadataKey } from '../components/enums/Card';
-import { OfferCategorySlug } from '../components/enums/Offers';
+import { OfferCategorySlug, OfferEventType } from '../components/enums/Offers';
+
 // types
 import type { CardOffer } from '../components/types/Card';
 import type { Offer } from '../components/types/Offer';
@@ -31,40 +32,67 @@ export const feedAdapter = {
         // first filter offers that last more than one day
         .filter((post) => isOfferValidMoreThanOneDay(post))
         // map posts to card offer format
-        .map((post) => {
-          // default icon slug
-          let slug = OfferCategorySlug.discount;
-          // if post has categories, use first category slug
-          if (post.categories.length > 0) {
-            slug = post.categories[0].slug;
-          }
-          // build icon source
-          const iconId = `card-offer-${slug}`;
-          const icon = `svguse:icons/card_offer/icons.svg#${iconId}`;
-          // normalize voucher url
-          const voucherUrl = getNormalizedAbsoluteUrl(post.voucher_url);
-          // build metadata
-          const metadata = buildOfferMetadata(post);
-
-          return {
-            id: post.id,
-            title: post.title,
-            voucher: post.voucher,
-            voucherUrl,
-            tShirtEvent: post.akce_na_triko ? true : false,
-            icon,
-            startDate: post.start_date,
-            endDate: post.end_date,
-            excerpt: post.excerpt,
-            content: post.content,
-            image: {
-              src: post.image,
-              alt: post.title,
-            },
-            metadata,
-          };
-        })
+        .map((post) =>
+          this.mapPostsToCardOffer(post, OfferEventType.multiDayOffer),
+        )
     );
+  },
+
+  /**
+   * Convert API posts to event cards
+   * @param {Offer[]} posts - Posts from API
+   * @returns {CardOffer[]} - Posts in card format
+   */
+  toCardEvent(posts: Offer[]): CardOffer[] {
+    return (
+      posts
+        // first filter one-day offers only
+        .filter((post) => !isOfferValidMoreThanOneDay(post))
+        // map posts to card offer format
+        .map((post) =>
+          this.mapPostsToCardOffer(post, OfferEventType.oneDayEvent),
+        )
+    );
+  },
+
+  /**
+   * Map posts to CardOffer format
+   * @param {Offer} post - Post from API
+   * @param {OfferEventType} type - Post type
+   * @returns {CardOffer} - Post in card format
+   */
+  mapPostsToCardOffer(post: Offer, type: OfferEventType): CardOffer {
+    // default icon slug
+    let slug = OfferCategorySlug.discount;
+    // if post has categories, use first category slug
+    if (post.categories.length > 0) {
+      slug = post.categories[0].slug;
+    }
+    // build icon source
+    const iconId = `card-offer-${slug}`;
+    const icon = `svguse:icons/card_offer/icons.svg#${iconId}`;
+    // normalize voucher url
+    const voucherUrl = getNormalizedAbsoluteUrl(post.voucher_url);
+    // build metadata
+    const metadata = buildOfferMetadata(post, type);
+
+    return {
+      id: post.id,
+      title: post.title,
+      voucher: post.voucher,
+      voucherUrl,
+      tShirtEvent: post.akce_na_triko ? true : false,
+      icon,
+      startDate: post.start_date,
+      endDate: post.end_date,
+      excerpt: post.excerpt,
+      content: post.content,
+      image: {
+        src: post.image,
+        alt: post.title,
+      },
+      metadata,
+    };
   },
 
   /**
@@ -91,18 +119,33 @@ export const feedAdapter = {
  * @param {Offer} post - Offer
  * @returns {CardMetadata[]} - Metadata
  */
-const buildOfferMetadata = (post: Offer): CardMetadata[] => {
+const buildOfferMetadata = (
+  post: Offer,
+  type: OfferEventType,
+): CardMetadata[] => {
   const icon = 'mdi-calendar';
   const metadata: CardMetadata[] = [];
   // format dates
-  const startDateFormatted: string = post.start_date
+  let startDateFormatted: string = '';
+  startDateFormatted = post.start_date
     ? i18n.global.d(new Date(post.start_date), 'monthDay')
     : '';
   const endDateFormatted: string = post.end_date
     ? i18n.global.d(new Date(post.end_date), 'monthDay')
     : '';
-  // validity metadata
-  if (post.start_date && post.end_date) {
+
+  // if post is event, use start date with time
+  if (type === OfferEventType.oneDayEvent && post.start_date) {
+    metadata.push({
+      id: CardOfferMetadataKey.validity,
+      text: i18n.global.t('index.cardOffer.offerValidFrom', {
+        startDate: post.start_date
+          ? i18n.global.d(new Date(post.start_date), 'monthDayHourMinute')
+          : '', // format time for events (one-day offers)
+      }),
+      icon: icon,
+    });
+  } else if (post.start_date && post.end_date) {
     metadata.push({
       id: CardOfferMetadataKey.validity,
       text: i18n.global.t('index.cardOffer.offerValidFromTo', {
