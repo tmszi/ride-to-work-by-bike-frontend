@@ -109,8 +109,8 @@ export default defineComponent({
     <dialog-default
       v-model="modalOpened"
       :horizontal="true"
+      :minWidth="card?.content || card?.description ? '50vw' : '30vw'"
       data-cy="dialog-offer"
-      :minWidth="card?.content ? '50vw' : '30vw'"
     >
       <!-- Title -->
       <template #title>
@@ -142,10 +142,20 @@ export default defineComponent({
         <div
           class="col-12 col-md-6 q-px-md q-py-md"
           data-cy="dialog-col-left"
-          v-if="card?.content || card?.voucherUrl"
+          v-if="card?.content || card?.description || card?.voucherUrl"
         >
-          <!-- Content -->
-          <div v-html="card.content" data-cy="dialog-content" />
+          <!-- Content: Edited by Auto*Mat administrators -->
+          <div
+            v-if="card?.content"
+            v-html="card.content"
+            data-cy="dialog-content"
+          />
+          <!-- Description: Edited by City administrators -->
+          <div
+            v-if="card?.description"
+            v-html="card.description"
+            data-cy="dialog-description"
+          />
           <!-- Voucher -->
           <div v-if="card?.voucher" class="q-mt-lg" data-cy="dialog-voucher">
             <h4
@@ -172,19 +182,16 @@ export default defineComponent({
           />
         </div>
         <!-- Right column: Image -->
-        <div
-          :class="{
-            'col-md-6': card?.content || card?.voucherUrl,
-            'col-12 q-px-md q-py-md': true,
-          }"
-          data-cy="dialog-col-right"
-        >
-          <!-- Image -->
-          <q-img
-            :src="card.image.src"
-            :alt="card.image.alt"
-            data-cy="dialog-image"
-          />
+        <div class="col-12 col-md-6" data-cy="dialog-col-right">
+          <div class="q-px-md q-py-md">
+            <!-- Image -->
+            <q-img
+              :src="card.image.src"
+              :alt="card.image.alt"
+              data-cy="dialog-image"
+              fit="contain"
+            />
+          </div>
         </div>
         <!-- Section: Validation -->
         <offer-validation

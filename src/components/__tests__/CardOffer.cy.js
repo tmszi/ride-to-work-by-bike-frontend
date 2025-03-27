@@ -218,10 +218,37 @@ function coreTests() {
         // content
         cy.dataCy('dialog-body')
           .should('be.visible')
-          .and('have.css', 'font-size', '14px')
-          .and('have.css', 'font-weight', '400')
-          .and('have.color', black)
-          .and('contain', card.content);
+          .within(() => {
+            cy.dataCy('dialog-content')
+              .should('have.css', 'font-size', '14px')
+              .and('have.css', 'font-weight', '400')
+              .and('have.color', black)
+              .then(($el) => {
+                const textContent = $el.text();
+                cy.stripHtmlTags(card.content).then((text) => {
+                  cy.decodeHtmlEntities(text).then((elementText) => {
+                    expect(textContent).to.contain(elementText);
+                  });
+                });
+              });
+          });
+        // description
+        cy.dataCy('dialog-body')
+          .should('be.visible')
+          .within(() => {
+            cy.dataCy('dialog-description')
+              .should('have.css', 'font-size', '14px')
+              .and('have.css', 'font-weight', '400')
+              .and('have.color', black)
+              .then(($el) => {
+                const textContent = $el.text();
+                cy.stripHtmlTags(card.description).then((text) => {
+                  cy.decodeHtmlEntities(text).then((elementText) => {
+                    expect(textContent).to.contain(elementText);
+                  });
+                });
+              });
+          });
         // voucher
         cy.dataCy('dialog-voucher-title')
           .should('be.visible')
