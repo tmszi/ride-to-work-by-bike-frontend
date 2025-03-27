@@ -44,6 +44,10 @@ export default defineComponent({
       if (!tripsStore.getCommuteModes.length) {
         await tripsStore.loadCommuteModes();
       }
+      // if no trips, try to load them
+      if (!tripsStore.routeItems.length) {
+        await tripsStore.loadRoutesToStore();
+      }
     });
 
     return {

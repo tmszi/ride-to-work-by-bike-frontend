@@ -125,6 +125,7 @@ urlApiSendTeamMembershipInvitationEmail = "send-team-membership-invitation-email
 urlApiResetPasswordConfirm = "auth/password/reset/confirm/"
 urlApiSubsidiaries = "subsidiaries/"
 urlApiTeams = "teams/"
+urlApiTrips = "trips/"
 urlApiChallengeRegistrationUser = "challenge/registration/user/"
 urlApiCities = "cities/"
 urlApiThisCampaign = "this_campaign/"
@@ -154,6 +155,18 @@ dateTimeFormatsAllLocales = '''
     "day": "numeric",
     "hour": "numeric",
     "minute": "numeric"
+  }
+}
+'''
+
+# NUMBER FORMATS
+
+numberFormatsAllLocales = '''
+{
+  "routeDistanceDecimalNumber": {
+    "style": "decimal",
+    "minimumFractionDigits": 2,
+    "maximumFractionDigits": 2
   }
 }
 '''

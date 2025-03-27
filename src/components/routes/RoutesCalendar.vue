@@ -33,7 +33,7 @@ import {
   QCalendarMonth,
   today,
 } from '@quasar/quasar-ui-qcalendar';
-import { defineComponent, computed, ref, watch } from 'vue';
+import { defineComponent, computed, inject, ref, watch } from 'vue';
 import { i18n } from '../../boot/i18n';
 
 // components
@@ -43,6 +43,7 @@ import RouteCalendarPanel from './RouteCalendarPanel.vue';
 
 // composables
 import { useCalendarRoutes } from '../../composables/useCalendarRoutes';
+import { useRoutes } from 'src/composables/useRoutes';
 
 // enums
 import { TransportDirection } from '../types/Route';
@@ -50,10 +51,12 @@ import { PhaseType } from '../types/Challenge';
 
 // stores
 import { useChallengeStore } from '../../stores/challenge';
+import { useTripsStore } from 'src/stores/trips';
 
 // types
 import type { Timestamp } from '@quasar/quasar-ui-qcalendar';
-import type { RouteDay } from '../types/Route';
+import type { RouteDay, RouteItem } from '../types/Route';
+import type { Logger } from '../types/Logger';
 
 export default defineComponent({
   name: 'RoutesCalendar',
@@ -62,13 +65,8 @@ export default defineComponent({
     CalendarNavigation,
     RouteCalendarPanel,
   },
-  props: {
-    routes: {
-      type: Array as PropType<RouteDay[]>,
-      default: () => [],
-    },
-  },
-  setup(props) {
+  setup() {
+    const logger = inject('vuejs3-logger') as Logger | null;
     const challengeStore = useChallengeStore();
     const calendar = ref<typeof QCalendarMonth | null>(null);
     const selectedDate = ref<string>(today());
@@ -152,6 +150,43 @@ export default defineComponent({
         : getDate(prevDay(timestampCompetitionPhaseDateFrom));
     });
 
+    const tripsStore = useTripsStore();
+    const { createDaysArrayWithRoutes } = useRoutes();
+    const routesByDay = computed(() => {
+      // get route items from store
+      const routeItems: RouteItem[] = tripsStore.getRouteItems;
+      // get competition phase dates
+      const competitionPhaseDateTo = challengeStore.getPhaseFromSet(
+        PhaseType.competition,
+      )?.date_to;
+      const competitionPhaseDateFrom = challengeStore.getPhaseFromSet(
+        PhaseType.competition,
+      )?.date_from;
+      // get dates
+      const dateFrom = competitionPhaseDateFrom
+        ? new Date(competitionPhaseDateFrom)
+        : null;
+      const dateTo = competitionPhaseDateTo
+        ? new Date(competitionPhaseDateTo)
+        : null;
+      if (!dateFrom || !dateTo) {
+        return [];
+      }
+      logger?.debug(
+        `Create days array with routes <${JSON.stringify(routeItems, null, 2)}>.`,
+      );
+      // create days array with routes
+      const daysWithRoutes = createDaysArrayWithRoutes(
+        dateFrom,
+        dateTo,
+        routeItems,
+      );
+      logger?.debug(
+        `Days with routes <${JSON.stringify(daysWithRoutes, null, 2)}>.`,
+      );
+      return daysWithRoutes;
+    });
+
     // Define calendar CSS vars for calendar theme
     const { getPaletteColor } = colors;
     const theme = {
@@ -183,7 +218,7 @@ export default defineComponent({
     }
 
     // Get data
-    const days = ref<RouteDay[]>(props.routes);
+    const days = computed<RouteDay[]>(() => routesByDay.value);
 
     const {
       activeRoutes,
