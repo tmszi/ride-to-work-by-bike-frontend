@@ -17,6 +17,7 @@ import type { GetOffersParams } from '../components/types/Offer';
  */
 export const getOffersFeedParamSet = (
   citySlug: string,
+  numberOfPosts: number,
 ): Partial<GetOffersParams> => {
   const currentYear = new Date().getFullYear();
 
@@ -27,7 +28,7 @@ export const getOffersFeedParamSet = (
     _post_type: ApiOfferParamPostType.locations,
     _page_subtype: ApiOfferParamPageSubtype.event,
     _post_parent: citySlug,
-    _number: '1000',
+    _number: numberOfPosts.toString(),
     _year: currentYear.toString(),
   };
 };
@@ -39,6 +40,7 @@ export const getOffersFeedParamSet = (
  */
 export const getPrizesFeedParamSet = (
   citySlug: string,
+  numberOfPosts: number,
 ): Partial<GetOffersParams> => {
   const currentYear = new Date().getFullYear();
 
@@ -49,7 +51,7 @@ export const getPrizesFeedParamSet = (
     _post_type: ApiOfferParamPostType.locations,
     _page_subtype: ApiOfferParamPageSubtype.prize,
     _post_parent: citySlug,
-    _number: '1000',
+    _number: numberOfPosts.toString(),
     _year: currentYear.toString(),
   };
 };
