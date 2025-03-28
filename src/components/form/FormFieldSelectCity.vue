@@ -8,24 +8,23 @@
  * @props
  * - `modelValue` (string|null) - Selected city slug.
  *   It should be of type `string`.
+ * - `cities` (City[]) - Array of cities from which options are generated.
+ * - `loading` (boolean) - Whether the cities are loading.
  *
  * @events
  * - `update:modelValue`: Emitted as a part of v-model structure.
  *
  * @example
- * <form-field-select-city v-model="city" />
+ * <form-field-select-city v-model="city" :cities="cities" :loading="loading" />
  *
  * @see [Figma Design](https://www.figma.com/design/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?node-id=4858-104327&t=XckLLHWI3q8VrRFl-1)
  */
 
 // libraries
-import { computed, defineComponent, inject, onMounted, ref, watch } from 'vue';
-
-import { useApiGetCities } from '../../composables/useApiGetCities';
+import { computed, defineComponent, ref, watch } from 'vue';
 
 // types
 import type { FormOption } from '../../components/types/Form';
-import type { Logger } from '../../components/types/Logger';
 
 export default defineComponent({
   name: 'FormFieldSelectCity',
@@ -36,23 +35,25 @@ export default defineComponent({
       required: false,
       default: null,
     },
+    cities: {
+      type: Array as () => City[],
+      required: true,
+    },
+    loading: {
+      type: Boolean,
+      required: true,
+    },
   },
   setup(props, { emit }) {
-    const logger = inject('vuejs3-logger') as Logger | null;
     const city = ref<FormOption | null>(null);
 
-    const { isLoading, cities, loadCities } = useApiGetCities(logger);
     const options = computed<FormOption[]>(() =>
-      cities.value.map((city) => ({
+      props.cities.map((city) => ({
         label: city.name,
         value: city.slug,
         slug: city.wp_slug,
       })),
     );
-
-    onMounted(async () => {
-      await loadCities();
-    });
 
     // update city when modelValue prop is available
     watch(
@@ -71,7 +72,6 @@ export default defineComponent({
 
     return {
       city,
-      isLoading,
       options,
     };
   },
@@ -91,7 +91,7 @@ export default defineComponent({
       dense
       outlined
       v-model="city"
-      :loading="isLoading"
+      :loading="loading"
       :options="options"
       :style="{ 'min-width': '160px' }"
       class="col-auto"

@@ -14,7 +14,7 @@
  *
  * @see [Figma Design](https://www.figma.com/design/L8dVREySVXxh3X12TcFDdR/Do-pr%C3%A1ce-na-kole?node-id=4858-104166&t=pZezzt4Cd9YZ0UzV-1)
  */
-import { computed, defineComponent, inject, onMounted, ref, watch } from 'vue';
+import { computed, defineComponent, onMounted, ref, watch } from 'vue';
 
 // adapters
 import { feedAdapter } from '../adapters/feedAdapter';
@@ -30,21 +30,9 @@ import PageHeading from 'components/global/PageHeading.vue';
 import SectionColumns from '../components/homepage/SectionColumns.vue';
 import SectionHeading from '../components/global/SectionHeading.vue';
 
-// composables
-import { useApiGetPosts } from '../composables/useApiGetPosts';
-
-// types
-import type { Logger } from '../components/types/Logger';
-import type { Offer } from '../components/types/Offer';
-
 // stores
 import { useRegisterChallengeStore } from '../stores/registerChallenge';
-
-// utils
-import {
-  getOffersFeedParamSet,
-  getPrizesFeedParamSet,
-} from '../utils/get_feed_param_set';
+import { useFeedStore } from '../stores/feed';
 
 export default defineComponent({
   name: 'PrizesPage',
@@ -60,24 +48,26 @@ export default defineComponent({
     SectionHeading,
   },
   setup() {
-    const logger = inject('vuejs3-logger') as Logger | null;
     const registerChallengeStore = useRegisterChallengeStore();
+    const feedStore = useFeedStore();
+    const isLoading = computed<boolean>(() => feedStore.getIsLoading);
+    const isLoadingCities = computed<boolean>(
+      () => feedStore.getIsLoadingCities,
+    );
+    const cities = computed<City[]>(() => feedStore.getCities);
 
     const enabledSelectCity = true;
     const enabledPartners = false;
     const city = ref<string | null>(null);
 
-    const postsOffers = ref<Offer[]>([]);
-    const postsPrizes = ref<Offer[]>([]);
-    const { isLoading, loadPosts } = useApiGetPosts(logger);
     const cardsOffer = computed(() =>
-      feedAdapter.toCardOffer(postsOffers.value),
+      feedAdapter.toCardOffer(feedStore.getPostsOffer),
     );
     const cardsEvent = computed(() =>
-      feedAdapter.toCardEvent(postsOffers.value),
+      feedAdapter.toCardEvent(feedStore.getPostsOffer),
     );
     const prizesCards = computed(() =>
-      feedAdapter.toCardPrize(postsPrizes.value),
+      feedAdapter.toCardPrize(feedStore.getPostsPrize),
     );
 
     onMounted(async () => {
@@ -85,41 +75,35 @@ export default defineComponent({
       if (!registerChallengeStore.getCityWpSlug) {
         await registerChallengeStore.loadRegisterChallengeToStore();
       }
+      if (!cities.value.length) {
+        // load cities
+        await feedStore.loadCities();
+      }
       // if citySlug is available, load posts, else we can't load posts
       if (registerChallengeStore.getCityWpSlug) {
-        // load offers and prizes in parallel
-        const [offers, prizes] = await Promise.all([
-          loadPosts(
-            getOffersFeedParamSet(registerChallengeStore.getCityWpSlug),
-          ),
-          loadPosts(
-            getPrizesFeedParamSet(registerChallengeStore.getCityWpSlug),
-          ),
-        ]);
-        postsOffers.value = offers;
-        postsPrizes.value = prizes;
+        // check if feed needs refresh
+        await feedStore.attemptFeedRefresh(
+          registerChallengeStore.getCityWpSlug,
+        );
         // set default value for city select
         city.value = registerChallengeStore.getCityWpSlug;
       }
       // initiate watcher after the citySlug is loaded
       watch(city, async (newSlug: string | null) => {
         if (newSlug) {
-          // load offers and prizes in parallel
-          const [offers, prizes] = await Promise.all([
-            loadPosts(getOffersFeedParamSet(newSlug)),
-            loadPosts(getPrizesFeedParamSet(newSlug)),
-          ]);
-          postsOffers.value = offers;
-          postsPrizes.value = prizes;
+          // force load new posts for the new city
+          await feedStore.loadPosts(newSlug);
         }
       });
     });
 
     return {
       city,
+      cities,
       cardsOffer,
       cardsEvent,
       isLoading,
+      isLoadingCities,
       prizesCards,
       enabledSelectCity,
       enabledPartners,
@@ -138,7 +122,9 @@ export default defineComponent({
           <!-- Select: City -->
           <form-field-select-city
             v-if="enabledSelectCity"
+            :cities="cities"
             v-model="city"
+            :loading="isLoadingCities"
             data-cy="form-field-select-city"
           />
         </template>
