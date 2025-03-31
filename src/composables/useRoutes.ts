@@ -1,5 +1,6 @@
 // libraries
 import { date } from 'quasar';
+import { computed } from 'vue';
 
 // composables
 import { i18n } from 'src/boot/i18n';
@@ -7,8 +8,12 @@ import { i18n } from 'src/boot/i18n';
 // config
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
 
+// stores
+import { useChallengeStore } from '../stores/challenge';
+
 // enums
 import { TransportDirection, TransportType } from 'src/components/types/Route';
+import { PhaseType } from '../components/types/Challenge';
 
 // types
 import type { RouteItem, RouteDay } from 'src/components/types/Route';
@@ -21,7 +26,7 @@ export const useRoutes = () => {
    * Returns the icon name corresponding to the given route.
    *
    * @param {TransportType} transport - The transport type.
-   * @return {string} The icon name.
+   * @return {string} - The icon name.
    */
   const getRouteIcon = (transport: TransportType): string => {
     switch (transport) {
@@ -45,7 +50,7 @@ export const useRoutes = () => {
   /**
    * Get a transport label based on given transport key.
    * @param {TransportType} transport - The transport type.
-   * @return {string} The transport label.
+   * @return {string} - The transport label.
    */
   const getTransportLabel = (transport: TransportType): string => {
     if (!transport) {
@@ -72,13 +77,140 @@ export const useRoutes = () => {
   /**
    * Returns the route distance including the unit.
    * @param {RouteItem} route - The route item.
-   * @return {string} The distance label.
+   * @return {string} - The distance label.
    */
   const getRouteDistance = (route: RouteItem | null): string => {
     if (!route?.distance || route?.distance === defaultDistanceZero) return '';
     return (
       `${i18n.global.n(parseFloat(route.distance), 'routeDistanceDecimalNumber')}` +
       ` ${i18n.global.t('global.routeLengthUnit')}`
+    );
+  };
+
+  const dateCompetitionPhaseFrom = computed((): Date | null => {
+    const challengeStore = useChallengeStore();
+    const dateString = challengeStore.getPhaseFromSet(
+      PhaseType.competition,
+    )?.date_from;
+    return dateString ? new Date(dateString) : null;
+  });
+
+  const dateCompetitionPhaseTo = computed((): Date | null => {
+    const challengeStore = useChallengeStore();
+    const dateString = challengeStore.getPhaseFromSet(
+      PhaseType.competition,
+    )?.date_to;
+    return dateString ? new Date(dateString) : null;
+  });
+
+  /**
+   * Returns date for the first day when logging routes is allowed.
+   * This is done based on two conditions:
+   * 1. Window of logging days before today
+   * 2. Day is outside the `competition` phase date range
+   * @returns {Date | null} - Date or null if date is invalid
+   */
+  const dateLoggingStart = computed((): Date | null => {
+    const challengeStore = useChallengeStore();
+    // get today's date
+    const dateToday = new Date();
+    // get start of logging window
+    const dateStartOfLoggingWindow = date.subtractFromDate(dateToday, {
+      days: (challengeStore.getDaysActive || 0) - 1,
+    });
+    // check if competition phase date range is set
+    if (!dateCompetitionPhaseFrom.value) {
+      return dateStartOfLoggingWindow || null;
+    }
+    const isStartOfLoggingWindowAfterCompetitionPhaseDateFrom =
+      date.getDateDiff(
+        dateStartOfLoggingWindow,
+        dateCompetitionPhaseFrom.value,
+        'days',
+      ) > 0;
+
+    return isStartOfLoggingWindowAfterCompetitionPhaseDateFrom
+      ? dateStartOfLoggingWindow
+      : dateCompetitionPhaseFrom.value;
+  });
+
+  /**
+   * Returns date for the last day when logging routes is allowed.
+   * Calendar disables all dates after the returned date.
+   * This is done based on two conditions:
+   * 1. Future date (date is after today)
+   * 2. Day is outside the `competition` phase date range
+   * @returns {Date | null} - Date or null if date is invalid
+   */
+  const dateLoggingEnd = computed((): Date | null => {
+    // get today's date
+    const dateToday = new Date();
+    // check if competition phase date range is set
+    if (!dateCompetitionPhaseTo.value) {
+      return dateToday || null;
+    }
+    const isTomorrowBeforeCompetitionDateTo =
+      date.getDateDiff(dateToday, dateCompetitionPhaseTo.value, 'days') < 0;
+
+    return isTomorrowBeforeCompetitionDateTo
+      ? dateToday
+      : dateCompetitionPhaseTo.value;
+  });
+
+  /**
+   * Returns an array of RouteDay objects for each day of the logging window.
+   * Start date is included by using prevDay() on the dateLoggingStart.
+   * Fills in data from routes array based on date and direction.
+   * If data is empty for given day/route, it will create an empty route.
+   * @param {RouteItem[]} routes - Array of logged routes.
+   * @return {RouteDay[]} - The array representing days with routes.
+   */
+  const getLoggableDaysWithRoutes = (routes: RouteItem[]): RouteDay[] => {
+    // check if logging window date range is set
+    if (!dateLoggingStart.value || !dateLoggingEnd.value) {
+      return [];
+    }
+    return createDaysArrayWithRoutes(
+      date.subtractFromDate(dateLoggingStart.value, { days: 1 }),
+      dateLoggingEnd.value,
+      routes,
+    );
+  };
+
+  /**
+   * Returns an array of RouteDay which represents days of competition phase,
+   * which precede the logging window and can no longer be logged.
+   * @param {RouteItem[]} routes - Array of logged routes.
+   * @return {RouteDay[]} - The array representing days with routes.
+   */
+  const getUnloggableDaysWithRoutes = (routes: RouteItem[]): RouteDay[] => {
+    // check if competition phase date range is set
+    if (!dateCompetitionPhaseFrom.value || !dateLoggingStart.value) {
+      return [];
+    }
+    // end date is the day before the logging window starts
+    return createDaysArrayWithRoutes(
+      date.subtractFromDate(dateCompetitionPhaseFrom.value, { days: 1 }),
+      date.subtractFromDate(dateLoggingStart.value, { days: 1 }),
+      routes,
+    );
+  };
+
+  /**
+   * Returns an array of RouteDay objects for each day of the competition phase.
+   * @param {RouteItem[]} routes - Array of logged routes.
+   * @return {RouteDay[]} - The array representing days with routes.
+   */
+  const getCompetitionDaysWithRoutes = (routes: RouteItem[]): RouteDay[] => {
+    // check if competition phase date range is set
+    if (!dateCompetitionPhaseFrom.value || !dateCompetitionPhaseTo.value) {
+      return [];
+    }
+    // create days array with routes (include start date)
+    return createDaysArrayWithRoutes(
+      date.subtractFromDate(dateCompetitionPhaseFrom.value, { days: 1 }),
+      dateCompetitionPhaseTo.value,
+      routes,
     );
   };
 
@@ -90,7 +222,7 @@ export const useRoutes = () => {
    * @param {Date} startDate - The start date of the date range.
    * @param {Date} endDate - The end date of the date range.
    * @param {RouteItem[]} routes - The array logged routes.
-   * @return {RouteDay[]} The array representing days with routes.
+   * @return {RouteDay[]} - The array representing days with routes.
    */
   const createDaysArrayWithRoutes = (
     startDate: Date,
@@ -152,7 +284,7 @@ export const useRoutes = () => {
    * @param {RouteItem[]} routes - The list of route items to search through.
    * @param {Date} dateQuery - Route date.
    * @param {TransportDirection} directionQuery - Route direction.
-   * @return {RouteItem | null} Matching route, or null if no match is found.
+   * @return {RouteItem | null} - Matching route, or null if no match is found.
    */
   const getRouteByDateAndDirection = (
     routes: RouteItem[],
@@ -209,6 +341,13 @@ export const useRoutes = () => {
   };
 
   return {
+    dateLoggingStart,
+    dateLoggingEnd,
+    dateCompetitionPhaseFrom,
+    dateCompetitionPhaseTo,
+    getLoggableDaysWithRoutes,
+    getUnloggableDaysWithRoutes,
+    getCompetitionDaysWithRoutes,
     createDaysArrayWithRoutes,
     formatDate,
     formatDateName,
