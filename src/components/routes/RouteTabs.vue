@@ -27,7 +27,8 @@
  */
 
 // libraries
-import { defineComponent, ref } from 'vue';
+import { Screen } from 'quasar';
+import { computed, defineComponent, ref, watch } from 'vue';
 
 // components
 import RoutesApps from './RoutesApps.vue';
@@ -62,7 +63,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const activeTab = ref('');
+    const routesCalendarTab = ref(null);
+    const routesListTab = ref(null);
     // getter function for locked state
     const isLocked = (tab: RouteTab): boolean => {
       return props.locked.includes(tab);
@@ -71,12 +73,32 @@ export default defineComponent({
       return props.hidden.includes(tab);
     };
 
+    const isLargeScreen = computed((): boolean => {
+      return Screen.gt.sm;
+    });
+
+    let activeTab = ref(RouteTab.list);
+    if (isLargeScreen.value) {
+      activeTab.value = RouteTab.calendar;
+    }
+
+    watch(isLargeScreen, (isLargeScreen) => {
+      if (isLargeScreen) {
+        routesCalendarTab.value.$el.click();
+      } else {
+        routesListTab.value.$el.click();
+      }
+    });
+
     return {
       activeTab,
+      routesCalendarTab,
+      routesListTab,
       routesConf,
       RouteTab,
       isLocked,
       isHidden,
+      isLargeScreen,
     };
   },
 });
@@ -87,15 +109,15 @@ export default defineComponent({
     <!-- Tab buttons -->
     <q-tabs
       inline-label
-      v-model="activeTab"
       class="text-grey"
       active-color="primary"
       indicator-color="primary"
+      v-model="activeTab"
       align="center"
       data-cy="route-tabs"
     >
       <q-route-tab
-        v-if="!isHidden(RouteTab.calendar)"
+        :class="{ hidden: isHidden(RouteTab.calendar) || !isLargeScreen }"
         :to="routesConf['routes_calendar'].path"
         :name="RouteTab.calendar"
         icon="mdi-calendar-blank"
@@ -104,6 +126,7 @@ export default defineComponent({
         :disable="isLocked(RouteTab.calendar)"
         :label="$t('routes.tabCalendar')"
         data-cy="route-tabs-button-calendar"
+        ref="routesCalendarTab"
       />
       <q-route-tab
         v-if="!isHidden(RouteTab.list)"
@@ -115,6 +138,7 @@ export default defineComponent({
         :disable="isLocked(RouteTab.list)"
         :label="$t('routes.tabList')"
         data-cy="route-tabs-button-list"
+        ref="routesListTab"
       />
       <q-route-tab
         v-if="!isHidden(RouteTab.map)"
@@ -145,7 +169,7 @@ export default defineComponent({
     <q-tab-panels v-model="activeTab" animated>
       <!-- Panel: Calendar -->
       <q-tab-panel
-        v-if="!isHidden(RouteTab.calendar)"
+        v-if="!isHidden(RouteTab.calendar) && isLargeScreen"
         :name="RouteTab.calendar"
         data-cy="route-tabs-panel-calendar"
       >
