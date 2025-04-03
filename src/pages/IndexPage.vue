@@ -220,7 +220,7 @@ export default defineComponent({
     const isSliderProgressEnabled = false;
     const isListProgressEnabled = false;
     const isSectionEventsEnabled = false;
-    const isSectionOffersEnabled = true;
+    const isSectionOffersEnabled = false;
     const isSectionPostsEnabled = false;
 
     const challengeStore = useChallengeStore();
@@ -255,7 +255,7 @@ export default defineComponent({
         await registerChallengeStore.loadRegisterChallengeToStore();
       }
       // if citySlug is available, load posts, else we can't load posts
-      if (registerChallengeStore.getCityWpSlug) {
+      if (isSectionOffersEnabled && registerChallengeStore.getCityWpSlug) {
         // refresh feed data if needed
         await feedStore.attemptFeedRefresh(
           registerChallengeStore.getCityWpSlug,
