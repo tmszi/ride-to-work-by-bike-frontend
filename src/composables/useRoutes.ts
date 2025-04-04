@@ -28,7 +28,7 @@ export const useRoutes = () => {
    * @param {TransportType} transport - The transport type.
    * @return {string} - The icon name.
    */
-  const getRouteIcon = (transport: TransportType): string => {
+  const getRouteIcon = (transport: TransportType | null): string => {
     switch (transport) {
       case TransportType.car:
         return `svguse:${customSVGIconsFilePath}#lucide-car-front`;
@@ -52,7 +52,7 @@ export const useRoutes = () => {
    * @param {TransportType} transport - The transport type.
    * @return {string} - The transport label.
    */
-  const getTransportLabel = (transport: TransportType): string => {
+  const getTransportLabel = (transport: TransportType | null): string => {
     if (!transport) {
       return i18n.global.t('routes.transport.unknown');
     }
@@ -256,7 +256,7 @@ export const useRoutes = () => {
             : ({
                 id: `${date.formatDate(currentDate, routeDateFormat)}-${TransportDirection.fromWork}`,
                 date: date.formatDate(currentDate, routeDateFormat),
-                transport: TransportType.none,
+                transport: null,
                 distance: defaultDistanceZero,
                 direction: TransportDirection.fromWork,
                 dirty: false,
@@ -267,7 +267,7 @@ export const useRoutes = () => {
             : ({
                 id: `${date.formatDate(currentDate, routeDateFormat)}-${TransportDirection.toWork}`,
                 date: date.formatDate(currentDate, routeDateFormat),
-                transport: TransportType.none,
+                transport: null,
                 distance: defaultDistanceZero,
                 direction: TransportDirection.toWork,
                 dirty: false,

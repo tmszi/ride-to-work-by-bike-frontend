@@ -479,9 +479,6 @@ function coreTests() {
     cy.dataCy(selectorRouteCalendarPanel)
       .find(dataSelectorInputTransportType)
       .should('be.visible');
-    cy.dataCy(selectorRouteCalendarPanel)
-      .find(dataSelectorRouteInputDistance)
-      .should('be.visible');
     cy.get(classSelectorCurrentDay).find(dataSelectorItemFromWork).click();
     cy.dataCy(selectorRouteCalendarPanel)
       .find(dataSelectorDialogHeader)

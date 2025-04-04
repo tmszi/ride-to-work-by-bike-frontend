@@ -20,7 +20,7 @@ export const useLogRoutes = (routes: Ref<RouteItem[]>) => {
 
   const action = ref<RouteInputType>('input-number');
   const distance = ref<string>(defaultDistanceZero);
-  const transportType = ref<TransportType>(TransportType.bike);
+  const transportType = ref<TransportType | null>(null);
 
   /**
    * Sets the panel input data based on the provided routes.
@@ -31,8 +31,9 @@ export const useLogRoutes = (routes: Ref<RouteItem[]>) => {
     if (routes.length === 1) {
       action.value = routes[0].inputType || 'input-number';
       distance.value = routes[0].distance || defaultDistanceZero;
-      transportType.value = routes[0].transport || TransportType.bike;
+      transportType.value = routes[0].transport || null;
     } else {
+      // multiple routes = unlogged - set default entry values
       action.value = 'input-number';
       distance.value = defaultDistanceZero;
       transportType.value = TransportType.bike;

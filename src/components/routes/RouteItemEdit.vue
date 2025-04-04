@@ -36,7 +36,11 @@ import { useLogRoutes } from '../../composables/useLogRoutes';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // enums
-import { TransportDirection, TransportType } from '../types/Route';
+import {
+  TransportDirection,
+  TransportType,
+  RouteInputType,
+} from '../types/Route';
 
 // stores
 import { useTripsStore } from 'src/stores/trips';
@@ -78,7 +82,7 @@ export default defineComponent({
       );
       if (!storeRoute) {
         return {
-          transport: TransportType.none,
+          transport: null,
           distance: defaultDistanceZero,
           inputType: 'input-number',
         };
@@ -97,7 +101,7 @@ export default defineComponent({
     const { action, distance, transportType, isShownDistance } =
       useLogRoutes(routes);
 
-    const onUpdateAction = (actionNew: string): void => {
+    const onUpdateAction = (actionNew: RouteInputType): void => {
       action.value = actionNew;
     };
 
@@ -116,8 +120,22 @@ export default defineComponent({
       const distanceNewFormatted =
         localizedFloatNumStrToFloatNumber(distanceNew);
 
-      // compare new distance with the distance from the store
-      const dirty = distanceNewFormatted !== routeStateDefault.value?.distance;
+      /**
+       * Compare new distance with FLOAT NUMBER TYPE with
+       * the distance from the store with FLOAT NUMBER STRING TYPE
+       *
+       * Usage '!=' provide type conversion
+       *
+       * (see ./src/components/adapters/tripsAdapter.ts
+       *  `tripsAdapter` object `toRouteItem()` func,
+       *   inner `distance()` func which convert route distance (REST API)
+       *   INTEGER NUMBER type (meter unit) into FLOAT NUMBER STRING (km unit)
+       *   1500 (m) to '1.50' (km), according localized (en lang) number format var
+       *   numberFormatsAllLocales, routeDistanceDecimalNumber key inside
+       *   app global config ride_to_work_by_bike_config.toml file.
+       * )
+       */
+      const dirty = distanceNewFormatted != routeStateDefault.value?.distance;
       emit('update:route', {
         ...props.route,
         distance: distanceNew,
