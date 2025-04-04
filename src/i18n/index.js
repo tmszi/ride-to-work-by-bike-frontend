@@ -77,3 +77,28 @@ export const getNumberFormats = (locales) => {
   }
   return numberFormats;
 };
+
+/**
+ * Custom Vue.js i18n pluralization rule for Czech, Slovak language
+ *
+ * @param {number} choice - Choice
+ * @param {number} choicesLength - Choice length
+ * @param {callback} orgRule - Rule callback function
+ * @returns {number} - Index
+ */
+export const pluralizationRuleCsSkLang = (choice, choicesLength, orgRule) => {
+  // only change pluralization if more than 2 choices are available
+  if (choicesLength > 2) {
+    if (choice === 0) {
+      return 0;
+    } else if (choice === 1) {
+      return 1;
+    } else if (choice > 1 && choice < 5) {
+      return 2;
+    }
+    return 3;
+  }
+  const defaultIndex = orgRule(choice);
+  // ensure that index is within the bounds of the choicesLength parameter
+  return defaultIndex >= 0 && defaultIndex < choicesLength ? defaultIndex : 0;
+};

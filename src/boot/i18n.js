@@ -6,6 +6,7 @@ import {
   getDateTimeFormats,
   getNumberFormats,
   loadLocaleMessages,
+  pluralizationRuleCsSkLang,
 } from '../i18n';
 import { defaultLocale, fallbackLocale } from 'src/i18n/def_locale';
 
@@ -21,6 +22,10 @@ export const i18n = createI18n({
   messages: messages,
   datetimeFormats,
   numberFormats,
+  pluralizationRules: {
+    cs: pluralizationRuleCsSkLang,
+    sk: pluralizationRuleCsSkLang,
+  },
 });
 
 export default boot(({ app }) => {
