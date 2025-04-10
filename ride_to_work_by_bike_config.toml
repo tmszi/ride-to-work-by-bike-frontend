@@ -159,6 +159,13 @@ dateTimeFormatsAllLocales = '''
     "day": "numeric",
     "hour": "numeric",
     "minute": "numeric"
+  },
+  "weekday": {
+    "weekday": "long"
+  },
+  "monthLongStringDay": {
+    "day": "numeric",
+    "month": "long"
   }
 }
 '''
