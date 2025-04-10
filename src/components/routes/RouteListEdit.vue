@@ -6,10 +6,6 @@
  * by the user. The number of routes to log is defined by global config var
  * `challengeLoggingWindowDays`.
  *
- * @props
- * - `routes` (RouteItem, required): The object representing a list of routes.
- *   It should be of type `RouteItem`.
- *
  * @components
  * - `RouteItemEdit`: Component to render a single route in edit mode.
  *
@@ -20,7 +16,7 @@
  */
 
 // libraries
-import { Notify } from 'quasar';
+import { Notify, Screen } from 'quasar';
 import { computed, defineComponent, inject, ref, watch } from 'vue';
 import type { QForm } from 'quasar';
 
@@ -72,6 +68,10 @@ export default defineComponent({
     // update current days when route items change in store
     watch(routeItems, () => {
       days.value = getLoggableDaysWithRoutes(routeItems.value);
+    });
+
+    const isLargeScreen = computed((): boolean => {
+      return Screen.gt.sm;
     });
 
     /**
@@ -143,6 +143,7 @@ export default defineComponent({
       dirtyCount,
       formatDate,
       formatDateName,
+      isLargeScreen,
       isLoadingPostTrips,
       onSave,
       TransportDirection,
@@ -153,64 +154,117 @@ export default defineComponent({
 </script>
 
 <template>
-  <q-form ref="formRef" data-cy="route-list-edit" @submit.prevent="onSave">
-    <!-- Item: Day -->
-    <div
-      v-for="day in days"
-      :key="day.date"
-      class="q-my-lg"
-      data-cy="route-list-day"
-    >
-      <!-- Title: Date -->
-      <h3 class="text-18 text-grey-10 q-my-none" data-cy="route-list-day-date">
-        {{ formatDateName(day.date) }} ({{ formatDate(day.date) }})
-      </h3>
-      <div class="q-py-md" :data-date="day.date">
-        <div class="row q-col-gutter-lg">
-          <!-- Item: Route to work -->
-          <div class="col-12 col-sm-6" data-cy="route-list-item-wrapper">
-            <route-item-edit
-              :route="day.toWork"
-              class="full-height"
-              data-cy="route-list-item"
-              :data-direction="TransportDirection.toWork"
-              :data-id="day.toWork?.id"
-              @update:route="day.toWork = $event"
-            />
-          </div>
-          <!-- Item: Route from work -->
-          <div class="col-12 col-sm-6" data-cy="route-list-item-wrapper">
-            <route-item-edit
-              :route="day.fromWork"
-              class="full-height"
-              data-cy="route-list-item"
-              :data-direction="TransportDirection.fromWork"
-              :data-id="day.fromWork?.id"
-              @update:route="day.fromWork = $event"
-            />
+  <q-layout>
+    <q-form ref="formRef" data-cy="route-list-edit">
+      <!-- First save routes button on the large screen -->
+      <div
+        v-if="isLargeScreen"
+        class="flex items-center justify-center q-mt-lg"
+      >
+        <q-btn
+          rounded
+          unelevated
+          type="submit"
+          color="primary"
+          size="16px"
+          class="text-weight-bold"
+          :loading="isLoadingPostTrips"
+          :disable="isLoadingPostTrips || dirtyCount === 0"
+          data-cy="button-save-top"
+          @click.prevent="onSave"
+        >
+          {{
+            $t('routes.buttonSaveChangesCount', dirtyCount, {
+              count: dirtyCount,
+            })
+          }}
+        </q-btn>
+      </div>
+      <!-- Item: Day -->
+      <div
+        v-for="(day, index) in days"
+        :key="day.date"
+        :class="index === 0 ? 'q-mb-lg' : 'q-my-lg'"
+        data-cy="route-list-day"
+      >
+        <!-- Title: Date -->
+        <h3
+          class="text-18 text-grey-10 q-my-none"
+          data-cy="route-list-day-date"
+        >
+          {{ formatDateName(day.date) }} ({{ formatDate(day.date) }})
+        </h3>
+        <div class="q-py-md" :data-date="day.date">
+          <div class="row q-col-gutter-lg">
+            <!-- Item: Route to work -->
+            <div class="col-12 col-sm-6" data-cy="route-list-item-wrapper">
+              <route-item-edit
+                :route="day.toWork"
+                class="full-height"
+                data-cy="route-list-item"
+                :data-direction="TransportDirection.toWork"
+                :data-id="day.toWork?.id"
+                @update:route="day.toWork = $event"
+              />
+            </div>
+            <!-- Item: Route from work -->
+            <div class="col-12 col-sm-6" data-cy="route-list-item-wrapper">
+              <route-item-edit
+                :route="day.fromWork"
+                class="full-height"
+                data-cy="route-list-item"
+                :data-direction="TransportDirection.fromWork"
+                :data-id="day.fromWork?.id"
+                @update:route="day.fromWork = $event"
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="flex items-center justify-center">
-      <q-btn
-        rounded
-        unelevated
-        type="submit"
-        color="primary"
-        size="16px"
-        class="text-weight-bold"
-        :loading="isLoadingPostTrips"
-        :disable="isLoadingPostTrips || dirtyCount === 0"
-        data-cy="button-save"
-        @click="onSave"
-      >
-        {{
-          $t('routes.buttonSaveChangesCount', dirtyCount, {
-            count: dirtyCount,
-          })
-        }}
-      </q-btn>
-    </div>
-  </q-form>
+      <!-- Save routes button on the large screen -->
+      <div v-if="isLargeScreen" class="flex items-center justify-center">
+        <q-btn
+          rounded
+          unelevated
+          type="submit"
+          color="primary"
+          size="16px"
+          class="text-weight-bold"
+          :loading="isLoadingPostTrips"
+          :disable="isLoadingPostTrips || dirtyCount === 0"
+          data-cy="button-save-bottom"
+          @click.prevent="onSave"
+        >
+          {{
+            $t('routes.buttonSaveChangesCount', dirtyCount, {
+              count: dirtyCount,
+            })
+          }}
+        </q-btn>
+      </div>
+      <!-- Sticky save routes button on the mobile screen -->
+      <q-page-sticky v-else position="bottom" :offset="[0, 80]" class="z-top">
+        <div class="bg-white" style="border-radius: 999px">
+          <q-btn
+            rounded
+            unelevated
+            type="submit"
+            color="primary"
+            size="16px"
+            class="text-weight-bold"
+            :loading="isLoadingPostTrips"
+            :disable="isLoadingPostTrips || dirtyCount === 0"
+            data-cy="button-save-sticky"
+            @click.prevent="onSave"
+          >
+            {{
+              $t('routes.buttonSaveChangesCount', dirtyCount, {
+                count: dirtyCount,
+              })
+            }}
+          </q-btn>
+        </div>
+      </q-page-sticky>
+    </q-form>
+  </q-layout>
 </template>
