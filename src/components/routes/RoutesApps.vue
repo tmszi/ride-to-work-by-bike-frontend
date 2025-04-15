@@ -15,17 +15,19 @@
  */
 
 // libraries
-import { defineComponent } from 'vue';
+import { computed, defineComponent, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 
 // components
 import BannerRoutesApp from './BannerRoutesApp.vue';
 import SectionHeading from '../global/SectionHeading.vue';
 
+// composables
+import { i18n } from '../../boot/i18n';
+import { useTripsStore } from '../../stores/trips';
+
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
-
-// fixtures
-import apps from '../../../test/cypress/fixtures/bannerRoutesAppList.json';
 
 // types
 import type { BannerRoutesAppType } from '../types/Banner';
@@ -37,11 +39,63 @@ export default defineComponent({
     SectionHeading,
   },
   setup() {
+    const enabledAppsForManualLogging = false;
     const urlAppStore = rideToWorkByBikeConfig.urlAppStore;
     const urlGooglePlay = rideToWorkByBikeConfig.urlGooglePlay;
 
+    const tripsStore = useTripsStore();
+    const {
+      getUrlAppCyclers,
+      getUrlAppNaKolePrahou,
+      getIsLoadingOpenAppWithRestToken,
+    } = storeToRefs(tripsStore);
+
+    onMounted(async () => {
+      // load app URLs if not already loaded
+      if (!getUrlAppCyclers.value && !getUrlAppNaKolePrahou.value) {
+        await tripsStore.loadOpenAppWithRestToken();
+      }
+    });
+
+    const apps = computed<BannerRoutesAppType[]>(() => {
+      const result: BannerRoutesAppType[] = [];
+      if (getUrlAppCyclers.value) {
+        result.push({
+          title: i18n.global.t('routes.appCyclers'),
+          button: {
+            title: i18n.global.t('routes.appCyclers'),
+            url: getUrlAppCyclers.value,
+          },
+          image: {
+            src: '/image/logo-cyclers.webp',
+            alt: '',
+          },
+          linked: false,
+          linkable: true,
+        });
+      }
+      if (getUrlAppNaKolePrahou.value) {
+        result.push({
+          title: i18n.global.t('routes.appNaKolePrahou'),
+          button: {
+            title: i18n.global.t('routes.appNaKolePrahou'),
+            url: getUrlAppNaKolePrahou.value,
+          },
+          image: {
+            src: '/image/logo-na-kole-prahou.webp',
+            alt: '',
+          },
+          linked: false,
+          linkable: true,
+        });
+      }
+      return result;
+    });
+
     return {
-      apps: apps as BannerRoutesAppType[],
+      apps,
+      enabledAppsForManualLogging,
+      isLoading: getIsLoadingOpenAppWithRestToken,
       urlAppStore,
       urlGooglePlay,
     };
@@ -66,12 +120,13 @@ export default defineComponent({
           v-for="app in apps"
           :app="app"
           :key="app.title"
+          :loading="isLoading"
           data-cy="banner-routes-app"
         />
       </div>
     </section>
-    <!-- Section: Apps for manual logging -->
-    <section class="q-mt-md">
+    <!-- Section: Apps for manual logging (DISABLED) -->
+    <section v-if="enabledAppsForManualLogging" class="q-mt-md">
       <!-- Title -->
       <section-heading class="q-mb-md" data-cy="routes-apps-title-manual">
         {{ $t('routes.titleManualLogging') }}
