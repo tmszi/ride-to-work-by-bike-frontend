@@ -2,6 +2,8 @@ import { routesConf } from '../../../src/router/routes_conf';
 import { testDesktopSidebar } from '../support/commonTests';
 import { defLocale } from '../../../src/i18n/def_locale';
 import { systemTimeLastDayOfCompetitionMay } from '../support/commonTests';
+import testDataUploadFile from '../fixtures/routesUploadFileTestData.json';
+import { RouteInputType } from '../../../src/components/types/Route';
 
 const dateWithLoggedRoute = new Date(2025, 4, 26);
 
@@ -175,6 +177,76 @@ describe('Routes calendar page', () => {
         });
       });
     });
+
+    it('allows to upload a file and shows notification if file is invalid', () => {
+      cy.get('@i18n').then((i18n) => {
+        cy.get('@config').then((config) => {
+          // wait for routes calendar to be visible
+          cy.dataCy('routes-calendar').should('be.visible');
+          // click on the calendar item to open panel
+          cy.get('[data-date="2025-05-20"]')
+            .find('[data-cy="calendar-item-icon-towork-empty"]')
+            .click({ force: true });
+          // route calendar panel should be open
+          cy.dataCy('route-calendar-panel').should('exist');
+          // setup initial state
+          cy.dataCy('route-calendar-panel').within(() => {
+            // select transport type
+            cy.dataCy('button-toggle-transport').should('be.visible');
+            cy.dataCy('route-input-transport-type')
+              .find('[data-value="bicycle"]')
+              .click();
+            // select upload file action
+            cy.dataCy('select-action').should('be.visible');
+            cy.dataCy('select-action').select(
+              i18n.global.t('routes.actionUploadFile'),
+            );
+          });
+          // test invalid format
+          cy.dataCy('route-calendar-panel').within(() => {
+            cy.dataCy('input-file').selectFile(
+              'test/cypress/fixtures/route.jpg',
+              { force: true },
+            );
+          });
+          cy.contains(
+            i18n.global.t('routes.messageFileInvalidFormat', {
+              formats: '.gpx, .gz',
+            }),
+          ).should('be.visible');
+          // test file too large
+          cy.dataCy('route-calendar-panel').within(() => {
+            cy.dataCy('input-file').selectFile(
+              'test/cypress/fixtures/routeOverMaxSize.gpx',
+              { force: true },
+            );
+          });
+          cy.contains(
+            i18n.global.t('routes.messageFileTooLarge', {
+              size: `${config.tripMaxFileUploadSizeMegabytes}MB`,
+            }),
+          ).should('be.visible');
+          // test valid file
+          cy.dataCy('route-calendar-panel').within(() => {
+            cy.dataCy('input-file').selectFile(
+              'test/cypress/fixtures/route.gpx',
+              { force: true },
+            );
+          });
+          cy.get('.q-notification').should('not.exist');
+          // test valid file
+          cy.dataCy('route-calendar-panel').within(() => {
+            cy.dataCy('input-file').selectFile(
+              'test/cypress/fixtures/route.gz',
+              {
+                force: true,
+              },
+            );
+          });
+          cy.get('.q-notification').should('not.exist');
+        });
+      });
+    });
   });
 
   context('desktop - with logged routes', () => {
@@ -253,6 +325,99 @@ describe('Routes calendar page', () => {
                 defLocale,
               ),
             );
+          });
+        });
+      });
+    });
+
+    // generate tests based on fixture routesCalendarPanelUploadTestData.json
+    testDataUploadFile.forEach((testCase) => {
+      it(testCase.description, () => {
+        cy.get('@i18n').then((i18n) => {
+          cy.get('@config').then((config) => {
+            // intercept API call with response matching the payload
+            const distanceMeters = testCase.apiResponseDistance;
+            const apiPayload =
+              Cypress.platform === 'win32'
+                ? testCase.apiPayloadWin
+                : testCase.apiPayload;
+            const responseBody = {
+              trips: apiPayload.trips.map((trip, index) => ({
+                id: index + 1,
+                ...trip,
+                distanceMeters,
+                durationSeconds: null,
+                sourceId: null,
+                description: '',
+                track: null,
+              })),
+            };
+            cy.interceptPostTripsApi(config, i18n, responseBody);
+            // for each logged route, click on the calendar field
+            testCase.loggedRoutes.forEach((route) => {
+              cy.get(`[data-date="${route.date}"]`)
+                .find(
+                  `[data-cy="calendar-item-icon-${route.direction.toLowerCase()}-${route.state}"]`,
+                )
+                .click({ force: true });
+            });
+            // route calendar panel should be open
+            cy.dataCy('route-calendar-panel').should('exist');
+            testCase.inputValues.forEach((inputValue) => {
+              // input transport type
+              cy.dataCy('button-toggle-transport').should('be.visible');
+              cy.dataCy('route-input-transport-type')
+                .find(`[data-value="${inputValue.transport}"]`)
+                .click({ force: true });
+              if (inputValue.inputType === RouteInputType.uploadFile) {
+                // select upload file action
+                cy.dataCy('select-action').should('be.visible');
+                cy.dataCy('select-action').select(
+                  i18n.global.t('routes.actionUploadFile'),
+                );
+                // upload file
+                cy.dataCy('input-file').selectFile(
+                  'test/cypress/fixtures/route.gpx',
+                  { force: true },
+                );
+              } else if (inputValue.inputType === 'input-number') {
+                // select input number action
+                cy.dataCy('select-action').should('be.visible');
+                cy.dataCy('select-action').select(
+                  i18n.global.t('routes.actionInputDistance'),
+                );
+                // input distance
+                cy.dataCy('section-input-number').should('be.visible');
+                cy.dataCy('section-input-number').find('input').clear();
+                cy.dataCy('section-input-number')
+                  .find('input')
+                  .type(inputValue.inputValue);
+              }
+            });
+            // click save button
+            cy.dataCy('dialog-save-button').click();
+            // wait for API call and verify payload
+            if (Cypress.platform === 'win32') {
+              cy.waitForPostTripsApi(testCase.apiPayloadWin);
+            } else {
+              cy.waitForPostTripsApi(testCase.apiPayload);
+            }
+            // panel should be closed
+            cy.dataCy('route-calendar-panel').should('not.exist');
+            // verify that the routes are saved and updated in the UI
+            testCase.loggedRoutes.forEach((route) => {
+              cy.get(`[data-date="${route.date}"]`).find(
+                `[data-cy="calendar-item-icon-${route.direction.toLowerCase()}-logged"]`,
+              );
+              cy.get(`[data-date="${route.date}"]`).should(
+                'contain',
+                i18n.global.n(
+                  testCase.apiResponseDistance / 1000.0,
+                  'routeDistanceDecimalNumber',
+                  defLocale,
+                ),
+              );
+            });
           });
         });
       });

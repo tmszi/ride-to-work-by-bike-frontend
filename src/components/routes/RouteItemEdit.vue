@@ -123,7 +123,7 @@ export default defineComponent({
 
     const routes = computed<RouteItem[]>(() => [props.route]);
     // create refs from the route object
-    const { action, distance, transportType, isShownDistance } =
+    const { action, distance, file, transportType, isShownDistance } =
       useLogRoutes(routes);
 
     const onUpdateAction = (actionNew: RouteInputType): void => {
@@ -171,7 +171,7 @@ export default defineComponent({
       } else {
         emit('update:route', {
           ...props.route,
-          inputType: action.value,
+          inputType: actionNew,
         });
       }
     };
@@ -211,6 +211,8 @@ export default defineComponent({
         ...props.route,
         distance: distanceNew,
         inputType: action.value,
+        // clear file (if previously uploaded)
+        file: null,
         dirty,
       });
       distance.value = distanceNew;
@@ -238,6 +240,27 @@ export default defineComponent({
       transportType.value = transportTypeNew;
     };
 
+    const onUpdateFile = (fileNew: File | null): void => {
+      if (fileNew) {
+        emit('update:route', {
+          ...props.route,
+          dirty: true,
+          inputType: action.value,
+          // set distance to zero (file has priority)
+          distance: defaultDistanceZero,
+          file: fileNew,
+        });
+      } else {
+        emit('update:route', {
+          ...props.route,
+          dirty: true,
+          inputType: action.value,
+          file: null,
+        });
+      }
+      file.value = fileNew;
+    };
+
     const iconSize = '18px';
 
     return {
@@ -246,6 +269,7 @@ export default defineComponent({
       borderColor,
       defaultDistanceZero,
       distance,
+      file,
       iconSize,
       isShownDistance,
       transportType,
@@ -253,6 +277,7 @@ export default defineComponent({
       optionsAction,
       onUpdateTransportType,
       onUpdateDistance,
+      onUpdateFile,
       onUpdateAction,
       routeStateDefault,
     };
@@ -313,8 +338,10 @@ export default defineComponent({
           :modelValue="distance"
           :modelAction="action"
           :optionsAction="optionsAction"
+          :modelFile="file"
           @update:modelValue="onUpdateDistance"
           @update:modelAction="onUpdateAction"
+          @update:modelFile="onUpdateFile"
           class="q-mt-lg"
           data-cy="section-distance"
         />

@@ -46,7 +46,8 @@ export const tripsAdapter = {
       direction: direction,
       distance: distance(trip),
       transport,
-      // TODO: Handle the route feature data
+      // !currently we do not load trip file (used only for logging)
+      file: null,
       routeFeature: null as RouteFeature | null,
     };
   },
@@ -56,7 +57,7 @@ export const tripsAdapter = {
    * @param {RouteItem} routeItem - Route item to convert
    * @returns {TripPostPayload} - Trip post payload
    */
-  toTripPostPayload(routeItem: RouteItem): TripPostPayload {
+  async toTripPostPayload(routeItem: RouteItem): Promise<TripPostPayload> {
     const direction =
       routeItem.direction === TransportDirection.toWork
         ? TripDirection.to
@@ -80,6 +81,20 @@ export const tripsAdapter = {
       sourceApplication: rideToWorkByBikeConfig.apiTripsSourceApplicationId,
     };
 
+    // only add file if it exists
+    if (routeItem.file) {
+      payload.file_encoded_string = await this.toBase64(routeItem.file);
+    }
+
     return payload;
+  },
+
+  toBase64(file: File): Promise<string | ArrayBuffer | null> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+    });
   },
 };

@@ -44,18 +44,22 @@ import { useApiPostTrips } from '../../composables/useApiPostTrips';
 // adapters
 import { tripsAdapter } from '../../adapters/tripsAdapter';
 
-// stores
-import { useTripsStore } from '../../stores/trips';
-
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
-import { routeFormFieldOptions } from './utils/';
+// enums
+import { RouteInputType } from '../types/Route';
+
+// stores
+import { useTripsStore } from '../../stores/trips';
 
 // types
 import type { RouteItem } from '../types/Route';
 import type { Logger } from '../types/Logger';
 import type { FormOption } from '../types/Form';
+
+// utils
+import { routeFormFieldOptions } from './utils/';
 
 export default defineComponent({
   name: 'RouteCalendarPanel',
@@ -101,8 +105,14 @@ export default defineComponent({
     // Make props into computed ref so it can be passed as a reactive value.
     const routes = computed(() => props.routes);
     // Get panel input state from a composable.
-    const { action, distance, routesCount, transportType, isShownDistance } =
-      useLogRoutes(routes);
+    const {
+      action,
+      distance,
+      routesCount,
+      transportType,
+      isShownDistance,
+      file,
+    } = useLogRoutes(routes);
 
     // Initialize API composable
     const { postTrips } = useApiPostTrips(logger);
@@ -118,7 +128,13 @@ export default defineComponent({
       const noRoutes = routesCount.value === 0;
       const noDistance =
         isShownDistance.value && distance.value === defaultDistanceZero;
-      return noRoutes || noDistance || noTransport || tripsStore.getIsLoading;
+      const noFile = file.value === null;
+      return (
+        noRoutes ||
+        (noDistance && noFile) ||
+        noTransport ||
+        tripsStore.getIsLoading
+      );
     });
 
     /**
@@ -136,18 +152,25 @@ export default defineComponent({
         });
         return;
       }
+      // reset input values based on selected action
+      if (action.value === RouteInputType.uploadFile) {
+        distance.value = defaultDistanceZero;
+      }
+      if (action.value === RouteInputType.inputNumber) {
+        file.value = null;
+      }
       // create route items with settings from panel
       const routeItems: RouteItem[] = routes.value.map((route) => ({
         ...route,
         transport: transportType.value,
         distance: isShownDistance.value ? distance.value : route.distance,
+        file: file.value ? file.value : null,
       }));
-      // convert route items to trip payload
-      const tripPayload = routeItems.map((route) =>
-        tripsAdapter.toTripPostPayload(route),
+      logger?.debug(
+        `Saving route items <${JSON.stringify(routeItems, null, 2)}>.`,
       );
       // send to API
-      const response = await postTrips(tripPayload);
+      const response = await postTrips(routeItems);
       // handle success
       if (
         response.success &&
@@ -176,6 +199,7 @@ export default defineComponent({
     return {
       action,
       distance,
+      file,
       routesCount,
       isOpen,
       isSaveBtnDisabled,
@@ -238,9 +262,11 @@ export default defineComponent({
             <route-input-distance
               v-show="isShownDistance"
               v-model="distance"
+              :modelFile="file"
               :modelAction="action"
               :optionsAction="optionsAction"
               @update:modelAction="action = $event"
+              @update:modelFile="file = $event"
               class="q-mt-none"
               data-cy="route-input-distance"
             />
