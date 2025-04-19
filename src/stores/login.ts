@@ -317,6 +317,12 @@ export const useLoginStore = defineStore('login', {
         `Login was successfull, redirect to <${routesConf['home']['path']}> URL.`,
       );
       /**
+       * Load register-challenge from the API, to prevent
+       * showing register challenge page.
+       */
+      this.$log?.info('Check the register challenge from the API.');
+      await registerChallengeStore.loadRegisterChallengeToStore();
+      /**
        * Load user coordinator status from the API
        * to prevent sending user to the register challenge page
        * if user is already a coordinator.
@@ -353,6 +359,9 @@ export const useLoginStore = defineStore('login', {
       // clear registerChallenge store
       const registerChallengeStore = useRegisterChallengeStore();
       registerChallengeStore.resetPersistentProperties();
+      // clear challenge store
+      const challengeStore = useChallengeStore();
+      challengeStore.resetPersistentProperties();
       // clear feed store on logout
       const feedStore = useFeedStore();
       feedStore.clearStore();
