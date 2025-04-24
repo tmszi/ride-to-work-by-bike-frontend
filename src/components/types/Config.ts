@@ -17,6 +17,7 @@ export interface ConfigGlobal {
   width: string;
   title: string;
   subtitle: string;
+  dataReportIframeHeight: string;
   borderRadiusCard: string;
   borderRadiusCardSmall: string;
   borderRadiusButtonSmall: string;
@@ -91,6 +92,8 @@ export interface ConfigGlobal {
   urlApiRegisterCoordinator: string;
   urlApiResetPassword: string;
   urlApiResetPasswordConfirm: string;
+  urlApiResultsByChallenge: string;
+  urlApiResults: string;
   urlApiChallengeRegistrationUser: string;
   urlApiCities: string;
   urlApiOpenAppWithRestToken: string;

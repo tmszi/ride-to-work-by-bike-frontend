@@ -149,6 +149,16 @@ apiMessageError = "Načítání registrací selhalo."
 apiMessageErrorWithMessage = "Načítání registrací selhalo. Chyba: {error}"
 apiMessageSuccess = "Registrace byly úspěšně načteny."
 
+[getResults]
+apiMessageError = "Nepodařilo se načíst zdroj výsledků."
+apiMessageErrorWithMessage = "Nepodařilo se načíst zdroj výsledků. Chyba: {error}"
+apiMessageSuccess = "Zdroj výsledků byl úspěšně načten."
+
+[getResultsByChallenge]
+apiMessageError = "Nepodařilo se načíst zdroj výsledků výzvy."
+apiMessageErrorWithMessage = "Nepodařilo se načíst zdroj výsledků výzvy. Chyba: {error}"
+apiMessageSuccess = "Zdroj výsledků výzvy byl úspěšně načten."
+
 [getStravaAccount]
 apiMessageError = "Nepodařilo se načíst profil aplikace Strava."
 apiMessageErrorWithMessage = "Nepodařilo se načíst profil aplikace Strava. Chyba: {error}"
@@ -954,6 +964,9 @@ labelRegularity = "pravidelnost"
 labelRouteCount = "Poč. jízd"
 labelSustainableRoutes = "udržitelných cest"
 labelTeam = "Tým"
+messageFailedToLoadResultsUrls = "Nepodařilo se načíst zdrojová data výsledků."
+messageFailedToLoadResultsUrlsWithMessage = "Nepodařilo se načíst zdrojová data výsledků. Chyba: {error}"
+messageNoReport = "Data report není aktuálně k dispozici"
 titleBadges = "Odznaky"
 titleCurrentResults = "Dosavadní výsledky"
 titleOngoingChallenges = "Probíhající výzvy"
@@ -966,6 +979,14 @@ titleYourResultsSince = "Vaše výsledky od {date}"
 tabRegularity = "Pravidelnost"
 tabPerformance = "Výkonnost"
 tabReport = "Data report"
+
+[results.reportType]
+may = "Květnová výzva"
+organizationsReview = "Přehled organizací"
+performanceCity = "Výkonnost ve měste"
+performanceOrganization = "Výkonnost v organizaci"
+regularity = "Pravidelnost v organizaci"
+septemberJanuary = "Zářijová/Lednová výzva"
 
 [routes]
 appStrava = "Strava"
