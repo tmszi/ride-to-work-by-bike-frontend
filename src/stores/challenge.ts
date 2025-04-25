@@ -75,6 +75,12 @@ export const useChallengeStore = defineStore('challenge', {
       );
       return competitionPhase?.date_from || '';
     },
+    getEntryPhaseEnd: (state) => {
+      const entryPhase = state.phaseSet.find(
+        (phase) => phase.phase_type === PhaseType.entryEnabled,
+      );
+      return entryPhase?.date_to || '';
+    },
   },
 
   actions: {

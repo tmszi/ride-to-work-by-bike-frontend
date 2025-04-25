@@ -625,6 +625,12 @@ export const systemTimeBeforeCompetitionStart = new Date(
   '2025-04-30T23:59:59.000Z',
 );
 /**
+ * Date immediately before competition phase ends (May campaign)
+ */
+export const systemTimeBeforeEntryPhaseEnd = new Date(
+  '2025-06-02T23:59:59.000Z',
+);
+/**
  * Last day of the competition phase in May campaign
  */
 export const systemTimeLastDayOfCompetitionMay = new Date(

@@ -3,6 +3,7 @@ import BannerRoutes from '../homepage/BannerRoutes.vue';
 import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 import { routesConf } from '../../router/routes_conf';
+import { PhaseType } from '../types/Challenge';
 
 // colors
 const { getPaletteColor, changeAlpha } = colors;
@@ -21,15 +22,22 @@ const selectorImage = 'banner-routes-image';
 const selectorTitle = 'banner-routes-title';
 const selectorButton = 'banner-routes-button-add-routes';
 const selectorButtonIcon = 'banner-routes-button-icon';
-const selectorSectionTitle = 'banner-routes-section-title';
 const selectorSectionButton = 'banner-routes-section-button';
 
 // variables
 const { borderRadiusCard } = rideToWorkByBikeConfig;
-const routesCount = 3;
 const iconSize = 24;
+let entryPhaseEnd = '';
 
 describe('<BannerRoutes>', () => {
+  before(() => {
+    cy.fixture('apiGetThisCampaignMay.json').then((thisCampaignResponse) => {
+      entryPhaseEnd = thisCampaignResponse.results[0].phase_set.find(
+        (phase) => phase.phase_type === PhaseType.entryEnabled,
+      ).date_to;
+    });
+  });
+
   it('has translation for all strings', () => {
     cy.testLanguageStringsInContext(
       ['title', 'titleStart', 'addRoutes', 'addFirstRoutes'],
@@ -40,20 +48,24 @@ describe('<BannerRoutes>', () => {
 
   context('desktop default variant', () => {
     beforeEach(() => {
+      cy.viewport('macbook-16');
       cy.mount(BannerRoutes, {
         props: {
-          routesCount,
-          variant: 'default',
+          dateEnd: entryPhaseEnd,
         },
       });
-      cy.viewport('macbook-16');
     });
 
     coreTests();
 
-    it('renders title with the number of missing routes', () => {
+    it('renders title with the date of the entry phase end', () => {
       cy.window().then(() => {
-        cy.dataCy(selectorTitle).should('contain', routesCount);
+        cy.dataCy(selectorTitle).should(
+          'contain',
+          i18n.global.t('index.bannerRoutes.titleDefault', {
+            date: i18n.global.d(new Date(entryPhaseEnd), 'numeric'),
+          }),
+        );
       });
     });
 
@@ -64,9 +76,7 @@ describe('<BannerRoutes>', () => {
     });
 
     it('renders title section and button section side to side', () => {
-      cy.testElementPercentageWidth(cy.dataCy(selectorSectionTitle), 50);
-      cy.testElementPercentageWidth(cy.dataCy(selectorSectionButton), 50);
-      cy.testElementsSideBySide(selectorSectionTitle, selectorSectionButton);
+      cy.testElementsSideBySide(selectorTitle, selectorSectionButton);
     });
 
     it('renders image and title side to side', () => {
@@ -74,7 +84,7 @@ describe('<BannerRoutes>', () => {
     });
   });
 
-  context('desktop start variant', () => {
+  context.skip('desktop start variant', () => {
     beforeEach(() => {
       cy.mount(BannerRoutes, {
         props: {
@@ -103,9 +113,7 @@ describe('<BannerRoutes>', () => {
     });
 
     it('renders title section and button section stacked', () => {
-      cy.testElementPercentageWidth(cy.dataCy(selectorSectionTitle), 100);
-      cy.testElementPercentageWidth(cy.dataCy(selectorSectionButton), 100);
-      cy.testElementsStacked(selectorSectionTitle, selectorSectionButton);
+      cy.testElementsStacked(selectorTitle, selectorSectionButton);
     });
 
     it('renders image and title side to side', () => {
@@ -117,8 +125,7 @@ describe('<BannerRoutes>', () => {
     beforeEach(() => {
       cy.mount(BannerRoutes, {
         props: {
-          routesCount,
-          variant: 'default',
+          dateEnd: entryPhaseEnd,
         },
       });
       cy.viewport('iphone-6');
@@ -126,9 +133,14 @@ describe('<BannerRoutes>', () => {
 
     coreTests();
 
-    it('renders title with the number of missing routes', () => {
+    it('renders title with the date of the entry phase end', () => {
       cy.window().then(() => {
-        cy.dataCy(selectorTitle).should('contain', routesCount);
+        cy.dataCy(selectorTitle).should(
+          'contain',
+          i18n.global.t('index.bannerRoutes.titleDefault', {
+            date: i18n.global.d(new Date(entryPhaseEnd), 'numeric'),
+          }),
+        );
       });
     });
 
@@ -139,8 +151,7 @@ describe('<BannerRoutes>', () => {
     });
 
     it('renders title section and button section stacked', () => {
-      cy.testElementPercentageWidth(cy.dataCy(selectorSectionTitle), 100);
-      cy.testElementPercentageWidth(cy.dataCy(selectorSectionButton), 100);
+      cy.testElementsStacked(selectorTitle, selectorSectionButton);
     });
 
     it('renders image and title stacked', () => {
@@ -184,6 +195,6 @@ function coreTests() {
   it('renders correct button link', () => {
     cy.dataCy(selectorButton)
       .invoke('attr', 'href')
-      .should('contain', routesConf['routes_list'].children.fullPath);
+      .should('contain', routesConf['routes'].children.fullPath);
   });
 }

@@ -21,10 +21,10 @@
         <banner-routes
           v-if="
             isBannerRoutesEnabled &&
-            challengeStatus === ChallengeStatusEnum.during
+            !isBeforeCompetitionStart &&
+            !isAfterEntryPhaseEnd
           "
-          :routes-count="14"
-          :variant="BannerRoutesVariantsEnum.default"
+          :date-end="entryPhaseEnd"
           class="q-my-xl"
           data-cy="banner-routes"
         />
@@ -164,7 +164,7 @@ import SectionHeading from 'src/components/global/SectionHeading.vue';
 import SliderProgress from 'components/homepage/SliderProgress.vue';
 
 // composables
-import { useIsBeforeCompetitionPhase } from '../composables/useIsBeforeCompetitionPhase';
+import { useCompetitionPhase } from '../composables/useCompetitionPhase';
 
 // config
 import { routesConf } from '../router/routes_conf';
@@ -172,7 +172,6 @@ import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
 // enums
 import { ChallengeStatus as ChallengeStatusEnum } from 'src/components/enums/Challenge';
-import { BannerRoutesVariants as BannerRoutesVariantsEnum } from 'src/components/homepage/BannerRoutes.vue';
 
 // fixtures
 import listCardsFollow from '../../test/cypress/fixtures/listCardsFollow.json';
@@ -217,7 +216,7 @@ export default defineComponent({
     const feedStore = useFeedStore();
     const isLoadingPosts = computed(() => feedStore.getIsLoading);
 
-    const isBannerRoutesEnabled = false;
+    const isBannerRoutesEnabled = true;
     const isBannerAppEnabled = false;
     const isSectionChallengesEnabled = false;
     const isBannerQuestionnaireEnabled = false;
@@ -267,8 +266,12 @@ export default defineComponent({
       }
     });
 
-    const { isBeforeCompetitionStart, competitionStart } =
-      useIsBeforeCompetitionPhase();
+    const {
+      competitionStart,
+      entryPhaseEnd,
+      isBeforeCompetitionStart,
+      isAfterEntryPhaseEnd,
+    } = useCompetitionPhase();
 
     // colors
     const { getPaletteColor, changeAlpha } = colors;
@@ -283,7 +286,6 @@ export default defineComponent({
       badgeList: homepage.badgeList,
       bannerAppData: homepage.bannerApp,
       bannerImageData: homepage.bannerImage,
-      BannerRoutesVariantsEnum,
       cardsChallenge: homepage.cardsChallenge,
       cardsEvent: homepage.cardsEvent,
       cardsFollow,
@@ -297,10 +299,12 @@ export default defineComponent({
       headingBgTitle: homepage.headingBgTitle,
       primaryOpacity,
       competitionStart,
+      entryPhaseEnd,
       urlCommunity,
       urlResults,
       isLoadingPosts,
       isBeforeCompetitionStart,
+      isAfterEntryPhaseEnd,
       isBannerRoutesEnabled,
       isBannerAppEnabled,
       isSectionChallengesEnabled,
