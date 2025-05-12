@@ -120,21 +120,23 @@ export const useResultsStore = defineStore('results', {
          * so we use Set to avoid duplicates.
          */
         const reportTypesPerRole = new Set<ResultsReportType>();
+        // Basic challenge member (default)
+        [
+          ResultsReportType.regularity,
+          ResultsReportType.performanceOrganization,
+          ResultsReportType.performanceCity,
+        ].forEach((type) => reportTypesPerRole.add(type));
         // add organization admin report types
         if (isUserOrganizationAdmin) {
-          [
-            ResultsReportType.regularity,
-            ResultsReportType.performanceOrganization,
-            ResultsReportType.organizationsReview,
-          ].forEach((type) => reportTypesPerRole.add(type));
+          [ResultsReportType.organizationsReview].forEach((type) =>
+            reportTypesPerRole.add(type),
+          );
         }
         // add staff report types
         if (isUserStaff) {
-          [
-            ResultsReportType.regularity,
-            ResultsReportType.performanceCity,
-            ResultsReportType.organizationsReview,
-          ].forEach((type) => reportTypesPerRole.add(type));
+          [ResultsReportType.organizationsReview].forEach((type) =>
+            reportTypesPerRole.add(type),
+          );
         }
         // prepare requests for all role-specific report types
         for (const type of reportTypesPerRole) {
