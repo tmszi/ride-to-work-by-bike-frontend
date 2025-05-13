@@ -123,14 +123,14 @@ export const useResultsStore = defineStore('results', {
         // Basic challenge member (default)
         [
           ResultsReportType.regularity,
-          ResultsReportType.performanceOrganization,
           ResultsReportType.performanceCity,
         ].forEach((type) => reportTypesPerRole.add(type));
         // add organization admin report types
         if (isUserOrganizationAdmin) {
-          [ResultsReportType.organizationsReview].forEach((type) =>
-            reportTypesPerRole.add(type),
-          );
+          [
+            ResultsReportType.performanceOrganization,
+            ResultsReportType.organizationsReview,
+          ].forEach((type) => reportTypesPerRole.add(type));
         }
         // add staff report types
         if (isUserStaff) {
