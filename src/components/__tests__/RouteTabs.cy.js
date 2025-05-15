@@ -3,6 +3,7 @@ import RouteTabs from 'components/routes/RouteTabs.vue';
 import { i18n } from '../../boot/i18n';
 import { routesConf } from 'src/router/routes_conf';
 import { useChallengeStore } from '../../../src/stores/challenge';
+import { useRegisterChallengeStore } from '../../../src/stores/registerChallenge';
 import { useTripsStore } from '../../../src/stores/trips';
 import { systemTimeLoggingRoutes } from '../../../test/cypress/support/commonTests';
 
@@ -33,6 +34,8 @@ describe('<RouteTabs>', () => {
       });
       // setup store with commute modes
       cy.setupTripsStoreWithCommuteModes(useTripsStore);
+      // setup store with register challenge team approval status
+      cy.setupRegisterChallengeTeamApprovalStatus(useRegisterChallengeStore);
       cy.viewport('macbook-16');
     });
 
@@ -54,6 +57,8 @@ describe('<RouteTabs>', () => {
       });
       // setup store with commute modes
       cy.setupTripsStoreWithCommuteModes(useTripsStore);
+      // setup store with register challenge team approval status
+      cy.setupRegisterChallengeTeamApprovalStatus(useRegisterChallengeStore);
       cy.viewport('macbook-16');
     });
 
@@ -87,6 +92,8 @@ describe('<RouteTabs>', () => {
       });
       // setup store with commute modes
       cy.setupTripsStoreWithCommuteModes(useTripsStore);
+      // setup store with register challenge team approval status
+      cy.setupRegisterChallengeTeamApprovalStatus(useRegisterChallengeStore);
       cy.viewport('macbook-16');
     });
 
@@ -113,6 +120,71 @@ describe('<RouteTabs>', () => {
     });
   });
 
+  context('desktop - unapproved user', () => {
+    beforeEach(() => {
+      cy.viewport('macbook-16');
+      cy.mount(RouteTabs, {
+        props: {},
+      });
+      cy.fixture('apiGetThisCampaignMay.json').then((response) => {
+        cy.wrap(useChallengeStore()).then((store) => {
+          store.setDaysActive(response.results[0].days_active);
+          store.setPhaseSet(response.results[0].phase_set);
+        });
+      });
+      // setup store with commute modes
+      cy.setupTripsStoreWithCommuteModes(useTripsStore);
+      // setup user approval status - undecided
+      cy.fixture('apiGetMyTeamResponseUndecided').then((response) => {
+        cy.setupRegisterChallengeTeamApprovalStatus(
+          useRegisterChallengeStore,
+          response,
+        );
+      });
+    });
+
+    it('renders warning banners when user is not approved in team', () => {
+      // initial state
+      cy.url().should('include', routesConf['routes_calendar'].path);
+      // calendar is not visible
+      cy.dataCy('routes-calendar').should('not.exist');
+      cy.dataCy('banner-calendar-not-approved')
+        .should('be.visible')
+        .and('contain', i18n.global.t('routes.hintManualLoggingNotApproved'));
+      // switch to list tab
+      cy.dataCy('route-tabs-button-list').click();
+      cy.url().should('include', routesConf['routes_list'].path);
+      // lists are not visible
+      cy.dataCy('route-list-edit').should('not.exist');
+      cy.dataCy('route-list-display').should('not.exist');
+      // banner is visible
+      cy.dataCy('banner-list-not-approved')
+        .should('be.visible')
+        .and('contain', i18n.global.t('routes.hintManualLoggingNotApproved'));
+      // switch to map tab
+      cy.dataCy('route-tabs-button-map').click();
+      cy.url().should('include', routesConf['routes_map'].path);
+      // map is not visible
+      cy.dataCy('routes-map').should('not.exist');
+      // banner is visible
+      cy.dataCy('banner-map-not-approved')
+        .should('be.visible')
+        .and('contain', i18n.global.t('routes.hintManualLoggingNotApproved'));
+      // switch to app tab
+      cy.dataCy('route-tabs-button-app').click();
+      cy.url().should('include', routesConf['routes_app'].path);
+      // apps are not visible
+      cy.dataCy('routes-apps').should('not.exist');
+      // banner is visible
+      cy.dataCy('banner-apps-not-approved')
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('routes.hintAutomaticLoggingNotApproved'),
+        );
+    });
+  });
+
   context('mobile', () => {
     beforeEach(() => {
       cy.mount(RouteTabs, {
@@ -126,6 +198,8 @@ describe('<RouteTabs>', () => {
       });
       // setup store with commute modes
       cy.setupTripsStoreWithCommuteModes(useTripsStore);
+      // setup store with register challenge team approval status
+      cy.setupRegisterChallengeTeamApprovalStatus(useRegisterChallengeStore);
       cy.viewport('iphone-6');
     });
 
