@@ -52,6 +52,9 @@ export const useResultsStore = defineStore('results', {
         [ResultsReportType.regularity]: i18n.global.t(
           'results.reportType.regularity',
         ),
+        [ResultsReportType.teamRegularityCity]: i18n.global.t(
+          'results.reportType.teamRegularityCity',
+        ),
         [ResultsReportType.performanceCity]: i18n.global.t(
           'results.reportType.performanceCity',
         ),
@@ -134,9 +137,10 @@ export const useResultsStore = defineStore('results', {
         }
         // add staff report types
         if (isUserStaff) {
-          [ResultsReportType.organizationsReview].forEach((type) =>
-            reportTypesPerRole.add(type),
-          );
+          [
+            ResultsReportType.teamRegularityCity,
+            ResultsReportType.organizationsReview,
+          ].forEach((type) => reportTypesPerRole.add(type));
         }
         // prepare requests for all role-specific report types
         for (const type of reportTypesPerRole) {
