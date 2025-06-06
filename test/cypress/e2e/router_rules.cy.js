@@ -1,4 +1,5 @@
 import { routesConf } from '../../../src/router/routes_conf';
+import { defLocale } from '../../../src/i18n/def_locale';
 import {
   fillFormRegisterCoordinator,
   httpSuccessfullStatus,
@@ -9,6 +10,8 @@ import {
   waitForOrganizationsApi,
 } from '../support/commonTests';
 import { OrganizationType } from '../../../src/components/types/Organization';
+import loginTokensTestData from '../../../test/cypress/fixtures/loginTokensTestData.json';
+import AppAccessTestData from '../../../test/cypress/fixtures/appAccessTestData.json';
 
 describe('Router rules', () => {
   context('challenge inactive', () => {
@@ -438,6 +441,186 @@ describe('Router rules', () => {
       );
       // redirects to home page
       cy.dataCy('index-title').should('be.visible');
+    });
+  });
+
+  AppAccessTestData.forEach((test) => {
+    test.dates.forEach((date) => {
+      it(`Access: ${test.description}; ${date}`, () => {
+        cy.viewport('macbook-16');
+        cy.clock(new Date(date), ['Date']);
+        cy.task('getAppConfig', process).then((config) => {
+          if (loginTokensTestData[date]) {
+            cy.fixture(test.fixtureCampaign).then((campaignResponse) => {
+              cy.interceptLoginRefreshAuthTokenVerifyEmailVerifyCampaignPhaseApi(
+                config,
+                defLocale,
+                loginTokensTestData[date].loginResponse,
+                null,
+                loginTokensTestData[date].refreshResponse,
+                null,
+                { has_user_verified_email_address: true },
+                null,
+                campaignResponse,
+                null,
+              );
+            });
+            cy.fixture(test.fixtureRegisterChallenge).then(
+              (registerChallengeResponse) => {
+                cy.interceptRegisterChallengeGetApi(
+                  config,
+                  defLocale,
+                  registerChallengeResponse,
+                );
+              },
+            );
+            cy.fixture(test.fixtureOrganizationAdmin).then(
+              (organizationAdminResponse) => {
+                cy.interceptIsUserOrganizationAdminGetApi(
+                  config,
+                  defLocale,
+                  organizationAdminResponse,
+                );
+              },
+            );
+            cy.interceptMyTeamGetApi(config, defLocale);
+            cy.interceptCitiesGetApi(config, defLocale);
+
+            cy.visit('#' + routesConf['login']['path']);
+            cy.fillAndSubmitLoginForm();
+            cy.wait([
+              '@loginRequest',
+              '@verifyEmailRequest',
+              '@thisCampaignRequest',
+            ]);
+
+            // test access
+            if (test.access === 'challenge_inactive') {
+              // test that we are on challenge inactive page
+              cy.url().should(
+                'include',
+                routesConf['challenge_inactive']['path'],
+              );
+              // test access to other pages
+              cy.verifyRouteAccessDeniedFromInitial(
+                'login',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'verify_email',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'reset_password',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register_challenge',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register_coordinator',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'routes_list',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'results',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'prizes',
+                'challenge_inactive',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'profile_details',
+                'challenge_inactive',
+              );
+            }
+            if (test.access === 'app_full') {
+              // home page title
+              cy.dataCy('index-title').should('be.visible');
+              cy.verifyRouteAccessDeniedFromInitial('login', 'home');
+              cy.verifyRouteAccessDeniedFromInitial('register', 'home');
+              cy.verifyRouteAccessDeniedFromInitial('verify_email', 'home');
+              cy.verifyRouteAccessDeniedFromInitial('reset_password', 'home');
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register_challenge',
+                'home',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register_coordinator',
+                'home',
+              );
+              cy.verifyRouteAccessAllowedFromInitial('prizes', 'home');
+              cy.verifyRouteAccessAllowedFromInitial('profile', 'prizes');
+            }
+            if (test.access === 'register_challenge') {
+              // test that we are on register challenge page
+              cy.url().should(
+                'include',
+                routesConf['register_challenge']['path'],
+              );
+              // test access to other pages
+              cy.verifyRouteAccessDeniedFromInitial(
+                'login',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'verify_email',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'reset_password',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'routes_list',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'results',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'prizes',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessDeniedFromInitial(
+                'profile_details',
+                'register_challenge',
+              );
+              cy.verifyRouteAccessAllowedFromInitial(
+                'register_coordinator',
+                'register_challenge',
+              );
+            }
+            if (test.access === 'app_full_register-challenge') {
+              // home page title
+              cy.dataCy('index-title').should('be.visible');
+              cy.verifyRouteAccessDeniedFromInitial('login', 'home');
+              cy.verifyRouteAccessDeniedFromInitial('register', 'home');
+              cy.verifyRouteAccessDeniedFromInitial('verify_email', 'home');
+              cy.verifyRouteAccessDeniedFromInitial(
+                'register_coordinator',
+                'home',
+              );
+              cy.verifyRouteAccessAllowedFromInitial('prizes', 'home');
+              cy.verifyRouteAccessAllowedFromInitial('profile', 'prizes');
+            }
+          }
+        });
+      });
     });
   });
 });
