@@ -579,6 +579,9 @@ export const timeUntilExpiration = timeUntilRefresh * 2;
 // 2 min before JWT expires
 export const systemTimeLoggedIn =
   fixtureTokenExpirationTime - timeUntilExpiration;
+
+// Timezone offset for local environment
+const timeZoneOffset = -2;
 /**
  * Time before `registration` phase starts
  * Registration phase allows users to register for challenge
@@ -586,9 +589,13 @@ export const systemTimeLoggedIn =
  * The `challenge` phase overlaps is typically contained within
  * the `registration` phase.
  * @see apiGetThisCampaign.json fixture for example
+ * TODO: Replace with timezone-agnostic helper in future refactor.
  */
 export const systemTimeRegistrationPhaseInactive = new Date(
   '2024-07-14T23:59:00.000Z',
+);
+systemTimeRegistrationPhaseInactive.setHours(
+  systemTimeRegistrationPhaseInactive.getHours() + timeZoneOffset,
 );
 /**
  * Time after `registration` phase starts
