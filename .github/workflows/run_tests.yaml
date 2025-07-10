@@ -58,8 +58,7 @@ jobs:
 
       - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -71,8 +70,7 @@ jobs:
 
       - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -84,8 +82,7 @@ jobs:
 
       - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -97,8 +94,7 @@ jobs:
 
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -110,9 +106,8 @@ jobs:
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        #   debug: "cypress:*"
+        # env:
+        #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
           install: false
@@ -123,8 +118,7 @@ jobs:
 
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
