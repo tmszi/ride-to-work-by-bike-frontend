@@ -60,6 +60,7 @@ jobs:
         uses: cypress-io/github-action@v6
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -67,12 +68,14 @@ jobs:
           browser: firefox
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          record: true
           command: yarn test:e2e:ci:firefox
 
       - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -80,12 +83,14 @@ jobs:
           browser: chrome
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          record: true
           command: yarn test:e2e:ci:chrome
 
       - name: Run Cypress e2e test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -93,12 +98,14 @@ jobs:
           browser: edge
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          record: true
           command: yarn test:e2e:ci:edge
 
       - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -106,12 +113,14 @@ jobs:
           browser: firefox
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          record: true
           command: yarn test:component:ci:firefox
 
       - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         #   debug: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -119,12 +128,14 @@ jobs:
           browser: chrome
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          record: true
           command: yarn test:component:ci:chrome
 
       - name: Run Cypress component test on MS Edge/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v6
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
         with:
@@ -132,6 +143,7 @@ jobs:
           browser: edge
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
+          record: true
           command: yarn test:component:ci:edge
 
       - name: Build app
