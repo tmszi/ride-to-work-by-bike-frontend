@@ -17,6 +17,7 @@ module.exports = defineConfig({
   videosFolder: 'test/cypress/videos',
   video: true,
   requestTimeout: 12000,
+  projectId: '7594xk',
   e2e: {
     setupNodeEvents(on, config) {
       addMatchImageSnapshotPlugin(on, config);
