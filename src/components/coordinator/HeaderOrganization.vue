@@ -61,7 +61,7 @@ export default defineComponent({
     <!-- Organization data -->
     <div class="col-12 col-sm row q-col-gutter-x-md">
       <div class="col-auto">
-        <q-avatar data-cy="header-organization-image" size="96px">
+        <q-avatar square size="96px" data-cy="header-organization-image">
           <!-- Image -->
           <q-img
             v-if="organization.image"
@@ -71,12 +71,18 @@ export default defineComponent({
             height="96"
             :alt="organization.image.alt"
           />
-          <!-- Fallback icon -->
-          <q-icon v-else name="mdi-office-building" size="96px" />
+          <!-- Fallback: Icon -->
+          <q-icon
+            v-else
+            color="secondary"
+            name="svguse:icons/drawer_menu/icons.svg#lucide-building"
+            size="96px"
+            data-cy="header-organization-image-icon"
+          />
         </q-avatar>
       </div>
       <div class="col">
-        <div class="q-pt-sm">
+        <div class="q-pt-sm" data-cy="header-organization-data">
           <!-- Title -->
           <h3
             class="text-h5 text-weight-bold q-my-none"
@@ -85,39 +91,35 @@ export default defineComponent({
             {{ organization.title }}
           </h3>
           <!-- Metadata -->
-          <div class="row text-subtitle2">
+          <div class="row text-subtitle2 q-col-gutter-x-lg q-mt-xs">
             <!-- Organization ID -->
-            <q-item dense class="col-auto q-pa-none">
-              <q-item-section v-if="organization.identificationNumber">
-                <!-- Label -->
-                {{ $t('coordinator.labelOrganizationId') }}:
-                {{ organization.identificationNumber }}
-              </q-item-section>
-            </q-item>
+            <div
+              v-if="organization.identificationNumber"
+              class="col-auto q-py-sm"
+            >
+              {{ $t('coordinator.labelOrganizationId') }}:
+              {{ organization.identificationNumber }}
+            </div>
             <!-- Branch -->
-            <q-item dense class="col-auto q-pa-none" v-if="subsidiariesCount">
-              <q-item-section avatar>
-                <!-- Icon -->
-                <q-icon name="mdi-office-building" color="grey-6" size="18px" />
-              </q-item-section>
-              <q-item-section data-cy="header-organization-branch-count">
-                <!-- Label -->
-                {{ subsidiariesCount }}
-                {{ $t('coordinator.labelBranches', subsidiariesCount) }}
-              </q-item-section>
-            </q-item>
+            <q-chip
+              v-if="subsidiariesCount"
+              color="transparent"
+              icon="mdi-office-building"
+              data-cy="header-organization-branch-count"
+            >
+              {{ subsidiariesCount }}
+              {{ $t('coordinator.labelBranches', subsidiariesCount) }}
+            </q-chip>
             <!-- Members -->
-            <q-item dense class="col-auto q-pa-none" v-if="countMembers">
-              <q-item-section avatar>
-                <!-- Icon -->
-                <q-icon name="mdi-account" color="grey-6" size="18px" />
-              </q-item-section>
-              <q-item-section data-cy="header-organization-member-count">
-                <!-- Label -->
-                {{ countMembers }}
-                {{ $t('coordinator.labelMembers', countMembers) }}
-              </q-item-section>
-            </q-item>
+            <q-chip
+              v-if="countMembers"
+              color="transparent"
+              icon="mdi-account"
+              data-cy="header-organization-member-count"
+            >
+              {{ countMembers }}
+              {{ $t('coordinator.labelMembers', countMembers) }}
+            </q-chip>
           </div>
         </div>
       </div>
