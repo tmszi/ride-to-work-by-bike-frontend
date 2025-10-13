@@ -15,6 +15,7 @@ import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
 import routes from './routes';
 import { routesConf } from './routes_conf';
 import { PhaseType } from '../components/types/Challenge';
+import { ROUTE_GROUPS } from '../utils/get_route_groups';
 
 import type { Logger } from '../components/types/Logger';
 
@@ -26,33 +27,8 @@ interface RouterState {
   isRegistrationComplete: boolean;
   isUserOrganizationAdmin: boolean;
   isRegistrationPhaseActive: boolean;
+  hasOrganizationAdmin: boolean;
 }
-
-// defines commonly used route groups
-const ROUTE_GROUPS = {
-  LOGIN: ['login', 'register', 'confirm_email', 'reset_password'],
-  VERIFY_EMAIL: ['verify_email', 'confirm_email'],
-  CHALLENGE_INACTIVE: ['challenge_inactive'],
-  REGISTER_CHALLENGE: ['register_challenge', 'register_coordinator'],
-  FULL_APP_RESTRICTED: [
-    'login',
-    'register',
-    'verify_email',
-    'reset_password',
-    'challenge_inactive',
-    'register_challenge',
-    'register_coordinator',
-  ],
-  ADMIN_FULL_APP_RESTRICTED: [
-    'login',
-    'register',
-    'verify_email',
-    'reset_password',
-    'challenge_inactive',
-    'routes',
-    'register_coordinator',
-  ],
-} as const;
 
 /**
  * Logs the current router state.
@@ -82,6 +58,9 @@ function logRouterState(
   );
   logger?.debug(
     `Router user is organization admin <${state.isUserOrganizationAdmin}>.`,
+  );
+  logger?.debug(
+    `Router organization has admin <${state.hasOrganizationAdmin}>.`,
   );
 }
 
@@ -194,6 +173,8 @@ export default route(function (/* { store, ssrContext } */) {
           registerChallengeStore.getIsRegistrationComplete,
         isUserOrganizationAdmin:
           registerChallengeStore.getIsUserOrganizationAdmin || false,
+        hasOrganizationAdmin:
+          registerChallengeStore.getHasOrganizationAdmin || false,
       };
 
       logRouterState(logger, to, from, state);
@@ -232,21 +213,121 @@ export default route(function (/* { store, ssrContext } */) {
         redirect(logger, routesConf['challenge_inactive']['path'], next);
         return;
       }
-      // Full app access: NO access FULL_APP_RESTRICTED path group
+      // Full app + Routes + Coordinator access:
+      // ONLY access FULL_APP, ROUTES and COORDINATOR path groups
       if (
         state.isAuthenticated &&
         state.isEmailVerified &&
         state.isAppAccessible &&
         state.isRegistrationComplete &&
-        isAccessingRoutes(to, ROUTE_GROUPS.FULL_APP_RESTRICTED, routesConf)
+        state.isUserOrganizationAdmin &&
+        !isAccessingRoutes(
+          to,
+          [
+            ...ROUTE_GROUPS.FULL_APP,
+            ...ROUTE_GROUPS.ROUTES,
+            ...ROUTE_GROUPS.COORDINATOR,
+          ],
+          routesConf,
+        )
       ) {
         logRouteCheck(
           logger,
-          ROUTE_GROUPS.FULL_APP_RESTRICTED,
+          [
+            ...ROUTE_GROUPS.FULL_APP,
+            ...ROUTE_GROUPS.ROUTES,
+            ...ROUTE_GROUPS.COORDINATOR,
+          ],
           routesConf,
           true,
         );
         redirect(logger, routesConf['home']['path'], next);
+        return;
+      }
+      // Full app + Routes + Become Coordinator access:
+      // ONLY access FULL_APP, ROUTES and BECOME_COORDINATOR path groups
+      if (
+        state.isAuthenticated &&
+        state.isEmailVerified &&
+        state.isAppAccessible &&
+        state.isRegistrationComplete &&
+        !state.isUserOrganizationAdmin &&
+        !state.hasOrganizationAdmin &&
+        !isAccessingRoutes(
+          to,
+          [
+            ...ROUTE_GROUPS.FULL_APP,
+            ...ROUTE_GROUPS.ROUTES,
+            ...ROUTE_GROUPS.BECOME_COORDINATOR,
+          ],
+          routesConf,
+        )
+      ) {
+        logRouteCheck(
+          logger,
+          [
+            ...ROUTE_GROUPS.FULL_APP,
+            ...ROUTE_GROUPS.ROUTES,
+            ...ROUTE_GROUPS.BECOME_COORDINATOR,
+          ],
+          routesConf,
+          true,
+        );
+        redirect(logger, routesConf['home']['path'], next);
+        return;
+      }
+      // Full app + Routes access: ONLY access FULL_APP and ROUTES path groups
+      if (
+        state.isAuthenticated &&
+        state.isEmailVerified &&
+        state.isAppAccessible &&
+        state.isRegistrationComplete &&
+        !state.isUserOrganizationAdmin &&
+        state.hasOrganizationAdmin &&
+        !isAccessingRoutes(
+          to,
+          [...ROUTE_GROUPS.FULL_APP, ...ROUTE_GROUPS.ROUTES],
+          routesConf,
+        )
+      ) {
+        logRouteCheck(
+          logger,
+          [...ROUTE_GROUPS.FULL_APP, ...ROUTE_GROUPS.ROUTES],
+          routesConf,
+          true,
+        );
+        redirect(logger, routesConf['home']['path'], next);
+        return;
+      }
+      // Register challenge + Coordinator application access:
+      // ONLY access REGISTER_CHALLENGE and REGISTER_COORDINATOR path groups
+      if (
+        state.isAuthenticated &&
+        state.isEmailVerified &&
+        state.isAppAccessible &&
+        !state.isRegistrationComplete &&
+        !state.isUserOrganizationAdmin &&
+        state.isRegistrationPhaseActive &&
+        !state.hasOrganizationAdmin &&
+        !isAccessingRoutes(
+          to,
+          [
+            ...ROUTE_GROUPS.REGISTER_CHALLENGE,
+            ...ROUTE_GROUPS.REGISTER_COORDINATOR,
+          ],
+          routesConf,
+        )
+      ) {
+        logRouteCheck(
+          logger,
+          [
+            ...ROUTE_GROUPS.REGISTER_CHALLENGE,
+            ...ROUTE_GROUPS.REGISTER_COORDINATOR,
+          ],
+          routesConf,
+          false,
+        );
+        redirect(logger, routesConf['register_challenge']['path'], next);
         return;
       }
       // Register challenge access: ONLY access REGISTER_CHALLENGE path group
@@ -257,6 +338,7 @@ export default route(function (/* { store, ssrContext } */) {
         !state.isRegistrationComplete &&
         !state.isUserOrganizationAdmin &&
         state.isRegistrationPhaseActive &&
+        state.hasOrganizationAdmin &&
         !isAccessingRoutes(to, ROUTE_GROUPS.REGISTER_CHALLENGE, routesConf)
       ) {
         logRouteCheck(
@@ -287,7 +369,8 @@ export default route(function (/* { store, ssrContext } */) {
         redirect(logger, routesConf['challenge_inactive']['path'], next);
         return;
       }
-      // Full app + Register challenge access: NO access ADMIN_FULL_APP_RESTRICTED path group
+      // Full app + Coordinator + Register challenge access:
+      // ONLY access FULL_APP, COORDINATOR and REGISTER_CHALLENGE path groups
       if (
         state.isAuthenticated &&
         state.isEmailVerified &&
@@ -295,22 +378,30 @@ export default route(function (/* { store, ssrContext } */) {
         !state.isRegistrationComplete &&
         state.isUserOrganizationAdmin &&
         state.isRegistrationPhaseActive &&
-        isAccessingRoutes(
+        !isAccessingRoutes(
           to,
-          ROUTE_GROUPS.ADMIN_FULL_APP_RESTRICTED,
+          [
+            ...ROUTE_GROUPS.FULL_APP,
+            ...ROUTE_GROUPS.COORDINATOR,
+            ...ROUTE_GROUPS.REGISTER_CHALLENGE,
+          ],
           routesConf,
         )
       ) {
         logRouteCheck(
           logger,
-          ROUTE_GROUPS.ADMIN_FULL_APP_RESTRICTED,
+          [
+            ...ROUTE_GROUPS.FULL_APP,
+            ...ROUTE_GROUPS.COORDINATOR,
+            ...ROUTE_GROUPS.REGISTER_CHALLENGE,
+          ],
           routesConf,
           true,
         );
         redirect(logger, routesConf['home']['path'], next);
         return;
       }
-      // Full app access: NO access FULL_APP_RESTRICTED path group
+      // Full app + Coordinator access: ONLY access FULL_APP and COORDINATOR path groups
       if (
         state.isAuthenticated &&
         state.isEmailVerified &&
@@ -318,11 +409,15 @@ export default route(function (/* { store, ssrContext } */) {
         !state.isRegistrationComplete &&
         state.isUserOrganizationAdmin &&
         !state.isRegistrationPhaseActive &&
-        isAccessingRoutes(to, ROUTE_GROUPS.FULL_APP_RESTRICTED, routesConf)
+        !isAccessingRoutes(
+          to,
+          [...ROUTE_GROUPS.FULL_APP, ...ROUTE_GROUPS.COORDINATOR],
+          routesConf,
+        )
       ) {
         logRouteCheck(
           logger,
-          ROUTE_GROUPS.FULL_APP_RESTRICTED,
+          [...ROUTE_GROUPS.FULL_APP, ...ROUTE_GROUPS.COORDINATOR],
           routesConf,
           true,
         );

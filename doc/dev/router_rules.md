@@ -17,16 +17,23 @@
 - register challenge (register-challenge, register-coordinator)
 - full app (home, routes, prizes, results, profile)
 
-| Logged in | Email Verified | App Accessible | Registration Complete | User Admin | Registration Active |            Access             |
-| :-------: | :------------: | :------------: | :-------------------: | :--------: | :-----------------: | :---------------------------: |
-|     ✗     |       -        |       -        |           -           |     -      |          -          |             login             |
-|     ✓     |       ✗        |       -        |           -           |     -      |          -          |         verify email          |
-|     ✓     |       ✓        |       ✗        |           -           |     -      |          -          |      challenge inactive       |
-|     ✓     |       ✓        |       ✓        |           ✓           |     -      |          -          |           full app            |
-|     ✓     |       ✓        |       ✓        |           ✗           |     ✗      |          ✓          |      register challenge       |
-|     ✓     |       ✓        |       ✓        |           ✗           |     ✗      |          ✗          |      challenge inactive       |
-|     ✓     |       ✓        |       ✓        |           ✗           |     ✓      |          ✓          | full app + register-challenge |
-|     ✓     |       ✓        |       ✓        |           ✗           |     ✓      |          ✗          |           full app            |
+| Logged in | Email Verified | App Accessible | Registration Complete | Org. coordinator user | Registration Active | Org. has coordinator |       Access       |
+| :-------: | :------------: | :------------: | :-------------------: | :-------------------: | :-----------------: | :------------------: | :----------------: |
+|     ✗     |       -        |       -        |           -           |           -           |          -          |          -           |       login        |
+|     ✓     |       ✗        |       -        |           -           |           -           |          -          |          -           |    verify email    |
+|     ✓     |       ✓        |       ✗        |           -           |           -           |          -          |          -           | challenge inactive |
+|     ✓     |       ✓        |       ✓        |           ✓           |           ✓           |          -          |          -           |      FAR + CO      |
+|     ✓     |       ✓        |       ✓        |           ✓           |           ✗           |          -          |          ✗           |      FAR + BC      |
+|     ✓     |       ✓        |       ✓        |           ✓           |           ✗           |          -          |          ✓           |        FAR         |
+|     ✓     |       ✓        |       ✓        |           ✗           |           ✗           |          ✓          |          ✗           |     RCH + RCO      |
+|     ✓     |       ✓        |       ✓        |           ✗           |           ✗           |          ✓          |          ✓           |        RCH         |
+|     ✓     |       ✓        |       ✓        |           ✗           |           ✗           |          ✗          |          -           | challenge inactive |
+|     ✓     |       ✓        |       ✓        |           ✗           |           ✓           |          ✓          |          -           |   FA + CO + RCH    |
+|     ✓     |       ✓        |       ✓        |           ✗           |           ✓           |          ✗          |          -           |      FA + CO       |
 
-- User Admin decides on further access inside the full app access (company coordinator), but this is not yet implemented via router rules.
-- Access "full app + register-challenge" only allows register-challenge route (not register-coordinator).
+- FAR - full app access with routes
+- FA - full app access without routes (organization coordinator who does not participate)
+- RCH - register challenge
+- RCO - register organization coordinator
+- CO - organization coordinator
+- BC - become organization coordinator
