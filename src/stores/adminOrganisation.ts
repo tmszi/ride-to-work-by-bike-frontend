@@ -24,9 +24,13 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
   getters: {
     getAdminOrganisations: (state) => state.adminOrganisations,
     getIsLoading: (state) => state.isLoading,
+    getCurrentAdminOrganisation: (state) => state.adminOrganisations[0],
   },
 
   actions: {
+    setAdminOrganisations(adminOrganisations: AdminOrganisation[]): void {
+      this.adminOrganisations = adminOrganisations;
+    },
     /**
      * Load admin organisations from API
      * @returns {Promise<void>}
@@ -36,13 +40,12 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
         useApiGetAdminOrganisation(this.$log);
       this.isLoading = true;
       await loadAdminOrganisations();
-      this.adminOrganisations = organisations.value;
+      this.setAdminOrganisations(organisations.value);
       this.$log?.debug(
         `Admin organisations loaded <${JSON.stringify(this.adminOrganisations, null, 2)}>.`,
       );
       this.isLoading = false;
     },
-
     /**
      * Clear all store data
      * @returns {void}
