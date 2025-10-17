@@ -50,7 +50,7 @@ contactEmail = "kontakt@dopracenakole.cz"
 
 urlRTWBBLogo = "#/"
 urlLoginRegisterBackgroundImage = "/image/login-register-layout.webp"
-urlBaseBackend = "https://dpnk2019.dopracenakole.cz/"
+urlBaseBackend = "https://test.dopracenakole.cz/"
 
 # EXTERNAL URLS
 
