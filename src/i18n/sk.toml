@@ -261,6 +261,7 @@ tabAttendance = "Účasť"
 tabChallenges = "Firemné výzvy"
 tabResults = "Výsledky"
 textBannerReminder = "Oznámili ste spoločnosti, že ste koordinátor?"
+textClickToCopy = "Skopírovať do schránky"
 textCompanyCoordinatorDisabled = "Portál pre firemných koordinátorov nájdete po prihlásení v starom systéme <a href='{url}' target='_blank'>Do práce na bicykli</a>."
 titleCompanyCoordinator = "Firemní koordinátor"
 
@@ -707,6 +708,9 @@ emailUpdateWrongPassword = "Nepovedlo sa overiť prihlasovacie údaje. Pravdepod
 geolocationError = "Chyba pri pokuse o určenie polohy: {error}"
 geolocationNotSupported = "Váš prehliadač nepodporuje geolokáciu."
 noRouteSelected = "Nie je vybraná žiadna trasa na zaznamenanie."
+clipboardApiNotAvailable = "Funkcia kopírovania do schránky nie je k dispozícii"
+copiedToClipboard = "Skopírované do schránky"
+copyFailed = "Nepodarilo sa skopírovať do schránky"
 
 [notifications]
 buttonMarkAllAsRead = "Označiť všetko ako prečítané"

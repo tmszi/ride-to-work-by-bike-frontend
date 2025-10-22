@@ -261,6 +261,7 @@ tabAttendance = "Attendance"
 tabChallenges = "Company challenges"
 tabResults = "Results"
 textBannerReminder = "Have you notified the company that you are a coordinator?"
+textClickToCopy = "Copy to clipboard"
 textCompanyCoordinatorDisabled = "The management options for company coordinators are available in the old system <a href='{url}' target='_blank'>Ride to Work by Bike</a>."
 titleCompanyCoordinator = "Company coordinator"
 
@@ -705,6 +706,9 @@ emailUpdateWrongPassword = "Failed to verify login credentials. Probably you ent
 geolocationError = "Error in geolocation attempt: {error}"
 geolocationNotSupported = "Your browser does not support geolocation."
 noRouteSelected = "No route to log is selected."
+clipboardApiNotAvailable = "Clipboard copy function is not available"
+copiedToClipboard = "Copied to clipboard"
+copyFailed = "Failed to copy to clipboard"
 
 [notifications]
 buttonMarkAllAsRead = "Mark all as read"
