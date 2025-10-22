@@ -6,6 +6,10 @@
  * approval.
  * Shown on `CompanyCoordinatoFees` page.
  *
+ * @props
+ * - `approved` (bool, optional): To showing fee not approved/approved team members.
+ *                                Defaults to `false`.
+ *
  * @example
  * <table-fee-approval />
  *
@@ -14,43 +18,64 @@
 
 // libraries
 import { QTable } from 'quasar';
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, nextTick, onMounted, ref, watch } from 'vue';
 
 // composables
-import { useTable, useTableFeeApproval } from '../../composables/useTable';
+import {
+  paginationLabel,
+  useTable,
+  useTableFeeApproval,
+} from '../../composables/useTable';
+import { useTableFeeApprovalData } from '../../composables/useTableFeeApprovalData';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
-// fixtures
-import tableFeeApproval from '../../../test/cypress/fixtures/tableFeeApproval.json';
-
 export default defineComponent({
   name: 'TableFeeApproval',
+  props: {
+    approved: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
-  setup() {
+  setup(props) {
     // holds an array of currently selected rows
     const selected = ref([]);
     const tableRef = ref<QTable | null>(null);
+
+    const { columns, visibleColumns } = useTableFeeApproval();
+    const { sortByAddress } = useTable();
+    const { feeApprovalData } = useTableFeeApprovalData(props.approved);
+
     // sort by dateCreated initially
     onMounted(() => {
       if (tableRef.value) {
         tableRef.value.sort('dateCreated');
       }
     });
-
-    const { columns, visibleColumns } = useTableFeeApproval();
-    const { sortByAddress } = useTable();
+    watch(
+      () => feeApprovalData.value,
+      () => {
+        nextTick(() => {
+          if (tableRef.value) {
+            tableRef.value.sort('dateCreated');
+          }
+        });
+      },
+    );
 
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
 
     return {
       borderRadius,
       columns,
+      feeApprovalData,
       selected,
-      tableFeeApproval,
       tableRef,
       visibleColumns,
+      paginationLabel,
       sortByAddress,
     };
   },
@@ -75,14 +100,19 @@ export default defineComponent({
         flat
         bordered
         binary-state-sort
-        :rows="tableFeeApproval"
+        :rows="feeApprovalData"
         :columns="columns"
         :visible-columns="visibleColumns"
         row-key="name"
         :sort-method="sortByAddress"
-        selection="multiple"
+        :selection="approved ? 'none' : 'multiple'"
         v-model:selected="selected"
         :style="{ borderRadius }"
+        :no-data-label="$t('table.textNoData')"
+        :no-results-label="$t('table.textNoResults')"
+        :loading-label="$t('table.textLoading')"
+        :rows-per-page-label="$t('table.textRowsPerPage')"
+        :pagination-label="paginationLabel"
         data-cy="table-fee-approval-table"
       >
         <template v-slot:body="props">
@@ -92,7 +122,7 @@ export default defineComponent({
             class="bg-primary text-weight-bold text-white"
             data-cy="table-fee-approval-address-header"
           >
-            <q-td colspan="7">
+            <q-td :colspan="approved ? 6 : 7">
               {{ props.row.address }}
             </q-td>
           </q-tr>
@@ -103,7 +133,7 @@ export default defineComponent({
             data-cy="table-fee-approval-row"
           >
             <!-- Checkbox -->
-            <q-td>
+            <q-td v-if="!approved">
               <q-checkbox
                 v-model="props.selected"
                 color="primary"
@@ -148,18 +178,15 @@ export default defineComponent({
               :props="props"
               data-cy="table-fee-approval-date"
             >
-              <!-- Loop over data to get formatted content -->
-              <template v-for="col in props.cols" :key="col.field">
-                <span v-if="col.field === 'dateCreated'">
-                  {{ col.value }}
-                </span>
+              <template v-if="props.row.dateCreated">
+                {{ $d(new Date(props.row.dateCreated), 'numeric') }}
               </template>
             </q-td>
           </q-tr>
         </template>
       </q-table>
     </div>
-    <div class="q-mt-lg text-right">
+    <div v-if="!approved" class="q-mt-lg text-right">
       <!-- Button: Approve selected -->
       <q-btn
         rounded
