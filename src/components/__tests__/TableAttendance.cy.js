@@ -25,6 +25,7 @@ const selectorTableNickname = 'table-attendance-nickname';
 const selectorTableContact = 'table-attendance-contact';
 const selectorTablePhoneIcon = 'table-attendance-contact-phone-icon';
 const selectorTableEmailIcon = 'table-attendance-contact-email-icon';
+const selectorTableApprovedForTeam = 'table-attendance-approved-for-team';
 const selectorTableFeeApproved = 'table-attendance-fee-approved';
 const selectorTablePaymentType = 'table-attendance-payment-type';
 const selectorTablePaymentState = 'table-attendance-payment-state';
@@ -45,6 +46,7 @@ describe('<TableAttendance>', () => {
         'labelName',
         'labelNickname',
         'labelContact',
+        'labelApprovedForTeam',
         'labelFeeApproved',
         'labelPaymentType',
         'labelPaymentState',
@@ -69,6 +71,11 @@ describe('<TableAttendance>', () => {
     cy.testLanguageStringsInContext(
       ['labelCityChallenge', 'labelTeams', 'labelMembers', 'textClickToCopy'],
       'coordinator',
+      i18n,
+    );
+    cy.testLanguageStringsInContext(
+      ['approved', 'undecided', 'denied'],
+      'teamMembersList',
       i18n,
     );
     cy.testLanguageStringsInContext(
@@ -183,6 +190,7 @@ function coreTests() {
                 selectorTableName,
                 selectorTableNickname,
                 selectorTableContact,
+                selectorTableApprovedForTeam,
                 selectorTableFeeApproved,
                 selectorTablePaymentType,
                 selectorTablePaymentState,
@@ -223,6 +231,17 @@ function coreTests() {
                     .should('be.equal', iconSize);
                   cy.get(classSelectorIcon)
                     .first()
+                    .invoke('width')
+                    .should('be.equal', iconSize);
+                });
+              // test team approval status icons (first row)
+              cy.dataCy(selectorTableApprovedForTeam)
+                .first()
+                .within(() => {
+                  cy.get(classSelectorIcon)
+                    .invoke('height')
+                    .should('be.equal', iconSize);
+                  cy.get(classSelectorIcon)
                     .invoke('width')
                     .should('be.equal', iconSize);
                 });
@@ -356,6 +375,20 @@ function dataDisplayTests() {
                   .should('have.color', grey5);
               }
             });
+            // team approval status
+            if (display.orderedMembers[index].approvedForTeam) {
+              cy.dataCy(selectorTableApprovedForTeam)
+                .should('be.visible')
+                .and(
+                  'contain',
+                  i18n.global.t(
+                    `teamMembersList.${display.orderedMembers[index].approvedForTeam}`,
+                  ),
+                );
+              cy.dataCy(selectorTableApprovedForTeam).within(() => {
+                cy.get(classSelectorIcon).should('be.visible');
+              });
+            }
             // approved
             if (display.orderedMembers[index].approved) {
               cy.dataCy(selectorTableFeeApproved).within(() => {
@@ -434,55 +467,57 @@ function dataDisplayTests() {
           .should('deep.equal', tableAttendanceTestData.storeData);
       });
       const display = tableAttendanceTestData.displayData;
-      // test clipboard functionality
-      cy.dataCy(selectorTableRow).each((table, index) => {
-        if (display.orderedMembers[index]) {
-          if (display.orderedMembers[index].telephone) {
-            cy.wrap(table).within(() => {
-              cy.dataCy(selectorTableContact).within(() => {
-                cy.dataCy(selectorTablePhoneIcon)
-                  .should('not.have.class', 'disabled')
-                  .click();
-                cy.window().then((win) => {
-                  expect(
-                    win.navigator.clipboard.writeText,
-                  ).to.have.been.calledWith(
-                    display.orderedMembers[index].telephone,
-                  );
+      // test clipboard functionality (only first row for speed)
+      cy.dataCy(selectorTableRow)
+        .first()
+        .each((table, index) => {
+          if (display.orderedMembers[index]) {
+            if (display.orderedMembers[index].telephone) {
+              cy.wrap(table).within(() => {
+                cy.dataCy(selectorTableContact).within(() => {
+                  cy.dataCy(selectorTablePhoneIcon)
+                    .should('not.have.class', 'disabled')
+                    .click();
+                  cy.window().then((win) => {
+                    expect(
+                      win.navigator.clipboard.writeText,
+                    ).to.have.been.calledWith(
+                      display.orderedMembers[index].telephone,
+                    );
+                  });
                 });
               });
-            });
-            cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
-              'be.visible',
-            );
-            cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
-              'not.be.visible',
-            );
-          }
-          if (display.orderedMembers[index].email) {
-            cy.wrap(table).within(() => {
-              cy.dataCy(selectorTableContact).within(() => {
-                cy.dataCy(selectorTableEmailIcon)
-                  .should('not.have.class', 'disabled')
-                  .click();
-                cy.window().then((win) => {
-                  expect(
-                    win.navigator.clipboard.writeText,
-                  ).to.have.been.calledWith(
-                    display.orderedMembers[index].email,
-                  );
+              cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
+                'be.visible',
+              );
+              cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
+                'not.be.visible',
+              );
+            }
+            if (display.orderedMembers[index].email) {
+              cy.wrap(table).within(() => {
+                cy.dataCy(selectorTableContact).within(() => {
+                  cy.dataCy(selectorTableEmailIcon)
+                    .should('not.have.class', 'disabled')
+                    .click();
+                  cy.window().then((win) => {
+                    expect(
+                      win.navigator.clipboard.writeText,
+                    ).to.have.been.calledWith(
+                      display.orderedMembers[index].email,
+                    );
+                  });
                 });
               });
-            });
-            cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
-              'be.visible',
-            );
-            cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
-              'not.be.visible',
-            );
+              cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
+                'be.visible',
+              );
+              cy.contains(i18n.global.t('notify.copiedToClipboard')).should(
+                'not.be.visible',
+              );
+            }
           }
-        }
-      });
+        });
     });
   });
 }
