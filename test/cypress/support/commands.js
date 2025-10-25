@@ -29,6 +29,9 @@
 import { registerCommands } from '@quasar/quasar-app-extension-testing-e2e-cypress';
 registerCommands();
 
+// Import modular command files
+import './commands/coordinator_commands';
+
 import { computed } from 'vue';
 import {
   failOnStatusCode,
@@ -4082,6 +4085,56 @@ Cypress.Commands.add(
     cy.dataCy('company-coordinator-title').should('be.visible');
   },
 );
+
+/**
+ * Setup test environment for coordinator fee approval tests
+ * Sets up API intercepts, performs login, and navigates to coordinator fees page
+ * @param {Object} config - App configuration object
+ */
+Cypress.Commands.add('setupCoordinatorFeeApprovalTest', (config, i18n) => {
+  cy.fixture('apiGetRegisterChallengeProfile.json').then(
+    (registerChallengeResponse) => {
+      // register challenge API
+      cy.interceptRegisterChallengeGetApi(
+        config,
+        i18n,
+        registerChallengeResponse,
+      );
+      // has organization admin API
+      cy.fixture('apiGetHasOrganizationAdminResponseTrue.json').then(
+        (response) => {
+          cy.interceptHasOrganizationAdminGetApi(
+            config,
+            i18n,
+            registerChallengeResponse.results[0].organization_id,
+            response,
+          );
+        },
+      );
+      // is user organization admin API
+      cy.fixture('apiGetIsUserOrganizationAdminResponseTrue.json').then(
+        (response) => {
+          cy.interceptIsUserOrganizationAdminGetApi(config, i18n, response);
+        },
+      );
+    },
+  );
+  // organization structure API
+  cy.interceptAdminOrganisationGetApi(
+    config,
+    'apiGetAdminOrganisationResponse.json',
+  );
+  // invoices API
+  cy.interceptCoordinatorInvoicesGetApi(
+    config,
+    'apiGetCoordinatorInvoicesResponse.json',
+  );
+  // login and navigate to coordinator fees page
+  cy.performAuthenticatedLogin(config, i18n);
+  cy.visit('#' + routesConf['coordinator_fees']['children']['fullPath']);
+  cy.dataCy('table-fee-approval-not-approved-title').should('be.visible');
+  cy.dataCy('table-fee-approval-approved-title').should('be.visible');
+});
 
 /**
  * Test that all routes in the given route groups are accessible
