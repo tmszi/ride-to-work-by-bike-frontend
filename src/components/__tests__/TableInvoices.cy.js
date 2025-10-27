@@ -1,5 +1,4 @@
 import { colors } from 'quasar';
-import { computed } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import TableInvoices from 'components/coordinator/TableInvoices.vue';
 import { i18n } from '../../boot/i18n';
@@ -14,7 +13,6 @@ const primary = getPaletteColor('primary');
 
 // selectors
 const selectorTableInvoices = 'table-invoices';
-const selectorTableTitle = 'table-invoices-title';
 const selectorTable = 'table-invoices-table';
 const selectorTableRow = 'table-invoices-row';
 const selectorTableExposureDate = 'table-invoices-exposure-date';
@@ -38,11 +36,14 @@ describe('<TableInvoices>', () => {
         'labelIssueDate',
         'labelOrderNumber',
         'labelFiles',
-        // 'labelVariableSymbol', // string is identical in all languages
         'labelPaymentCount',
         'labelAmountIncludingVat',
         'labelConfirmationDate',
         'labelNotConfirmed',
+        'textNoData',
+        'textNoResults',
+        'textLoading',
+        'textRowsPerPage',
       ],
       'table',
       i18n,
@@ -76,20 +77,13 @@ function coreTests() {
   it('loads data from store and displays the table', () => {
     // initiate store state
     cy.wrap(useAdminOrganisationStore()).then((adminOrganisationStore) => {
-      const adminInvoices = computed(
-        () => adminOrganisationStore.getAdminInvoices,
-      );
-      adminOrganisationStore.setAdminInvoices(testData.storeData);
-      cy.wrap(adminInvoices)
-        .its('value')
-        .should('deep.equal', testData.storeData);
+      cy.setAdminOrganisationStoreState({
+        store: adminOrganisationStore,
+        invoices: testData.storeData,
+      });
     });
     // test DOM component
     cy.dataCy(selectorTableInvoices).should('exist').and('be.visible');
-    // title
-    cy.dataCy(selectorTableTitle)
-      .should('be.visible')
-      .and('contain', i18n.global.t('table.titleInvoices'));
     // table
     cy.dataCy(selectorTable)
       .should('be.visible')

@@ -21,6 +21,10 @@ apiMessageSuccessWithCount = "Platby potvrdené pre {count} účastníc*kov. | P
 period = "Obdobie výzvy"
 transportType = "Spôsoby dopravy"
 
+[bannerInfo]
+title = "Spôsob platby"
+text = "<p>Pri platení štartovného postupujte nasledovne:</p><ol><li>Pre každú faktúru vytvorte samostatný prevod.</li><li>Starostlivo z faktúry opíšte <b>číslo účtu</b>.</li><li>Zadajte <b>variabilný symbol</b> z tabuľky nižšie. V opačnom prípade neručíme za úspešné prijatie.</li></ol>"
+
 [bannerTeamMemberApprove]
 buttonApproveMembers = "Schváliť členov"
 buttonDialogApprove = "Schváliť"
@@ -258,6 +262,8 @@ titleBecomeCoordinator = "Staňte sa firemným koordinátorom"
 [coordinator]
 buttonBannerReminderConfirm = "Oznámil"
 buttonBannerReminderDismiss = "Zatiaľ neoznámil"
+buttonCreateInvoice = "Vystaviť novú faktúru"
+buttonDialogCreateInvoice = "Vystaviť faktúru"
 buttonExportMembers = "Exportovať členy"
 labelBranches = "pobočiek | pobočka | pobočky | pobočiek"
 labelCityChallenge = "Súťažné mesto"
@@ -276,6 +282,7 @@ textBannerReminder = "Oznámili ste spoločnosti, že ste koordinátor?"
 textClickToCopy = "Skopírovať do schránky"
 textCompanyCoordinatorDisabled = "Portál pre firemných koordinátorov nájdete po prihlásení v starom systéme <a href='{url}' target='_blank'>Do práce na bicykli</a>."
 titleCompanyCoordinator = "Firemní koordinátor"
+titleCreateInvoice = "Vystaviť novú faktúru"
 
 [createOrganization]
 apiMessageError = "Vytvorenie organizácie zlyhalo."
