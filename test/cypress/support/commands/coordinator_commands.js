@@ -26,13 +26,14 @@ Cypress.Commands.add(
       }
       if (organizations) {
         const adminOrganizations = computed(
-          () => adminOrganisationStore.getOrganizations,
+          () => adminOrganisationStore.getAdminOrganisations,
         );
-        adminOrganisationStore.setOrganizations(organizations);
+        adminOrganisationStore.setAdminOrganisations(organizations);
         cy.wrap(adminOrganizations)
           .its('value')
           .should('deep.equal', organizations);
       }
+      adminOrganisationStore.initializeSelectedMembers();
     });
   },
 );

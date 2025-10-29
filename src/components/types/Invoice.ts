@@ -36,3 +36,18 @@ export interface GetCoordinatorInvoicesResponse {
   previous: string | null;
   results: InvoiceResult[];
 }
+
+export interface InvoiceTeamMember {
+  id: number;
+  name: string;
+  teamId: number;
+  payment: {
+    amount: number;
+  };
+}
+
+export interface InvoiceTeam {
+  id: number;
+  name: string;
+  members: InvoiceTeamMember[];
+}
