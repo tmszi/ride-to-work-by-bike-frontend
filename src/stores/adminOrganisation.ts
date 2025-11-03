@@ -7,6 +7,13 @@ import { i18n } from '../boot/i18n';
 import { useApiGetAdminOrganisation } from '../composables/useApiGetAdminOrganisation';
 import { useApiGetCoordinatorInvoices } from '../composables/useApiGetCoordinatorInvoices';
 import { useApiPostCoordinatorApprovePayments } from '../composables/useApiPostCoordinatorApprovePayments';
+import { useApiPostCoordinatorMakeInvoice } from '../composables/useApiPostCoordinatorMakeInvoice';
+
+// enums
+import { PhaseType } from '../components/types/Challenge';
+
+// stores
+import { useChallengeStore } from './challenge';
 
 // types
 import type { Logger } from '../components/types/Logger';
@@ -121,10 +128,11 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
           }
           const invoiceTeam = teamsMap.get(team.id)!;
           invoiceTeam.members.push({
-            id: member.user_profile_id,
+            id: member.id,
             name: member.name,
             teamId: team.id,
             payment: {
+              id: payment.id,
               amount: payment.amount,
             },
           });
@@ -132,6 +140,14 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
       });
 
       return Array.from(teamsMap.values());
+    },
+    // check if there are payments to invoice
+    getHasPaymentsToInvoice: (state): boolean => {
+      const invoiceResult = state.adminInvoices[0];
+      if (!invoiceResult || !invoiceResult.payments_to_invoice) {
+        return false;
+      }
+      return invoiceResult.payments_to_invoice.length > 0;
     },
   },
 
@@ -218,6 +234,52 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
       this.isLoadingApprovePayments = false;
     },
     /**
+     * Create invoice from internal form state
+     * @returns {Promise<boolean>} - Success status
+     */
+    async createInvoice(): Promise<boolean> {
+      // get payment ids from selected members
+      const paymentIds: number[] = [];
+      Object.values(this.invoiceForm.selectedMembers).forEach((memberIds) => {
+        paymentIds.push(...memberIds);
+      });
+      // if no payments available or no payments selected, return
+      if (!this.getHasPaymentsToInvoice || !paymentIds.length) {
+        Notify.create({
+          message: i18n.global.t(
+            'makeInvoice.apiMessageErrorNoPaymentsToInvoice',
+          ),
+          color: 'negative',
+        });
+        return false;
+      }
+      const challengeStore = useChallengeStore();
+      if (!challengeStore.getIsChallengeInPhase(PhaseType.invoices)) {
+        Notify.create({
+          message: i18n.global.t(
+            'makeInvoice.apiMessageErrorNotInInvoicesPhase',
+          ),
+          color: 'negative',
+        });
+        return false;
+      }
+      const { makeInvoice } = useApiPostCoordinatorMakeInvoice(this.$log);
+      const result = await makeInvoice({
+        // when set to undefined, field is not sent in the request
+        order_number: this.invoiceForm.orderNumber || undefined,
+        client_note: this.invoiceForm.orderNote || undefined,
+        company_pais_benefitial_fee:
+          this.invoiceForm.isDonorEntryFee || undefined,
+        payment_ids: paymentIds,
+      });
+      // if successful, refetch invoices list
+      if (result) {
+        await this.loadAdminInvoices();
+        return true;
+      }
+      return false;
+    },
+    /**
      * Reset invoice form to initial state
      * @returns {void}
      */
@@ -239,7 +301,9 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
       const teams = this.getInvoiceTeams;
       teams.forEach((team) => {
         // set selected value for each member in the team
-        newSelectedMembers[team.id] = team.members.map((member) => member.id);
+        newSelectedMembers[team.id] = team.members.map(
+          (member) => member.payment.id,
+        );
       });
       this.invoiceForm.selectedMembers = newSelectedMembers;
     },

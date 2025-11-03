@@ -18,7 +18,7 @@
 
 // libraries
 import { QForm } from 'quasar';
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, ref } from 'vue';
 
 // components
 import BannerInfo from '../global/BannerInfo.vue';
@@ -26,8 +26,12 @@ import DialogDefault from '../global/DialogDefault.vue';
 import FormCreateInvoice from '../form/FormCreateInvoice.vue';
 import TableInvoices from './TableInvoices.vue';
 
+// enums
+import { PhaseType } from '../types/Challenge';
+
 // stores
 import { useAdminOrganisationStore } from 'src/stores/adminOrganisation';
+import { useChallengeStore } from 'src/stores/challenge';
 
 export default defineComponent({
   name: 'TabCoordinatorInvoices',
@@ -55,15 +59,41 @@ export default defineComponent({
     };
 
     const onSubmit = async (): Promise<void> => {
-      // TODO: Implement submit logic
+      const success = await adminOrganisationStore.createInvoice();
+      if (success) {
+        closeDialog();
+      }
     };
     const onReset = (): void => {
       closeDialog();
     };
 
+    const hasPaymentsToInvoice = computed<boolean>(() => {
+      return adminOrganisationStore.getHasPaymentsToInvoice;
+    });
+
+    const hasSelectedPaymentsToInvoice = computed<boolean>(() => {
+      return (
+        Object.values(
+          adminOrganisationStore.invoiceForm.selectedMembers,
+        ).reduce((acc, memberIds) => {
+          acc.push(...memberIds);
+          return acc;
+        }, []).length > 0
+      );
+    });
+
+    const isInvoicesPhaseActive = computed<boolean>(() => {
+      const challengeStore = useChallengeStore();
+      return challengeStore.getIsChallengeInPhase(PhaseType.invoices);
+    });
+
     return {
       formCreateInvoiceRef,
+      hasPaymentsToInvoice,
+      hasSelectedPaymentsToInvoice,
       isDialogOpen,
+      isInvoicesPhaseActive,
       onReset,
       onSubmit,
       openDialog,
@@ -90,6 +120,7 @@ export default defineComponent({
         color="primary"
         unelevated
         rounded
+        :disabled="!hasPaymentsToInvoice || !isInvoicesPhaseActive"
         @click.prevent="openDialog"
         data-cy="button-create-invoice"
       >
@@ -126,6 +157,7 @@ export default defineComponent({
                 rounded
                 unelevated
                 color="primary"
+                :disable="!hasSelectedPaymentsToInvoice"
                 data-cy="dialog-button-submit"
               >
                 {{ $t('coordinator.buttonDialogCreateInvoice') }}
