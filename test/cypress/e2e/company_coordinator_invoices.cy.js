@@ -5,6 +5,13 @@ import {
 } from '../support/commonTests';
 import testSet from '../fixtures/coordinatorInvoicesTest.json';
 
+const customBillingDetails = {
+  street: 'New Street',
+  streetNumber: '123',
+  city: 'New City',
+  zip: '12345',
+};
+
 describe('Company coordinator invoices page', () => {
   context('previewing invoices', () => {
     beforeEach(() => {
@@ -191,6 +198,254 @@ describe('Company coordinator invoices page', () => {
         .find('.q-checkbox__inner')
         .click();
       cy.dataCy('dialog-button-submit').should('be.enabled');
+    });
+
+    context('custom billing details', () => {
+      beforeEach(() => {
+        cy.get('@i18n').then((i18n) => {
+          cy.dataCy('button-create-invoice').click();
+          cy.dataCy('dialog-create-invoice').should('be.visible');
+          cy.dataCy('dialog-header').should(
+            'contain',
+            i18n.global.t('coordinator.titleCreateInvoice'),
+          );
+          cy.dataCy('form-create-invoice-confirm-billing-details')
+            .find('.q-toggle__inner')
+            .click();
+          cy.dataCy('form-create-invoice-billing-expansion').should(
+            'be.visible',
+          );
+          cy.dataCy('form-create-invoice-billing-expansion').should(
+            'contain',
+            i18n.global.t('form.textEditBillingDetails'),
+          );
+          cy.dataCy('form-create-invoice-billing-expansion').should(
+            'contain',
+            i18n.global.t('form.linkEditBillingDetails'),
+          );
+          cy.dataCy('form-create-invoice-billing-expansion-content').should(
+            'not.be.visible',
+          );
+          cy.dataCy('form-create-invoice-billing-expansion').click();
+          cy.dataCy('form-create-invoice-billing-expansion-content').should(
+            'be.visible',
+          );
+          cy.fixture('apiGetAdminOrganisationResponse.json').then(
+            (response) => {
+              const organization = response.results[0];
+              // test existing street
+              cy.dataCy('form-invoice-billing-street-input')
+                .should('be.visible')
+                .and('have.value', organization.street);
+              cy.dataCy('form-invoice-billing-street-input').clear();
+              // enter custom stret
+              cy.dataCy('form-invoice-billing-street-input').type(
+                customBillingDetails.street,
+              );
+              // test existing street number
+              cy.dataCy('form-invoice-billing-houseNumber-input')
+                .should('be.visible')
+                .and('have.value', organization.street_number);
+              cy.dataCy('form-invoice-billing-houseNumber-input').clear();
+              // enter custom street number
+              cy.dataCy('form-invoice-billing-houseNumber-input').type(
+                customBillingDetails.streetNumber,
+              );
+              // test existing city
+              cy.dataCy('form-invoice-billing-city-input')
+                .should('be.visible')
+                .and('have.value', organization.city);
+              cy.dataCy('form-invoice-billing-city-input').clear();
+              // enter custom city
+              cy.dataCy('form-invoice-billing-city-input').type(
+                customBillingDetails.city,
+              );
+              // test existing zip
+              cy.dataCy('form-invoice-billing-zip-input')
+                .should('be.visible')
+                .invoke('val')
+                .then((value) => {
+                  expect(value.replace(/\s/g, '')).to.be.equal(
+                    organization.psc.toString(),
+                  );
+                });
+              cy.dataCy('form-invoice-billing-zip-input').clear();
+              // enter custom zip
+              cy.dataCy('form-invoice-billing-zip-input').type(
+                customBillingDetails.zip,
+              );
+            },
+          );
+        });
+      });
+
+      it('allows to edit billing details', () => {
+        cy.get('@config').then((config) => {
+          cy.fixture('apiGetAdminOrganisationResponse.json').then(
+            (response) => {
+              const organization = response.results[0];
+              // intercept API calls
+              cy.interceptCoordinatorMakeInvoicePostApi(config, {
+                invoice_id: 82,
+              });
+              cy.interceptCoordinatorInvoicesGetApi(
+                config,
+                'apiGetCoordinatorInvoicesResponseAddedInvoice.json',
+              );
+              // submit the form
+              cy.dataCy('dialog-button-submit').click();
+              cy.waitForCoordinatorMakeInvoicePostApi(
+                {
+                  payment_ids: [178],
+                  company_name: organization.name,
+                  company_address: {
+                    psc: customBillingDetails.zip,
+                    street: customBillingDetails.street,
+                    street_number: customBillingDetails.streetNumber,
+                    city: customBillingDetails.city,
+                  },
+                },
+                {
+                  invoice_id: 82,
+                },
+              );
+              cy.dataCy('form-create-invoice').should('not.exist');
+            },
+          );
+        });
+      });
+
+      it('does not send billing details when section is collapsed', () => {
+        cy.get('@config').then((config) => {
+          // collapse the section
+          cy.dataCy('form-create-invoice-billing-discard').click();
+          // wait for section to be collapsed
+          cy.dataCy('form-create-invoice-billing-expansion-content').should(
+            'not.be.visible',
+          );
+          // intercept API calls
+          cy.interceptCoordinatorMakeInvoicePostApi(config, {
+            invoice_id: 82,
+          });
+          cy.interceptCoordinatorInvoicesGetApi(
+            config,
+            'apiGetCoordinatorInvoicesResponseAddedInvoice.json',
+          );
+          // submit the form
+          cy.dataCy('dialog-button-submit').click();
+          cy.waitForCoordinatorMakeInvoicePostApi(
+            {
+              payment_ids: [178],
+            },
+            {
+              invoice_id: 82,
+            },
+          );
+          cy.dataCy('form-create-invoice').should('not.exist');
+        });
+      });
+
+      it('resets billing details when collapse is reopened', () => {
+        cy.fixture('apiGetAdminOrganisationResponse.json').then((response) => {
+          const organization = response.results[0];
+          // reopen the section
+          cy.dataCy('form-create-invoice-billing-discard').click();
+          // wait for section to be collapsed
+          cy.dataCy('form-create-invoice-billing-expansion-content').should(
+            'not.be.visible',
+          );
+          // reopen the section
+          cy.dataCy('form-create-invoice-billing-expansion').click();
+          // wait for section to be reopened
+          cy.dataCy('form-create-invoice-billing-expansion-content').should(
+            'be.visible',
+          );
+          // test existing street name
+          cy.dataCy('form-invoice-billing-street-input')
+            .should('be.visible')
+            .and('have.value', organization.street);
+          // test existing street number
+          cy.dataCy('form-invoice-billing-houseNumber-input')
+            .should('be.visible')
+            .and('have.value', organization.street_number);
+          // test existing city
+          cy.dataCy('form-invoice-billing-city-input')
+            .should('be.visible')
+            .and('have.value', organization.city);
+          // test existing zip
+          cy.dataCy('form-invoice-billing-zip-input')
+            .should('be.visible')
+            .invoke('val')
+            .then((value) => {
+              expect(value.replace(/\s/g, '')).to.be.equal(
+                organization.psc.toString(),
+              );
+            });
+        });
+      });
+
+      it('does not reset form when section collapse is toggled', () => {
+        cy.get('@i18n').then((i18n) => {
+          cy.contains(i18n.global.t('form.textEditBillingDetails')).click();
+          cy.dataCy('form-create-invoice-billing-expansion-content').should(
+            'not.be.visible',
+          );
+          cy.contains(i18n.global.t('form.textEditBillingDetails')).click();
+          cy.dataCy('form-invoice-billing-street-input')
+            .should('be.visible')
+            .and('have.value', customBillingDetails.street);
+          cy.dataCy('form-invoice-billing-houseNumber-input')
+            .should('be.visible')
+            .and('have.value', customBillingDetails.streetNumber);
+          cy.dataCy('form-invoice-billing-city-input')
+            .should('be.visible')
+            .and('have.value', customBillingDetails.city);
+          cy.dataCy('form-invoice-billing-zip-input')
+            .should('be.visible')
+            .invoke('val')
+            .then((value) => {
+              expect(value.replace(/\s/g, '')).to.be.equal(
+                customBillingDetails.zip,
+              );
+            });
+        });
+      });
+
+      it('validates billing details when section is opened', () => {
+        cy.get('@config').then((config) => {
+          cy.get('@i18n').then((i18n) => {
+            cy.interceptCoordinatorMakeInvoicePostApi(config, {
+              invoice_id: 82,
+            });
+            cy.dataCy('form-invoice-billing-street-input').clear();
+            cy.dataCy('form-invoice-billing-houseNumber-input').clear();
+            cy.dataCy('form-invoice-billing-city-input').clear();
+            cy.dataCy('form-invoice-billing-zip-input').clear();
+            cy.dataCy('dialog-button-submit').click();
+            cy.contains(
+              i18n.global.t('form.messageFieldRequired', {
+                fieldName: i18n.global.t('form.labelStreet'),
+              }),
+            ).should('be.visible');
+            cy.contains(
+              i18n.global.t('form.messageFieldRequired', {
+                fieldName: i18n.global.t('form.labelHouseNumber'),
+              }),
+            ).should('be.visible');
+            cy.contains(
+              i18n.global.t('form.messageFieldRequired', {
+                fieldName: i18n.global.t('form.labelCity'),
+              }),
+            ).should('be.visible');
+            cy.contains(
+              i18n.global.t('form.messageFieldRequired', {
+                fieldName: i18n.global.t('form.labelZip'),
+              }),
+            ).should('be.visible');
+            cy.get('@postCoordinatorMakeInvoice.all').should('have.length', 0);
+          });
+        });
+      });
     });
   });
 
