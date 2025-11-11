@@ -129,6 +129,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
      * and allow router to redirect to the home page URL
      */
     isMerchandiseSavedIntoDb: true,
+    isPaymentWithReward: true,
   }),
 
   getters: {
@@ -227,9 +228,14 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
      */
     getDefaultPaymentAmountCompany(): number {
       const challengeStore = useChallengeStore();
-      const currentPriceLevels = challengeStore.getCurrentPriceLevels;
-      if (currentPriceLevels[PriceLevelCategory.company]) {
-        return currentPriceLevels[PriceLevelCategory.company].price;
+      const currentPriceLevels = this.isPaymentWithReward
+        ? challengeStore.getCurrentPriceLevelsWithReward
+        : challengeStore.getCurrentPriceLevels;
+      const currentCategory = this.isPaymentWithReward
+        ? PriceLevelCategory.companyWithReward
+        : PriceLevelCategory.company;
+      if (currentPriceLevels[currentCategory]) {
+        return currentPriceLevels[currentCategory].price;
       }
       return 0;
     },
@@ -240,9 +246,14 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
      */
     getDefaultPaymentAmountSchool(): number {
       const challengeStore = useChallengeStore();
-      const currentPriceLevels = challengeStore.getCurrentPriceLevels;
-      if (currentPriceLevels[PriceLevelCategory.school]) {
-        return currentPriceLevels[PriceLevelCategory.school].price;
+      const currentPriceLevels = this.isPaymentWithReward
+        ? challengeStore.getCurrentPriceLevelsWithReward
+        : challengeStore.getCurrentPriceLevels;
+      const currentCategory = this.isPaymentWithReward
+        ? PriceLevelCategory.schoolWithReward
+        : PriceLevelCategory.school;
+      if (currentPriceLevels[currentCategory]) {
+        return currentPriceLevels[currentCategory].price;
       }
       return 0;
     },
@@ -357,6 +368,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
 
       return currentUser.approved_for_team === TeamMemberStatus.approved;
     },
+    getIsPaymentWithReward: (state): boolean => state.isPaymentWithReward,
   },
 
   actions: {
@@ -449,6 +461,42 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     setIsPeriodicCheckInProgress(isPeriodicCheckInProgress: boolean) {
       this.isPeriodicCheckInProgress = isPeriodicCheckInProgress;
     },
+    setIsPaymentWithReward(value: boolean): void {
+      this.isPaymentWithReward = value;
+    },
+    /**
+     * Switch between regular and with-reward price sets
+     * Handle side effects (clear voucher, reset payment amount)
+     * @param {boolean} isWithReward - with/without reward setting value
+     */
+    switchPriceSet(isWithReward: boolean): void {
+      this.$log?.debug(
+        `Switching to <${isWithReward ? 'with-reward' : 'regular'}> price set.`,
+      );
+      this.setIsPaymentWithReward(isWithReward);
+      // clear voucher (it may not apply)
+      if (this.voucher) {
+        this.$log?.debug(
+          'Clearing voucher when switching to different price level.',
+        );
+        this.setVoucher(null);
+      }
+      // if no reward and merch ID is set, clear it
+      if (!isWithReward && this.getMerchId !== null) {
+        this.$log?.debug(
+          'Removing merch ID when switching to price level without reward.',
+        );
+        this.setMerchId(null);
+        // notify about next steps to save current registration state
+        Notify.create({
+          message: i18n.global.t('form.messageMerchIdRemoved'),
+          color: 'warning',
+        });
+      }
+      // reset payment amount (triggers recalculation)
+      this.$log?.debug('Resetting payment amount to trigger recalculation.');
+      this.setPaymentAmount(null);
+    },
     /**
      * Load registration data from API and set store state
      */
@@ -486,6 +534,10 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       this.setPersonalDetails(parsedResponse.personalDetails);
       this.$log?.debug(
         `Personal details updated to <${JSON.stringify(this.getPersonalDetails, null, 2)}>.`,
+      );
+      this.setIsPaymentWithReward(parsedResponse.isPaymentWithReward);
+      this.$log?.debug(
+        `Is payment with reward store updated to <${this.getIsPaymentWithReward}>.`,
       );
       /**
        * The paymentAmount value is sent for subject = 'company' or 'school'.
@@ -594,6 +646,12 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         this.setLanguage(parsedResponse.language);
         this.$log?.debug(`Language store updated to <${this.getLanguage}>.`);
       }
+      if (parsedResponse.isPaymentWithReward !== undefined) {
+        this.setIsPaymentWithReward(parsedResponse.isPaymentWithReward);
+        this.$log?.debug(
+          `Is payment with reward store updated to <${this.getIsPaymentWithReward}>.`,
+        );
+      }
     },
     /**
      * Submit a registration step
@@ -641,6 +699,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
           paymentSubject: isPaymentOrganization ? null : this.paymentSubject,
           // null value is discarded, so we always send voucher
           voucher: this.voucher,
+          isPaymentWithReward: this.isPaymentWithReward,
         },
         [RegisterChallengeStep.participation]: {},
         [RegisterChallengeStep.organization]: {},
@@ -935,6 +994,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         this.paymentAmount,
         this.voucher,
         clientIp,
+        this.isPaymentWithReward,
       );
       this.$log?.debug(
         `Payload created <${JSON.stringify(payload, null, 2)}>.`,

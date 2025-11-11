@@ -10,25 +10,25 @@
         "nickname": "FB",
         "sex": "male",
         "telephone": "736123456",
-        "telephone_opt_in": true,
+        "telephone_opt_in": false,
         "language": "cs",
         "occupation": "",
         "age_group": null,
         "newsletter": "challenge",
         "personal_data_opt_in": true,
         "discount_coupon": "",
-        "payment_subject": "company",
-        "payment_type": "fc",
-        "payment_status": "waiting",
-        "payment_amount": 390,
-        "payment_category": "",
-        "is_payment_with_reward": true
+        "payment_subject": "individual",
+        "payment_type": "CARD_TOKEN",
+        "payment_status": "done",
+        "payment_amount": 340,
+        "payment_category": "entry_fee",
+        "is_payment_with_reward": false
       },
       "organization_type": "company",
       "team_id": 2452,
       "organization_id": 987,
       "subsidiary_id": 1358,
-      "t_shirt_size_id": 133
+      "t_shirt_size_id": null
     }
   ]
 }

@@ -13,7 +13,7 @@ import { OrganizationType } from '../../../src/components/types/Organization';
 import { getRadioOption } from 'test/cypress/utils';
 import { PaymentSubject } from 'src/components/enums/Payment';
 import { defLocale } from '../../../src/i18n/def_locale';
-import { getCurrentPriceLevelsUtil } from '../../../src/utils/price_levels';
+import { getCurrentPriceLevelsUtilWithReward } from '../../../src/utils/price_levels_with_reward';
 import { PriceLevelCategory } from '../../../src/components/enums/Challenge';
 import { HttpStatusCode } from 'axios';
 import { calculateCountdownIntervals } from '../../../src/utils';
@@ -97,19 +97,19 @@ let prices;
 let paymentAmountDonation;
 
 describe('Register Challenge page', () => {
-  let defaultPaymentAmountMin = 0;
+  let defaultPaymentAmountMinWithReward = 0;
 
   before(() => {
     // dynamically load default payment amount from fixture
     //cy.clock(new Date(systemTimeChallengeActive), ['Date']).then(( => ))
     cy.fixture('apiGetThisCampaign.json').then((response) => {
       const priceLevels = response.results[0].price_level;
-      const currentPriceLevels = getCurrentPriceLevelsUtil(
+      const currentPriceLevelsWithReward = getCurrentPriceLevelsUtilWithReward(
         priceLevels,
         new Date(systemTimeChallengeActive),
       );
-      defaultPaymentAmountMin =
-        currentPriceLevels[PriceLevelCategory.basic].price;
+      defaultPaymentAmountMinWithReward =
+        currentPriceLevelsWithReward[PriceLevelCategory.basicWithReward].price;
     });
     cy.task('getAppConfig', process).then((config) => {
       prices = config.entryFeePaymentOptions.split(',');
@@ -477,7 +477,7 @@ describe('Register Challenge page', () => {
                 .should('be.visible')
                 .click();
               // select default amount
-              cy.dataCy(getRadioOption(defaultPaymentAmountMin))
+              cy.dataCy(getRadioOption(defaultPaymentAmountMinWithReward))
                 .should('be.visible')
                 .click();
               // click submit payment
@@ -509,7 +509,11 @@ describe('Register Challenge page', () => {
                 .should('be.visible')
                 .click();
               // apply voucher HALF
-              cy.applyHalfVoucher(config, i18n, defaultPaymentAmountMin);
+              cy.applyHalfVoucher(
+                config,
+                i18n,
+                defaultPaymentAmountMinWithReward,
+              );
               // min amount is selected - submit payment
               cy.dataCy('step-2-submit-payment').should('be.visible').click();
               cy.fixture(
@@ -538,7 +542,7 @@ describe('Register Challenge page', () => {
               cy.dataCy('voucher-button-remove').should('be.visible').click();
               // apply voucher FULL
               cy.applyFullVoucher(config, i18n);
-              // add donation (default donation = defaultPaymentAmountMin)
+              // add donation (default donation = defaultPaymentAmountMinWithReward)
               cy.dataCy('form-field-donation-checkbox').click();
               // submit payment
               cy.dataCy('step-2-submit-payment').should('be.visible').click();
@@ -1102,14 +1106,16 @@ describe('Register Challenge page', () => {
             .should('be.visible')
             .click();
           // apply voucher HALF
-          cy.applyHalfVoucher(config, i18n, defaultPaymentAmountMin).then(
-            (discountAmount) => {
-              // discounted price is shown as option
-              cy.dataCy(getRadioOption(discountAmount)).should('be.visible');
-              // discounted total price is shown
-              cy.dataCy('total-price-value').should('contain', discountAmount);
-            },
-          );
+          cy.applyHalfVoucher(
+            config,
+            i18n,
+            defaultPaymentAmountMinWithReward,
+          ).then((discountAmount) => {
+            // discounted price is shown as option
+            cy.dataCy(getRadioOption(discountAmount)).should('be.visible');
+            // discounted total price is shown
+            cy.dataCy('total-price-value').should('contain', discountAmount);
+          });
         });
       });
     });
@@ -1629,6 +1635,53 @@ describe('Register Challenge page', () => {
         });
       });
     });
+
+    it('when voucher FULL + donation, submits step before creating PayU order (without-reward)', () => {
+      cy.clock(systemTimeChallengeActive, ['Date']);
+      cy.get('@config').then((config) => {
+        cy.get('@i18n').then((i18n) => {
+          cy.passToStep2();
+          cy.fixture(
+            'apiPostRegisterChallengePersonalDetailsRequest.json',
+          ).then((request) => {
+            cy.waitForRegisterChallengePostApi(request);
+          });
+          // uncheck with-reward checkbox (without-reward)
+          cy.switchToPaymentWithoutReward();
+          cy.dataCy(getRadioOption(PaymentSubject.voucher))
+            .should('be.visible')
+            .click();
+          // apply voucher FULL
+          cy.applyFullVoucher(config, i18n);
+          // enable donation checkbox
+          cy.dataCy('form-field-donation-checkbox')
+            .should('be.visible')
+            .click();
+          cy.dataCy('form-field-donation-slider').should('be.visible');
+          // next step button should not be visible
+          cy.dataCy('step-2-continue').should('not.exist');
+          // submit payment
+          cy.dataCy('step-2-submit-payment')
+            .should('be.visible')
+            .and('not.be.disabled')
+            .click();
+          cy.fixture('apiPostRegisterChallengeVoucherFullRequest.json').then(
+            (request) => {
+              cy.waitForRegisterChallengePostApi(request);
+            },
+          );
+          // create PayU order
+          cy.fixture(
+            'apiPostPayuCreateOrderRequestVoucherFullWithDonationWithoutReward.json',
+          ).then((request) => {
+            cy.waitForPayuCreateOrderPostApi(request);
+          });
+          // config is defined without hash in the URL
+          cy.visit('#' + routesConf['register_challenge']['path']);
+        });
+      });
+    });
+
     it('submits form state on 1st 2nd, 5th and 6th step (voucher payment)', () => {
       cy.clock(systemTimeChallengeActive, ['Date']);
       cy.window().should('have.property', 'i18n');
@@ -1818,6 +1871,79 @@ describe('Register Challenge page', () => {
       );
     });
 
+    it('submits form state on 1st, 5th and 6th step (company payment without-reward)', () => {
+      cy.clock(systemTimeChallengeActive, ['Date']);
+      cy.passToStep2();
+      // test API post request (personal details)
+      cy.fixture('apiPostRegisterChallengePersonalDetailsRequest.json').then(
+        (request) => {
+          cy.waitForRegisterChallengePostApi(request);
+        },
+      );
+      // on step 2
+      cy.dataCy('step-2').find('.q-stepper__step-content').should('be.visible');
+      cy.dataCy(getRadioOption(OrganizationType.company))
+        .should('be.visible')
+        .click();
+      // uncheck with-reward checkbox (without-reward)
+      cy.switchToPaymentWithoutReward();
+      // select first organization
+      cy.selectDropdownMenu('form-field-company', 0);
+      // go to next step
+      cy.dataCy('step-2-continue').should('be.visible').click();
+      // test API post request (empty voucher)
+      cy.fixture('apiPostRegisterChallengeVoucherNoneRequest.json').then(
+        (request) => {
+          cy.waitForRegisterChallengePostApi(request);
+        },
+      );
+      // participation is preselected - continue
+      cy.dataCy('step-3-continue').should('be.visible').click();
+      // organization is preselected - select address
+      cy.fixture('apiGetSubsidiariesResponse.json').then(
+        (apiGetSubsidiariesResponse) => {
+          cy.fixture('apiGetSubsidiariesResponseNext.json').then(
+            (apiGetSubsidiariesResponseNext) => {
+              cy.waitForSubsidiariesApi(
+                apiGetSubsidiariesResponse,
+                apiGetSubsidiariesResponseNext,
+              );
+              cy.selectDropdownMenu(
+                'form-company-address',
+                0,
+                apiGetSubsidiariesResponse.results.length +
+                  apiGetSubsidiariesResponseNext.results.length,
+              );
+            },
+          );
+        },
+      );
+      // go to next step
+      cy.dataCy('step-4-continue').should('be.visible').click();
+      // select first available team (this is the second team, first is full)
+      cy.dataCy('form-select-table-team')
+        .should('be.visible')
+        .find('.q-radio:not(.disabled)')
+        .first()
+        .click();
+      // go to next step
+      cy.dataCy('step-5-continue').should('be.visible').click();
+      // test API post request
+      cy.fixture(
+        'apiPostRegisterChallengeTeamCompanyPaymentRequestWithoutReward.json',
+      ).then((request) => {
+        cy.waitForRegisterChallengePostApi(request);
+      });
+      cy.fixture(
+        'apiGetRegisterChallengeIndividualPaidWithoutReward.json',
+      ).then((response) => {
+        // validate step Merch without reward
+        cy.validateStepMerchWithoutReward(
+          response.results[0].personal_details.telephone,
+        );
+      });
+    });
+
     it('submits form state on 1st, 5th and 6th step (school payment)', () => {
       cy.clock(systemTimeChallengeActive, ['Date']);
       cy.passToStep2();
@@ -1906,6 +2032,79 @@ describe('Register Challenge page', () => {
           cy.waitForRegisterChallengePostApi(request);
         },
       );
+    });
+
+    it('submits form state on 1st, 5th and 6th step (school payment without-reward)', () => {
+      cy.clock(systemTimeChallengeActive, ['Date']);
+      cy.passToStep2();
+      // test API post request (personal details)
+      cy.fixture('apiPostRegisterChallengePersonalDetailsRequest.json').then(
+        (request) => {
+          cy.waitForRegisterChallengePostApi(request);
+        },
+      );
+      // on step 2
+      cy.dataCy('step-2').find('.q-stepper__step-content').should('be.visible');
+      cy.dataCy(getRadioOption(OrganizationType.school))
+        .should('be.visible')
+        .click();
+      // uncheck with-reward checkbox (without-reward)
+      cy.switchToPaymentWithoutReward();
+      // select first organization
+      cy.selectDropdownMenu('form-field-company', 0);
+      // go to next step
+      cy.dataCy('step-2-continue').should('be.visible').click();
+      // test API post request (empty voucher)
+      cy.fixture('apiPostRegisterChallengeVoucherNoneRequest.json').then(
+        (request) => {
+          cy.waitForRegisterChallengePostApi(request);
+        },
+      );
+      // participation is preselected - continue
+      cy.dataCy('step-3-continue').should('be.visible').click();
+      // organization is preselected - select address
+      cy.fixture('apiGetSubsidiariesResponse.json').then(
+        (apiGetSubsidiariesResponse) => {
+          cy.fixture('apiGetSubsidiariesResponseNext.json').then(
+            (apiGetSubsidiariesResponseNext) => {
+              cy.waitForSubsidiariesApi(
+                apiGetSubsidiariesResponse,
+                apiGetSubsidiariesResponseNext,
+              );
+              cy.selectDropdownMenu(
+                'form-company-address',
+                0,
+                apiGetSubsidiariesResponse.results.length +
+                  apiGetSubsidiariesResponseNext.results.length,
+              );
+            },
+          );
+        },
+      );
+      // go to next step
+      cy.dataCy('step-4-continue').should('be.visible').click();
+      // select first available team (this is the second team, first is full)
+      cy.dataCy('form-select-table-team')
+        .should('be.visible')
+        .find('.q-radio:not(.disabled)')
+        .first()
+        .click();
+      // go to next step
+      cy.dataCy('step-5-continue').should('be.visible').click();
+      // test API post request
+      cy.fixture(
+        'apiPostRegisterChallengeTeamSchoolPaymentRequestWithoutReward.json',
+      ).then((request) => {
+        cy.waitForRegisterChallengePostApi(request);
+      });
+      cy.fixture(
+        'apiGetRegisterChallengeIndividualPaidWithoutReward.json',
+      ).then((response) => {
+        // validate step Merch without reward
+        cy.validateStepMerchWithoutReward(
+          response.results[0].personal_details.telephone,
+        );
+      });
     });
 
     it('submits personal details with empty newsletter', () => {
@@ -2007,7 +2206,7 @@ describe('Register Challenge page', () => {
           cy.dataCy('voucher-button-remove').should('be.visible').click();
 
           // case 4: voucher payment with voucher HALF
-          cy.applyHalfVoucher(config, i18n, defaultPaymentAmountMin);
+          cy.applyHalfVoucher(config, i18n, defaultPaymentAmountMinWithReward);
           // submit payment button should be visible and enabled
           cy.dataCy('step-2-submit-payment')
             .should('be.visible')
@@ -2886,6 +3085,54 @@ describe('Register Challenge page', () => {
     });
   });
 
+  context(
+    'registration in progress, individual payment "done" (without-reward)',
+    () => {
+      beforeEach(() => {
+        cy.task('getAppConfig', process).then((config) => {
+          cy.wrap(config).as('config');
+          cy.interceptThisCampaignGetApi(config, defLocale);
+          // visit challenge inactive page to load campaign data
+          cy.visit('#' + routesConf['challenge_inactive']['path']);
+          cy.waitForThisCampaignApi();
+          cy.fixture(
+            'apiGetRegisterChallengeIndividualPaidWithoutReward.json',
+          ).then((response) => {
+            cy.interceptRegisterChallengeGetApi(config, defLocale, response);
+          });
+          // intercept common response (not currently used)
+          cy.interceptRegisterChallengePostApi(config, defLocale);
+          cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
+        });
+        cy.viewport('macbook-16');
+      });
+
+      it('allows to complete registration without-reward', () => {
+        // visit page
+        cy.visit('#' + routesConf['register_challenge']['path']);
+        cy.window().should('have.property', 'i18n');
+        cy.window().then((win) => {
+          // intercept "individual paid" registration data
+          cy.fixture(
+            'apiGetRegisterChallengeIndividualPaidWithoutReward.json',
+          ).then((response) => {
+            cy.testRegisterChallengePaymentMessage(
+              response,
+              'step-2-paid-message',
+            );
+            cy.dataCy('register-challenge-payment').should('not.exist');
+            cy.dataCy('step-2-continue')
+              .should('be.visible')
+              .and('not.be.disabled');
+            cy.dataCy('step-2-continue').should('be.visible').click();
+            cy.testRegisterChallengeLoadedStepsThreeToFive(win.i18n, response);
+            cy.validateStepMerchWithoutReward();
+          });
+        });
+      });
+    },
+  );
+
   context('registration in progress, voucher payment FULL', () => {
     beforeEach(() => {
       cy.task('getAppConfig', process).then((config) => {
@@ -3442,6 +3689,82 @@ describe('Register Challenge page', () => {
   );
 
   context(
+    'registration in progress, company payment "waiting" (without-reward)',
+    () => {
+      beforeEach(() => {
+        cy.task('getAppConfig', process).then((config) => {
+          cy.wrap(config).as('config');
+          cy.interceptThisCampaignGetApi(config, defLocale);
+          // visit challenge inactive page to load campaign data
+          cy.visit('#' + routesConf['challenge_inactive']['path']);
+          cy.waitForThisCampaignApi();
+          cy.fixture('apiGetRegisterChallengeCompanyWaiting.json').then(
+            (response) => {
+              cy.interceptRegisterChallengeGetApi(config, defLocale, response);
+            },
+          );
+          // intercept common response (not currently used)
+          cy.interceptRegisterChallengePostApi(config, defLocale);
+          cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
+        });
+        // config is defined without hash in the URL
+        cy.visit('#' + routesConf['register_challenge']['path']);
+        cy.viewport('macbook-16');
+      });
+
+      it('when payment is set to without-reward after selecting merch, it clears merch ID and shows notification', () => {
+        cy.get('@config').then((config) => {
+          cy.window().should('have.property', 'i18n');
+          cy.window().then((win) => {
+            cy.fixture('apiGetRegisterChallengeCompanyWaiting.json').then(
+              (registerChallengeResponse) => {
+                // intercept GET API for coordinator details
+                cy.fixture('apiGetMyOrganizationAdmin.json').then((data) => {
+                  cy.interceptMyOrganizationAdminGetApi(config, win.i18n, data);
+                  cy.testRegisterChallengeLoadedStepOne(
+                    win.i18n,
+                    registerChallengeResponse,
+                  );
+                  // go to next step
+                  cy.dataCy('step-1-continue').should('be.visible').click();
+                  // go to next step
+                  cy.dataCy('step-2-continue')
+                    .should('be.visible')
+                    .and('not.be.disabled')
+                    .click();
+                  cy.testRegisterChallengeLoadedStepsThreeToFive(
+                    win.i18n,
+                    registerChallengeResponse,
+                  );
+                  cy.testRegisterChallengeLoadedStepSix(
+                    win.i18n,
+                    registerChallengeResponse,
+                  );
+                  cy.dataCy('step-2').should('be.visible').click();
+                  cy.switchToPaymentWithoutReward();
+                  cy.contains(
+                    win.i18n.global.t('form.messageMerchIdRemoved'),
+                  ).should('be.visible');
+                  // go to next step
+                  cy.dataCy('step-2-continue')
+                    .should('be.visible')
+                    .and('not.be.disabled')
+                    .click();
+                  cy.testRegisterChallengeLoadedStepsThreeToFive(
+                    win.i18n,
+                    registerChallengeResponse,
+                  );
+                  cy.validateStepMerchWithoutReward();
+                });
+              },
+            );
+          });
+        });
+      });
+    },
+  );
+
+  context(
     'registration in progress, company payment "waiting" + I dont want merch',
     () => {
       beforeEach(() => {
@@ -3704,13 +4027,15 @@ describe('Register Challenge page', () => {
           cy.fixture('apiGetThisCampaignMay.json').then((campaign) => {
             // extract current price from campaign data
             const priceLevels = campaign.results[0].price_level;
-            const currentPriceLevels = getCurrentPriceLevelsUtil(
-              priceLevels,
-              new Date(systemTimeRegistrationPhase1May),
-            );
+            const currentPriceLevelsWithReward =
+              getCurrentPriceLevelsUtilWithReward(
+                priceLevels,
+                new Date(systemTimeRegistrationPhase1May),
+              );
             // current min price given the date
-            const defaultPaymentAmountMinMay =
-              currentPriceLevels[PriceLevelCategory.basic].price;
+            const defaultPaymentAmountMinWithRewardMay =
+              currentPriceLevelsWithReward[PriceLevelCategory.basicWithReward]
+                .price;
             // pass to step 2
             cy.passToStep2();
             // wait for register challenge POST API call
@@ -3737,8 +4062,8 @@ describe('Register Challenge page', () => {
                 ).should('be.visible');
                 // calculate discount amount
                 const discountAmountInt = Math.round(
-                  defaultPaymentAmountMinMay -
-                    (defaultPaymentAmountMinMay *
+                  defaultPaymentAmountMinWithRewardMay -
+                    (defaultPaymentAmountMinWithRewardMay *
                       voucherApiResponse.results[0].discount) /
                       100,
                 );
@@ -3837,13 +4162,16 @@ describe('Register Challenge page', () => {
                   cy.waitForDiscountCouponApi(voucherApiResponse);
                   // extract current price from campaign data
                   const priceLevels = campaign.results[0].price_level;
-                  const currentPriceLevels = getCurrentPriceLevelsUtil(
-                    priceLevels,
-                    new Date(systemTimeRegistrationPhase1May),
-                  );
+                  const currentPriceLevelsWithReward =
+                    getCurrentPriceLevelsUtilWithReward(
+                      priceLevels,
+                      new Date(systemTimeRegistrationPhase1May),
+                    );
                   // current min price given the date
-                  const defaultPaymentAmountMinMay =
-                    currentPriceLevels[PriceLevelCategory.basic].price;
+                  const defaultPaymentAmountMinWithRewardMay =
+                    currentPriceLevelsWithReward[
+                      PriceLevelCategory.basicWithReward
+                    ].price;
                   // go to step 2
                   cy.dataCy('step-1-continue')
                     .should('be.visible')
@@ -3856,8 +4184,8 @@ describe('Register Challenge page', () => {
                     .should('have.class', 'q-radio__inner--truthy');
                   // calculate discount amount
                   const discountAmountInt = Math.round(
-                    defaultPaymentAmountMinMay -
-                      (defaultPaymentAmountMinMay *
+                    defaultPaymentAmountMinWithRewardMay -
+                      (defaultPaymentAmountMinWithRewardMay *
                         voucherApiResponse.results[0].discount) /
                         100,
                   );

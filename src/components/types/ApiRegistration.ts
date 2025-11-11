@@ -34,6 +34,7 @@ export type PersonalDetails = CorePersonalDetails & {
   payment_status: string;
   payment_category: PaymentCategory;
   approved_for_team: TeamMemberStatus;
+  is_payment_with_reward: boolean | null;
 };
 
 export type RegisterChallengeResult = {
@@ -97,4 +98,5 @@ export interface ToApiPayloadStoreState {
   telephone?: string;
   telephoneOptIn?: boolean;
   language?: string;
+  isPaymentWithReward?: boolean;
 }
