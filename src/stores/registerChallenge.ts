@@ -369,6 +369,13 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       return currentUser.approved_for_team === TeamMemberStatus.approved;
     },
     getIsPaymentWithReward: (state): boolean => state.isPaymentWithReward,
+    getIsVoucherWithoutReward: (state): boolean => {
+      return Boolean(
+        state.voucher?.name.startsWith(
+          rideToWorkByBikeConfig.voucherWithoutReward,
+        ),
+      );
+    },
   },
 
   actions: {
@@ -471,16 +478,9 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
      */
     switchPriceSet(isWithReward: boolean): void {
       this.$log?.debug(
-        `Switching to <${isWithReward ? 'with-reward' : 'regular'}> price set.`,
+        `Switch to <${isWithReward ? 'with reward' : 'without reward'}> price set.`,
       );
       this.setIsPaymentWithReward(isWithReward);
-      // clear voucher (it may not apply)
-      if (this.voucher) {
-        this.$log?.debug(
-          'Clearing voucher when switching to different price level.',
-        );
-        this.setVoucher(null);
-      }
       // if no reward and merch ID is set, clear it
       if (!isWithReward && this.getMerchId !== null) {
         this.$log?.debug(
@@ -494,7 +494,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
         });
       }
       // reset payment amount (triggers recalculation)
-      this.$log?.debug('Resetting payment amount to trigger recalculation.');
+      this.$log?.info('Resetting payment amount to trigger recalculation.');
       this.setPaymentAmount(null);
     },
     /**

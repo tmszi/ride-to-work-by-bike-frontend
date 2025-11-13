@@ -13,6 +13,7 @@ import { OrganizationType } from '../../../src/components/types/Organization';
 import { getRadioOption } from 'test/cypress/utils';
 import { PaymentSubject } from 'src/components/enums/Payment';
 import { defLocale } from '../../../src/i18n/def_locale';
+import { getCurrentPriceLevelsUtil } from 'src/utils/price_levels';
 import { getCurrentPriceLevelsUtilWithReward } from '../../../src/utils/price_levels_with_reward';
 import { PriceLevelCategory } from '../../../src/components/enums/Challenge';
 import { HttpStatusCode } from 'axios';
@@ -97,6 +98,7 @@ let prices;
 let paymentAmountDonation;
 
 describe('Register Challenge page', () => {
+  let defaultPaymentAmountMin;
   let defaultPaymentAmountMinWithReward = 0;
 
   before(() => {
@@ -104,6 +106,12 @@ describe('Register Challenge page', () => {
     //cy.clock(new Date(systemTimeChallengeActive), ['Date']).then(( => ))
     cy.fixture('apiGetThisCampaign.json').then((response) => {
       const priceLevels = response.results[0].price_level;
+      const currentPriceLevels = getCurrentPriceLevelsUtil(
+        priceLevels,
+        new Date(systemTimeChallengeActive),
+      );
+      defaultPaymentAmountMin =
+        currentPriceLevels[PriceLevelCategory.basic].price;
       const currentPriceLevelsWithReward = getCurrentPriceLevelsUtilWithReward(
         priceLevels,
         new Date(systemTimeChallengeActive),
@@ -1605,8 +1613,16 @@ describe('Register Challenge page', () => {
           cy.dataCy(getRadioOption(PaymentSubject.voucher))
             .should('be.visible')
             .click();
+          // uncheck with-reward checkbox (without-reward)
+          cy.switchToPaymentWithoutReward();
           // apply voucher FULL
           cy.applyFullVoucher(config, i18n);
+          // with-reward is checked because of coupon type
+          cy.dataCy('checkbox-payment-with-reward')
+            .should('be.visible')
+            .and('have.class', 'disabled')
+            .find('.q-checkbox__inner')
+            .should('have.class', 'q-checkbox__inner--truthy');
           // enable donation checkbox
           cy.dataCy('form-field-donation-checkbox')
             .should('be.visible')
@@ -1647,12 +1663,17 @@ describe('Register Challenge page', () => {
             cy.waitForRegisterChallengePostApi(request);
           });
           // uncheck with-reward checkbox (without-reward)
-          cy.switchToPaymentWithoutReward();
           cy.dataCy(getRadioOption(PaymentSubject.voucher))
             .should('be.visible')
             .click();
           // apply voucher FULL
-          cy.applyFullVoucher(config, i18n);
+          cy.applyVoucherFullWithoutReward(config, i18n);
+          // with-reward is unchecked because of coupon type
+          cy.dataCy('checkbox-payment-with-reward')
+            .should('be.visible')
+            .and('have.class', 'disabled')
+            .find('.q-checkbox__inner')
+            .should('have.class', 'q-checkbox__inner--falsy');
           // enable donation checkbox
           cy.dataCy('form-field-donation-checkbox')
             .should('be.visible')
@@ -1665,14 +1686,61 @@ describe('Register Challenge page', () => {
             .should('be.visible')
             .and('not.be.disabled')
             .click();
-          cy.fixture('apiPostRegisterChallengeVoucherFullRequest.json').then(
-            (request) => {
-              cy.waitForRegisterChallengePostApi(request);
-            },
-          );
+          cy.fixture(
+            'apiPostRegisterChallengeVoucherFullRequestWithoutReward.json',
+          ).then((request) => {
+            cy.waitForRegisterChallengePostApi(request);
+          });
           // create PayU order
           cy.fixture(
             'apiPostPayuCreateOrderRequestVoucherFullWithDonationWithoutReward.json',
+          ).then((request) => {
+            cy.waitForPayuCreateOrderPostApi(request);
+          });
+          // config is defined without hash in the URL
+          cy.visit('#' + routesConf['register_challenge']['path']);
+        });
+      });
+    });
+
+    it('when voucher HALF, submits step before creating PayU order (without-reward)', () => {
+      cy.clock(systemTimeChallengeActive, ['Date']);
+      cy.get('@config').then((config) => {
+        cy.get('@i18n').then((i18n) => {
+          cy.passToStep2();
+          cy.fixture(
+            'apiPostRegisterChallengePersonalDetailsRequest.json',
+          ).then((request) => {
+            cy.waitForRegisterChallengePostApi(request);
+          });
+          cy.dataCy(getRadioOption(PaymentSubject.voucher))
+            .should('be.visible')
+            .click();
+          // apply voucher HALF (price without reward)
+          cy.applyVoucherHalfWithoutReward(
+            config,
+            i18n,
+            defaultPaymentAmountMin,
+          );
+          // with-reward is unchecked because of coupon type
+          cy.dataCy('checkbox-payment-with-reward')
+            .should('be.visible')
+            .and('have.class', 'disabled')
+            .find('.q-checkbox__inner')
+            .should('have.class', 'q-checkbox__inner--falsy');
+          // submit payment
+          cy.dataCy('step-2-submit-payment')
+            .should('be.visible')
+            .and('not.be.disabled')
+            .click();
+          cy.fixture(
+            'apiPostRegisterChallengeVoucherHalfRequestWithoutReward',
+          ).then((request) => {
+            cy.waitForRegisterChallengePostApi(request);
+          });
+          // create PayU order
+          cy.fixture(
+            'apiPostPayuCreateOrderRequestVoucherHalfWithoutReward.json',
           ).then((request) => {
             cy.waitForPayuCreateOrderPostApi(request);
           });
@@ -3137,25 +3205,13 @@ describe('Register Challenge page', () => {
     beforeEach(() => {
       cy.task('getAppConfig', process).then((config) => {
         cy.wrap(config).as('config');
-        cy.interceptThisCampaignGetApi(config, defLocale);
-        cy.visit('#' + routesConf['challenge_inactive']['path']);
-        cy.waitForThisCampaignApi();
-        cy.fixture('apiGetRegisterChallengeVoucherFull.json').then(
-          (response) => {
-            cy.interceptRegisterChallengeGetApi(config, defLocale, response);
-          },
-        );
-        cy.fixture('apiGetDiscountCouponResponseFull.json').then((response) => {
-          cy.interceptDiscountCouponGetApi(
-            config,
-            defLocale,
-            response.results[0].name,
-            response,
-          );
+        cy.setupVoucherTestEnvironment({
+          config,
+          defLocale,
+          routesConf,
+          registerChallengeFixture: 'apiGetRegisterChallengeVoucherFull.json',
+          discountCouponFixture: 'apiGetDiscountCouponResponseFull.json',
         });
-        // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
-        cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.visit('#' + routesConf['register_challenge']['path']);
       cy.viewport('macbook-16');
@@ -3182,25 +3238,14 @@ describe('Register Challenge page', () => {
     beforeEach(() => {
       cy.task('getAppConfig', process).then((config) => {
         cy.wrap(config).as('config');
-        cy.interceptThisCampaignGetApi(config, defLocale);
-        cy.visit('#' + routesConf['challenge_inactive']['path']);
-        cy.waitForThisCampaignApi();
-        cy.fixture('apiGetRegisterChallengeVoucherFullWithDonation.json').then(
-          (response) => {
-            cy.interceptRegisterChallengeGetApi(config, defLocale, response);
-          },
-        );
-        cy.fixture('apiGetDiscountCouponResponseFull.json').then((response) => {
-          cy.interceptDiscountCouponGetApi(
-            config,
-            defLocale,
-            response.results[0].name,
-            response,
-          );
+        cy.setupVoucherTestEnvironment({
+          config,
+          routesConf,
+          defLocale,
+          registerChallengeFixture:
+            'apiGetRegisterChallengeVoucherFullWithDonation.json',
+          discountCouponFixture: 'apiGetDiscountCouponResponseFull.json',
         });
-        // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
-        cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.visit('#' + routesConf['register_challenge']['path']);
       cy.viewport('macbook-16');
@@ -3232,29 +3277,119 @@ describe('Register Challenge page', () => {
     });
   });
 
+  context(
+    'registration in progress, voucher payment FULL without-reward',
+    () => {
+      beforeEach(() => {
+        cy.task('getAppConfig', process).then((config) => {
+          cy.wrap(config).as('config');
+          cy.setupVoucherTestEnvironment({
+            config,
+            defLocale,
+            routesConf,
+            registerChallengeFixture:
+              'apiGetRegisterChallengeVoucherFullWithoutReward.json',
+            discountCouponFixture:
+              'apiGetDiscountCouponResponseFullWithoutReward.json',
+          });
+        });
+        cy.visit('#' + routesConf['register_challenge']['path']);
+        cy.viewport('macbook-16');
+      });
+
+      it('loads the page with approved voucher + disabled rewards', () => {
+        cy.window().should('have.property', 'i18n');
+        cy.window().then((win) => {
+          cy.fixture(
+            'apiGetRegisterChallengeVoucherFullWithoutReward.json',
+          ).then((response) => {
+            // showing payment form (not the "locked" paid message)
+            cy.dataCy('register-challenge-payment').should('be.visible');
+            // show enabled voucher with voucher name
+            cy.dataCy('voucher-banner').should('be.visible');
+            cy.dataCy('voucher-banner-code')
+              .should('be.visible')
+              .and(
+                'contain',
+                response.results[0].personal_details.discount_coupon,
+              );
+            // price checkbox is unchecked and disabled
+            cy.dataCy('checkbox-payment-with-reward')
+              .should('be.visible')
+              .and('have.class', 'disabled')
+              .find('.q-checkbox__inner')
+              .should('have.class', 'q-checkbox__inner--falsy');
+            // next step button should be visible and enabled
+            cy.dataCy('step-2-continue')
+              .should('be.visible')
+              .and('not.be.disabled')
+              .click();
+            cy.testRegisterChallengeLoadedStepsThreeToFive(win.i18n, response);
+            cy.validateStepMerchWithoutReward();
+          });
+        });
+      });
+    },
+  );
+
+  context(
+    'registration in progress, voucher payment HALF without-reward',
+    () => {
+      beforeEach(() => {
+        cy.task('getAppConfig', process).then((config) => {
+          cy.wrap(config).as('config');
+          cy.setupVoucherTestEnvironment({
+            config,
+            defLocale,
+            routesConf,
+            registerChallengeFixture:
+              'apiGetRegisterChallengeVoucherHalfWithoutReward.json',
+            discountCouponFixture:
+              'apiGetDiscountCouponResponseHalfWithoutReward.json',
+          });
+        });
+        cy.visit('#' + routesConf['register_challenge']['path']);
+        cy.viewport('macbook-16');
+      });
+
+      it('loads the page with approved voucher + disabled rewards', () => {
+        cy.window().should('have.property', 'i18n');
+        cy.window().then((win) => {
+          cy.fixture(
+            'apiGetRegisterChallengeVoucherHalfWithoutReward.json',
+          ).then((response) => {
+            // displays message "paid"
+            cy.testRegisterChallengePaymentMessage(
+              response,
+              'step-2-paid-message',
+            );
+            cy.dataCy('register-challenge-payment').should('not.exist');
+            // price checkbox is unchecked and disabled
+            cy.dataCy('checkbox-payment-with-reward').should('not.exist');
+            // next step button should be visible and enabled
+            cy.dataCy('step-2-continue')
+              .should('be.visible')
+              .and('not.be.disabled')
+              .click();
+            cy.testRegisterChallengeLoadedStepsThreeToFive(win.i18n, response);
+            cy.validateStepMerchWithoutReward();
+          });
+        });
+      });
+    },
+  );
+
   context('registration in progress, voucher payment HALF', () => {
     beforeEach(() => {
       cy.task('getAppConfig', process).then((config) => {
         cy.wrap(config).as('config');
-        cy.interceptThisCampaignGetApi(config, defLocale);
-        cy.visit('#' + routesConf['challenge_inactive']['path']);
-        cy.waitForThisCampaignApi();
-        cy.fixture('apiGetRegisterChallengeVoucherHalf.json').then(
-          (response) => {
-            cy.interceptRegisterChallengeGetApi(config, defLocale, response);
-          },
-        );
-        cy.fixture('apiGetDiscountCouponResponseHalf.json').then((response) => {
-          cy.interceptDiscountCouponGetApi(
-            config,
-            defLocale,
-            response.results[0].name,
-            response,
-          );
+        cy.setupVoucherTestEnvironment({
+          config,
+          defLocale,
+          routesConf,
+          registerChallengeFixture: 'apiGetRegisterChallengeVoucherHalf.json',
+          discountCouponFixture: 'apiGetDiscountCouponResponseHalf.json',
         });
-        // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
-        cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.visit('#' + routesConf['register_challenge']['path']);
       cy.viewport('macbook-16');
@@ -3275,25 +3410,14 @@ describe('Register Challenge page', () => {
     beforeEach(() => {
       cy.task('getAppConfig', process).then((config) => {
         cy.wrap(config).as('config');
-        cy.interceptThisCampaignGetApi(config, defLocale);
-        cy.visit('#' + routesConf['challenge_inactive']['path']);
-        cy.waitForThisCampaignApi();
-        cy.fixture('apiGetRegisterChallengeVoucherHalfWithDonation.json').then(
-          (response) => {
-            cy.interceptRegisterChallengeGetApi(config, defLocale, response);
-          },
-        );
-        cy.fixture('apiGetDiscountCouponResponseHalf.json').then((response) => {
-          cy.interceptDiscountCouponGetApi(
-            config,
-            defLocale,
-            response.results[0].name,
-            response,
-          );
+        cy.setupVoucherTestEnvironment({
+          config,
+          defLocale,
+          routesConf,
+          registerChallengeFixture:
+            'apiGetRegisterChallengeVoucherHalfWithDonation.json',
+          discountCouponFixture: 'apiGetDiscountCouponResponseHalf.json',
         });
-        // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
-        cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
       });
       cy.visit('#' + routesConf['register_challenge']['path']);
       cy.viewport('macbook-16');
@@ -3323,27 +3447,13 @@ describe('Register Challenge page', () => {
     beforeEach(() => {
       cy.task('getAppConfig', process).then((config) => {
         cy.wrap(config).as('config');
-        cy.interceptThisCampaignGetApi(config, defLocale);
-        cy.visit('#' + routesConf['challenge_inactive']['path']);
-        cy.waitForThisCampaignApi();
-        cy.fixture('apiGetRegisterChallengeVoucherFull.json').then(
-          (response) => {
-            cy.interceptRegisterChallengeGetApi(config, defLocale, response);
-          },
-        );
-        cy.fixture('apiGetDiscountCouponResponseOneTime.json').then(
-          (response) => {
-            cy.interceptDiscountCouponGetApi(
-              config,
-              defLocale,
-              response.results[0].name,
-              response,
-            );
-          },
-        );
-        // intercept common response (not currently used)
-        cy.interceptRegisterChallengePostApi(config, defLocale);
-        cy.interceptRegisterChallengeCoreApiRequests(config, defLocale);
+        cy.setupVoucherTestEnvironment({
+          config,
+          defLocale,
+          routesConf,
+          registerChallengeFixture: 'apiGetRegisterChallengeVoucherFull.json',
+          discountCouponFixture: 'apiGetDiscountCouponResponseOneTime.json',
+        });
       });
       cy.visit('#' + routesConf['register_challenge']['path']);
       cy.viewport('macbook-16');

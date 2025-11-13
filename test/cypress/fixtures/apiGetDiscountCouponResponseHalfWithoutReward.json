@@ -1,0 +1,12 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "name": "NOREWARD-HALF",
+      "discount": 50,
+      "available": true
+    }
+  ]
+}

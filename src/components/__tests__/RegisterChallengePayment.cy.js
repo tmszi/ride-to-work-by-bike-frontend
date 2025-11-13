@@ -558,6 +558,12 @@ function coreTests() {
       i18n,
       defaultPaymentAmountMinWithReward,
     ).then((discountAmount) => {
+      // with-reward checkbox is checked
+      cy.dataCy(selectorCheckboxPaymentWithReward)
+        .should('be.visible')
+        .and('have.class', 'disabled')
+        .find('.q-checkbox__inner')
+        .should('have.class', 'q-checkbox__inner--truthy');
       // option with discounted amount is available
       cy.dataCy(selectorPaymentAmount)
         .should('be.visible')
@@ -613,38 +619,28 @@ function coreTests() {
         .siblings('.q-radio__label')
         .should('contain', testNumberValue);
     });
-    // switch to individual
-    cy.dataCy(getRadioOption(PaymentSubject.individual))
-      .should('be.visible')
-      .click();
-    // check default payment option
-    cy.dataCy(getRadioOption(defaultPaymentAmountMinWithReward))
-      .should('be.visible')
-      .click();
-    // uncheck with-reward checkbox
+    // clear voucher
+    cy.dataCy(selectorVoucherButtonRemove).should('be.visible').click();
+    // with-reward checkbox is unchecked
     cy.dataCy(selectorCheckboxPaymentWithReward)
       .should('be.visible')
+      .and('not.have.class', 'disabled')
       .find('.q-checkbox__inner')
-      .should('have.class', 'q-checkbox__inner--truthy')
-      .click();
-    // check amount (now uses regular pricing)
-    cy.dataCy(selectorPaymentAmount)
-      .should('be.visible')
-      .find('.q-radio__inner.q-radio__inner--truthy')
-      .siblings('.q-radio__label')
-      .should('contain', defaultPaymentAmountMin);
-    // switch to voucher
-    cy.dataCy(getRadioOption(PaymentSubject.voucher))
-      .should('be.visible')
-      .click();
+      .should('have.class', 'q-checkbox__inner--truthy');
     // voucher was cleared - amount options are hidden
     cy.dataCy(selectorPaymentAmount).should('not.exist');
     // apply HALF voucher and use the returned discount amount
-    cy.applyHalfVoucher(
+    cy.applyVoucherHalfWithoutReward(
       rideToWorkByBikeConfig,
       i18n,
       defaultPaymentAmountMin,
     ).then((discountAmount) => {
+      // with-reward checkbox is unchecked
+      cy.dataCy(selectorCheckboxPaymentWithReward)
+        .should('be.visible')
+        .and('have.class', 'disabled')
+        .find('.q-checkbox__inner')
+        .should('have.class', 'q-checkbox__inner--falsy');
       // option with discounted amount is available
       cy.dataCy(selectorPaymentAmount)
         .should('be.visible')
@@ -783,6 +779,113 @@ function coreTests() {
     testDonation();
   });
 
+  it('if selected voucher - allows to apply voucher FULL (without-reward) + donate option', () => {
+    // option default amount is active
+    cy.dataCy(getRadioOption(defaultPaymentAmountMinWithReward))
+      .should('be.visible')
+      .click();
+    // price checkbox is checked and enabled
+    cy.dataCy(selectorCheckboxPaymentWithReward)
+      .should('be.visible')
+      .find('.q-checkbox__inner')
+      .should('have.class', 'q-checkbox__inner--truthy');
+    // option voucher payment is active
+    cy.dataCy(getRadioOption(PaymentSubject.voucher))
+      .should('be.visible')
+      .click();
+    // apply voucher without-reward
+    cy.applyVoucherFullWithoutReward(rideToWorkByBikeConfig, i18n);
+    // option amount hidden
+    cy.dataCy(selectorPaymentAmount).should('not.exist');
+    // total price is hidden
+    cy.dataCy(selectorTotalPriceValue).should('not.exist');
+    // custom amount hidden
+    cy.dataCy(selectorPaymentAmountCustom).should('not.exist');
+    // price checkbox is unchecked and disabled
+    cy.dataCy(selectorCheckboxPaymentWithReward)
+      .should('be.visible')
+      .and('have.class', 'disabled')
+      .find('.q-checkbox__inner')
+      .should('have.class', 'q-checkbox__inner--falsy');
+    // clear input
+    cy.dataCy(selectorDonation).should('be.visible');
+    // donation shows without-reward prices
+    testDonation(defaultPaymentAmountMin);
+    // switch back to individual
+    cy.dataCy(getRadioOption(PaymentSubject.individual))
+      .should('be.visible')
+      .click();
+    // shows amount selection but not voucher
+    cy.dataCy(selectorPaymentAmount).should('be.visible');
+    cy.dataCy(selectorVoucherBannerCode).should('not.exist');
+    // switch back to voucher
+    cy.dataCy(getRadioOption(PaymentSubject.voucher))
+      .should('be.visible')
+      .click();
+    // shows voucher
+    cy.dataCy(selectorVoucherBannerCode).should('be.visible');
+    // remove voucher
+    cy.dataCy(selectorVoucherButtonRemove).should('be.visible').click();
+    cy.dataCy(selectorVoucherInput).should('be.visible');
+    // price checkbox is unchecked but NOT disabled
+    cy.dataCy(selectorCheckboxPaymentWithReward)
+      .should('be.visible')
+      .and('not.have.class', 'disabled')
+      .find('.q-checkbox__inner')
+      .should('have.class', 'q-checkbox__inner--falsy');
+  });
+
+  it('if selected voucher - allows to apply voucher HALF (without-reward)', () => {
+    // option default amount is active
+    cy.dataCy(getRadioOption(defaultPaymentAmountMinWithReward))
+      .should('be.visible')
+      .click();
+    // option voucher payment is active
+    cy.dataCy(getRadioOption(PaymentSubject.voucher))
+      .should('be.visible')
+      .click();
+    // price checkbox is checked and enabled
+    cy.dataCy(selectorCheckboxPaymentWithReward)
+      .should('be.visible')
+      .find('.q-checkbox__inner')
+      .should('have.class', 'q-checkbox__inner--truthy');
+    // input amount is hidden
+    cy.dataCy(selectorPaymentAmount).should('not.exist');
+    // apply voucher HALF (price without reward)
+    cy.applyVoucherHalfWithoutReward(
+      rideToWorkByBikeConfig,
+      i18n,
+      defaultPaymentAmountMin,
+    ).then((discountAmount) => {
+      // price checkbox is unchecked and disabled
+      cy.dataCy(selectorCheckboxPaymentWithReward)
+        .should('be.visible')
+        .and('have.class', 'disabled')
+        .find('.q-checkbox__inner')
+        .should('have.class', 'q-checkbox__inner--falsy');
+      cy.dataCy(selectorTotalPriceValue).should('contain', discountAmount);
+      // custom amount is set to discount value
+      cy.dataCy(getRadioOption(PaymentAmount.custom)).click();
+      cy.dataCy(getRadioOption(discountAmount)).should('be.visible');
+      // total price shows discounted amount
+      cy.dataCy(selectorTotalPriceValue).should('contain', discountAmount);
+      // clear voucher
+      cy.dataCy(selectorVoucherButtonRemove).click();
+      // input voucher is shown
+      cy.dataCy(selectorVoucherInput).should('be.visible');
+      // input amount is hidden
+      cy.dataCy(selectorPaymentAmount).should('not.exist');
+      // input custom amount is hidden
+      cy.dataCy(selectorPaymentAmountCustom).should('not.exist');
+      // price checkbox is unchecked but NOT disabled
+      cy.dataCy(selectorCheckboxPaymentWithReward)
+        .should('be.visible')
+        .and('not.have.class', 'disabled')
+        .find('.q-checkbox__inner')
+        .should('have.class', 'q-checkbox__inner--falsy');
+    });
+  });
+
   it('if selected voucher - retains shown voucher after switching between payment subjects', () => {
     // select voucher
     cy.dataCy(getRadioOption(PaymentSubject.voucher))
@@ -878,19 +981,13 @@ function coreTests() {
   });
 
   it('if selected voucher - resets prices after switching back to option individual (custom amount) - without reward', () => {
-    // uncheck with-reward checkbox (checked by default)
-    cy.dataCy(selectorCheckboxPaymentWithReward)
-      .should('be.visible')
-      .find('.q-checkbox__inner')
-      .should('have.class', 'q-checkbox__inner--truthy')
-      .click();
     cy.dataCy(getRadioOption(PaymentSubject.voucher))
       .should('be.visible')
       .click();
     cy.dataCy(selectorPaymentAmount).should('not.exist');
     cy.dataCy(selectorPaymentAmountCustom).should('not.exist');
     // apply voucher HALF
-    cy.applyHalfVoucher(
+    cy.applyVoucherHalfWithoutReward(
       rideToWorkByBikeConfig,
       i18n,
       defaultPaymentAmountMin,
@@ -1129,7 +1226,7 @@ function coreTests() {
     );
   });
 
-  it('shows correct total price - without reward', () => {
+  it('shows correct total price - without-reward', () => {
     // uncheck with-reward checkbox (it's checked by default)
     cy.dataCy(selectorCheckboxPaymentWithReward)
       .should('be.visible')
@@ -1186,7 +1283,7 @@ function coreTests() {
       .click();
     cy.dataCy('total-price').should('not.exist');
     // apply voucher HALF
-    cy.applyHalfVoucher(
+    cy.applyVoucherHalfWithoutReward(
       rideToWorkByBikeConfig,
       i18n,
       defaultPaymentAmountMin,
@@ -1200,7 +1297,7 @@ function coreTests() {
     cy.dataCy(selectorVoucherButtonRemove).click();
     cy.dataCy('total-price').should('not.exist');
     // apply voucher FULL
-    cy.applyFullVoucher(rideToWorkByBikeConfig, i18n);
+    cy.applyVoucherFullWithoutReward(rideToWorkByBikeConfig, i18n);
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,

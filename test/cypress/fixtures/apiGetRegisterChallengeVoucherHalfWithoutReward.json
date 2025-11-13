@@ -1,0 +1,37 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "personal_details": {
+        "first_name": "Foo",
+        "last_name": "Bar",
+        "email": "foo@bar.org",
+        "is_staff": false,
+        "nickname": "FB",
+        "sex": "male",
+        "telephone": "736123456",
+        "telephone_opt_in": false,
+        "language": "cs",
+        "occupation": "",
+        "age_group": null,
+        "newsletter": "challenge",
+        "personal_data_opt_in": true,
+        "discount_coupon": "NOREWARD-HALF",
+        "payment_subject": "voucher",
+        "payment_type": "CARD_TOKEN",
+        "payment_status": "done",
+        "payment_amount": 170,
+        "payment_category": "entry_fee",
+        "is_payment_with_reward": false,
+        "approved_by_team": "approved"
+      },
+      "organization_type": "company",
+      "team_id": 2452,
+      "organization_id": 987,
+      "subsidiary_id": 1358,
+      "t_shirt_size_id": null
+    }
+  ]
+}
