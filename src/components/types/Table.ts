@@ -88,3 +88,11 @@ export enum InvoiceTableFileId {
   fakturoid = 'fakturoid',
   pohoda = 'pohoda',
 }
+
+export enum BoxesTableColumns {
+  trackingNumber = 'trackingNumber',
+  packageStatus = 'packageStatus',
+  recipients = 'recipients',
+  lastModified = 'lastModified',
+  address = 'address',
+}

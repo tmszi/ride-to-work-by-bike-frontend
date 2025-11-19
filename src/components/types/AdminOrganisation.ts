@@ -32,6 +32,24 @@ export interface AdminTeam {
   other_members: AdminTeamMember[];
 }
 
+export interface PackageTransaction {
+  t_shirt_size: string;
+  name: string;
+}
+
+export interface TeamPackage {
+  dispatched: boolean;
+  package_transactions: PackageTransaction[];
+}
+
+export interface Box {
+  dispatched: boolean;
+  carrier_identification: string;
+  tracking_link: string;
+  modified: string;
+  team_packages: TeamPackage[];
+}
+
 export interface AdminSubsidiary {
   id: number;
   psc: number;
@@ -40,6 +58,7 @@ export interface AdminSubsidiary {
   city: string;
   icon_url: string | null;
   teams: AdminTeam[];
+  boxes?: Box[];
 }
 
 export interface AdminOrganisation {
