@@ -15,6 +15,9 @@ import { PhaseType } from '../components/types/Challenge';
 // stores
 import { useChallengeStore } from './challenge';
 
+// utils
+import { pairedCategories, priceLevelPairs } from '../utils/price_level_pairs';
+
 // types
 import type { Logger } from '../components/types/Logger';
 import type {
@@ -22,13 +25,13 @@ import type {
   AdminSubsidiary,
   AdminTeam,
   AdminTeamMember,
+  TableFeeApprovalRow,
 } from '../components/types/AdminOrganisation';
 import type {
   InvoiceResult,
   InvoicePayment,
   InvoiceTeam,
 } from '../components/types/Invoice';
-import type { TableFeeApprovalRow } from '../composables/useTableFeeApprovalData';
 import type { CoordinatorMakeInvoicePayload } from '../composables/useApiPostCoordinatorMakeInvoice';
 
 interface InvoiceFormState {
@@ -54,6 +57,8 @@ interface AdminOrganisationState {
   isLoadingInvoices: boolean;
   isLoadingApprovePayments: boolean;
   selectedPaymentsToApprove: TableFeeApprovalRow[];
+  paymentRewards: Record<number, boolean | null>;
+  paymentAmounts: Record<number, number>;
   invoiceForm: InvoiceFormState;
 }
 
@@ -66,6 +71,8 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
     isLoadingInvoices: false,
     isLoadingApprovePayments: false,
     selectedPaymentsToApprove: [],
+    paymentRewards: {},
+    paymentAmounts: {},
     invoiceForm: {
       orderNumber: '',
       orderNote: '',
@@ -170,6 +177,75 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
       state.invoiceForm.customBillingAddress?.city || '',
     getBillingPsc: (state): string =>
       state.invoiceForm.customBillingAddress?.psc || '',
+    /**
+     * Get reward status for a specific member
+     * @param {number} memberId - Member ID
+     * @returns {boolean | null} - Reward status
+     */
+    getPaymentReward:
+      (state) =>
+      (memberId: number): boolean | null => {
+        return state.paymentRewards[memberId] ?? null;
+      },
+    /**
+     * Get payment amount for a specific member
+     * @param {number} memberId - Member ID
+     * @returns {number | null} - Payment amount
+     */
+    getPaymentAmount:
+      (state) =>
+      (memberId: number): number | null => {
+        return state.paymentAmounts[memberId] ?? null;
+      },
+    /**
+     * Get rows data for fee approval table
+     * Transforms organization data into table rows
+     * @param {boolean} approved - Whether to show approved or non-approved members
+     * @returns {TableFeeApprovalRow[]} - Array of table rows
+     */
+    getFeeApprovalData:
+      (state) =>
+      (approved: boolean): TableFeeApprovalRow[] => {
+        const organisation = state.adminOrganisations[0];
+        if (!organisation || !organisation.subsidiaries) {
+          return [];
+        }
+        const allMembers: TableFeeApprovalRow[] = [];
+
+        // helper function - transform member to row
+        const transformMemberToRow = (
+          member: AdminTeamMember,
+          subsidiaryAddress: string,
+        ): TableFeeApprovalRow => {
+          return {
+            id: member.id,
+            name: member.name,
+            reward: member.is_payment_with_reward,
+            email: member.email,
+            nickname: member.nickname,
+            amount: parseFloat(member.payment_amount) || 0,
+            dateCreated: member.date_of_challenge_registration,
+            address: subsidiaryAddress,
+          };
+        };
+
+        // loop over subsidiaries
+        organisation.subsidiaries.forEach((subsidiary: AdminSubsidiary) => {
+          const subsidiaryAddress = `${subsidiary.street} ${subsidiary.street_number}, ${subsidiary.city}`;
+          // loop over teams
+          subsidiary.teams.forEach((team: AdminTeam) => {
+            // get members based on approval status
+            const memberArray = approved
+              ? team.members_with_paid_entry_fee_by_org_coord
+              : team.members_without_paid_entry_fee_by_org_coord;
+            // transform members to rows
+            memberArray.forEach((member: AdminTeamMember) => {
+              allMembers.push(transformMemberToRow(member, subsidiaryAddress));
+            });
+          });
+        });
+        return allMembers;
+      },
   },
 
   actions: {
@@ -186,6 +262,93 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
     },
     setBillingFormExpanded(value: boolean): void {
       this.invoiceForm.isBillingFormExpanded = value;
+    },
+    /**
+     * Set reward status for a specific member
+     * Also calculate and update payment amount based on reward status
+     * @param {number} memberId - Member ID
+     * @param {boolean | null} value - Reward status
+     * @returns {void}
+     */
+    setPaymentReward(memberId: number, value: boolean | null): void {
+      this.paymentRewards[memberId] = value;
+      // find payment as a table row (API data)
+      const nonApprovedData = this.getFeeApprovalData(false);
+      const payment = nonApprovedData.find((p) => p.id === memberId);
+      if (!payment) {
+        this.$log?.debug(`Payment with memberId <${memberId}> not found.`);
+        return;
+      }
+      const challengeStore = useChallengeStore();
+      const originalRewardStatus = payment.reward;
+      const originalAmount = payment.amount;
+      // if reward value = original value, use original payment amount
+      if (value === originalRewardStatus) {
+        this.paymentAmounts[memberId] = originalAmount;
+        return;
+      }
+      // if not, find matching price level and calculate new amount
+      const priceLevels = originalRewardStatus
+        ? challengeStore.getCurrentPriceLevelsWithReward
+        : challengeStore.getCurrentPriceLevels;
+      const matchedPriceLevel = Object.values(priceLevels).find((level) => {
+        return (
+          level.price === originalAmount &&
+          pairedCategories.includes(level.category)
+        );
+      });
+      // fallback
+      if (!matchedPriceLevel) {
+        this.paymentAmounts[memberId] = originalAmount;
+        return;
+      }
+      const pairedCategory = priceLevelPairs[matchedPriceLevel.category];
+      const newPriceLevels = value
+        ? challengeStore.getCurrentPriceLevelsWithReward
+        : challengeStore.getCurrentPriceLevels;
+      const newPrice = newPriceLevels[pairedCategory]?.price;
+      // fallback
+      if (newPrice === undefined) {
+        this.paymentAmounts[memberId] = originalAmount;
+        return;
+      }
+      // set new price
+      this.paymentAmounts[memberId] = newPrice;
+    },
+    /**
+     * Initialize paymentRewards map from table rows
+     * @param {TableFeeApprovalRow[]} rows - Table rows with member data
+     * @returns {void}
+     */
+    initializePaymentRewards(rows: TableFeeApprovalRow[]): void {
+      rows.forEach((row) => {
+        // Only initialize if not already set (preserve user edits)
+        if (!(row.id in this.paymentRewards)) {
+          this.paymentRewards[row.id] = row.reward;
+        }
+      });
+    },
+    /**
+     * Set payment amount for a specific member
+     * @param {number} memberId - Member ID
+     * @param {number} amount - Payment amount
+     * @returns {void}
+     */
+    setPaymentAmount(memberId: number, amount: number): void {
+      this.paymentAmounts[memberId] = amount;
+    },
+    /**
+     * Initialize paymentAmounts map from table rows
+     * @param {TableFeeApprovalRow[]} rows - Table rows with member data
+     * @returns {void}
+     */
+    initializePaymentAmounts(rows: TableFeeApprovalRow[]): void {
+      rows.forEach((row) => {
+        // Only initialize if not already set (preserve user edits)
+        if (!(row.id in this.paymentAmounts)) {
+          this.paymentAmounts[row.id] = row.amount;
+        }
+      });
     },
     /**
      * Load admin organisations from API
@@ -226,17 +389,22 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
       const { approvePayments } = useApiPostCoordinatorApprovePayments(
         this.$log,
       );
-      // get ids of selected payments
-      const ids = this.selectedPaymentsToApprove.map((payment) => payment.id);
+      const ids: Record<string, number> = {};
+      // get ids and amounts
+      this.selectedPaymentsToApprove.forEach((payment) => {
+        const currentAmount = this.paymentAmounts[payment.id];
+        ids[payment.id.toString()] =
+          currentAmount !== undefined ? currentAmount : payment.amount;
+      });
       this.isLoadingApprovePayments = true;
       // approve payments
       const result = await approvePayments(ids);
-
-      // clear selected payments
+      // clear local state
       this.setSelectedPaymentsToApprove([]);
+      this.paymentRewards = {};
+      this.paymentAmounts = {};
       // refetch organization structure
       await this.loadAdminOrganisations();
-
       // check that the approved ids are the same as the selected ids
       const approvedIds = result?.approved_ids || [];
       if (approvedIds.length > 0) {
@@ -250,7 +418,7 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
         });
       }
       // notify if some payment ids were not approved
-      if (approvedIds.length !== ids.length) {
+      if (approvedIds.length !== Object.keys(ids).length) {
         Notify.create({
           message: i18n.global.t('approvePayments.apiMessageErrorPartial'),
           color: 'negative',
@@ -397,6 +565,8 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
       this.adminOrganisations = [];
       this.adminInvoices = [];
       this.selectedPaymentsToApprove = [];
+      this.paymentRewards = {};
+      this.paymentAmounts = {};
       this.resetInvoiceForm();
       this.isLoadingOrganisations = false;
       this.isLoadingInvoices = false;

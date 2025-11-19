@@ -20,6 +20,7 @@ export interface AdminTeamMember {
   payment_amount: string;
   discount_coupon: string;
   user_profile_id: number;
+  is_payment_with_reward: boolean | null;
 }
 
 export interface AdminTeam {
@@ -59,4 +60,16 @@ export interface GetAdminOrganisationResponse {
   next: string | null;
   previous: string | null;
   results: AdminOrganisation[];
+}
+
+export interface TableFeeApprovalRow {
+  id: number;
+  name: string;
+  reward: boolean | null;
+  email: string;
+  nickname: string | null;
+  amount: number;
+  dateCreated: string;
+  address: string;
+  isFirst?: boolean;
 }

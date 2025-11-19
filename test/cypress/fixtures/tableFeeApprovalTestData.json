@@ -37,9 +37,10 @@
                   "payment_status": "waiting",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
-                  "payment_amount": "390",
+                  "payment_amount": "430",
                   "discount_coupon": "",
-                  "user_profile_id": 50001
+                  "user_profile_id": 50001,
+                  "is_payment_with_reward": true
                 }
               ],
               "members_with_paid_entry_fee_by_org_coord": [
@@ -56,9 +57,10 @@
                   "payment_status": "done",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
-                  "payment_amount": "500",
+                  "payment_amount": "430",
                   "discount_coupon": "",
-                  "user_profile_id": 50002
+                  "user_profile_id": 50002,
+                  "is_payment_with_reward": null
                 }
               ],
               "other_members": []
@@ -91,9 +93,10 @@
                   "payment_status": "waiting",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
-                  "payment_amount": "390",
+                  "payment_amount": "380",
                   "discount_coupon": "",
-                  "user_profile_id": 50003
+                  "user_profile_id": 50003,
+                  "is_payment_with_reward": false
                 }
               ],
               "members_with_paid_entry_fee_by_org_coord": [
@@ -112,7 +115,8 @@
                   "payment_category": "entry_fee",
                   "payment_amount": "1000",
                   "discount_coupon": "DISC-001",
-                  "user_profile_id": 50004
+                  "user_profile_id": 50004,
+                  "is_payment_with_reward": true
                 },
                 {
                   "id": 10005,
@@ -127,9 +131,10 @@
                   "payment_status": "done",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
-                  "payment_amount": "400",
+                  "payment_amount": "380",
                   "discount_coupon": "",
-                  "user_profile_id": 50005
+                  "user_profile_id": 50005,
+                  "is_payment_with_reward": false
                 }
               ],
               "other_members": []
@@ -145,17 +150,19 @@
         "name": "Karel Dvořák",
         "email": "karel.dvorak@cerny.cz",
         "nickname": "kdvorak",
-        "amount": 390,
+        "amount": 380,
         "dateCreated": "2025-01-17T14:20:00.000000",
-        "address": "Vedlejší 456, Brno"
+        "address": "Vedlejší 456, Brno",
+        "reward": false
       },
       {
         "name": "Jan Novák",
         "email": "jan.novak@cerny.cz",
         "nickname": "jnovak",
-        "amount": 390,
+        "amount": 430,
         "dateCreated": "",
-        "address": "Hlavní 123, Praha"
+        "address": "Hlavní 123, Praha",
+        "reward": true
       }
     ],
     "approvedMembers": [
@@ -163,9 +170,10 @@
         "name": "Jan Šťastný",
         "email": "jan.stastny@cerny.cz",
         "nickname": "jstastny",
-        "amount": 400,
+        "amount": 380,
         "dateCreated": "2025-01-20T11:50:00.000000",
-        "address": "Vedlejší 456, Brno"
+        "address": "Vedlejší 456, Brno",
+        "reward": false
       },
       {
         "name": "Anna Nováková",
@@ -173,15 +181,17 @@
         "nickname": "anovakova",
         "amount": 1000,
         "dateCreated": "2025-01-18T11:45:00.000000",
-        "address": "Vedlejší 456, Brno"
+        "address": "Vedlejší 456, Brno",
+        "reward": true
       },
       {
         "name": "Petra Svobodová",
         "email": "petra.svobodova@cerny.cz",
         "nickname": null,
-        "amount": 500,
+        "amount": 430,
         "dateCreated": "2025-01-16T09:15:00.000000",
-        "address": "Hlavní 123, Praha"
+        "address": "Hlavní 123, Praha",
+        "reward": null
       }
     ],
     "subsidiaryAddresses": ["Hlavní 123, Praha", "Vedlejší 456, Brno"]

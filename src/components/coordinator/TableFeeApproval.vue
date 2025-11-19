@@ -33,13 +33,12 @@ import {
   useTable,
   useTableFeeApproval,
 } from '../../composables/useTable';
-import { useTableFeeApprovalData } from '../../composables/useTableFeeApprovalData';
 
 // stores
 import { useAdminOrganisationStore } from '../../stores/adminOrganisation';
 
 // types
-import type { TableFeeApprovalRow } from '../../composables/useTableFeeApprovalData';
+import type { TableFeeApprovalRow } from '../../components/types/AdminOrganisation';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
@@ -65,7 +64,34 @@ export default defineComponent({
 
     const { columns, visibleColumns } = useTableFeeApproval();
     const { sortByAddress } = useTable();
-    const { feeApprovalData } = useTableFeeApprovalData(props.approved);
+
+    const feeApprovalData = computed<TableFeeApprovalRow[]>(() => {
+      return adminOrganisationStore.getFeeApprovalData(props.approved);
+    });
+    const paymentRewards = computed(
+      () => adminOrganisationStore.paymentRewards,
+    );
+    const paymentAmounts = computed(
+      () => adminOrganisationStore.paymentAmounts,
+    );
+
+    // initialize paymentRewards and amounts in store when data changes
+    watch(
+      feeApprovalData,
+      (newData) => {
+        adminOrganisationStore.initializePaymentRewards(newData);
+        adminOrganisationStore.initializePaymentAmounts(newData);
+      },
+      { immediate: true },
+    );
+
+    // update reward status in store
+    const updateRewardStatus = (
+      memberId: number,
+      value: boolean | null,
+    ): void => {
+      adminOrganisationStore.setPaymentReward(memberId, value);
+    };
 
     // sort by dateCreated initially
     onMounted(() => {
@@ -73,16 +99,13 @@ export default defineComponent({
         tableRef.value.sort('dateCreated');
       }
     });
-    watch(
-      () => feeApprovalData.value,
-      () => {
-        nextTick(() => {
-          if (tableRef.value) {
-            tableRef.value.sort('dateCreated');
-          }
-        });
-      },
-    );
+    watch(feeApprovalData, () => {
+      nextTick(() => {
+        if (tableRef.value) {
+          tableRef.value.sort('dateCreated');
+        }
+      });
+    });
 
     const approveSelectedPayments = async (): Promise<void> => {
       await adminOrganisationStore.approveSelectedPayments();
@@ -105,6 +128,9 @@ export default defineComponent({
       approveSelectedPayments,
       paginationLabel,
       sortByAddress,
+      updateRewardStatus,
+      paymentRewards,
+      paymentAmounts,
     };
   },
 });
@@ -141,7 +167,7 @@ export default defineComponent({
             class="bg-primary text-weight-bold text-white"
             data-cy="table-fee-approval-address-header"
           >
-            <q-td :colspan="approved ? 6 : 7">
+            <q-td :colspan="approved ? 7 : 8">
               {{ props.row.address }}
             </q-td>
           </q-tr>
@@ -165,11 +191,27 @@ export default defineComponent({
               :props="props"
               data-cy="table-fee-approval-amount"
             >
-              {{ props.row.amount }}
+              {{ paymentAmounts[props.row.id] ?? props.row.amount }}
             </q-td>
             <!-- Name -->
             <q-td key="name" :props="props" data-cy="table-fee-approval-name">
               {{ props.row.name }}
+            </q-td>
+            <!-- Reward -->
+            <q-td
+              key="reward"
+              :props="props"
+              data-cy="table-fee-approval-reward"
+            >
+              <q-checkbox
+                :model-value="paymentRewards[props.row.id]"
+                color="primary"
+                :disable="approved"
+                data-cy="table-fee-approval-reward-checkbox"
+                @update:model-value="
+                  (value) => updateRewardStatus(props.row.id, value)
+                "
+              />
             </q-td>
             <!-- Email -->
             <q-td key="email" :props="props" data-cy="table-fee-approval-email">

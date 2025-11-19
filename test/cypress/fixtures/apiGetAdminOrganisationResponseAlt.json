@@ -25,26 +25,6 @@
               "icon_url": null,
               "members_without_paid_entry_fee_by_org_coord": [
                 {
-                  "id": 20005,
-                  "name": "Lucie Dvořáková",
-                  "nickname": "ldvorakova",
-                  "date_of_challenge_registration": "2025-02-03T14:20:00.000000",
-                  "email": "lucie.dvorakova@moravske-pivovary.cz",
-                  "telephone": "555001006",
-                  "sex": "female",
-                  "avatar_url": "",
-                  "approved_for_team": "approved",
-                  "payment_status": "waiting",
-                  "payment_type": "fc",
-                  "payment_category": "entry_fee",
-                  "payment_amount": "340",
-                  "discount_coupon": "",
-                  "user_profile_id": 60005,
-                  "is_payment_with_reward": false
-                }
-              ],
-              "members_with_paid_entry_fee_by_org_coord": [
-                {
                   "id": 20001,
                   "name": "Jana Novotná",
                   "nickname": "jnovotna",
@@ -54,7 +34,7 @@
                   "sex": "female",
                   "avatar_url": "",
                   "approved_for_team": "approved",
-                  "payment_status": "done",
+                  "payment_status": "waiting",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
                   "payment_amount": "390",
@@ -72,35 +52,35 @@
                   "sex": "male",
                   "avatar_url": "",
                   "approved_for_team": "approved",
-                  "payment_status": "done",
+                  "payment_status": "waiting",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
-                  "payment_amount": "390",
+                  "payment_amount": "234",
                   "discount_coupon": "",
                   "user_profile_id": 60002,
-                  "is_payment_with_reward": null
-                }
-              ],
-              "other_members": [
+                  "is_payment_with_reward": true
+                },
                 {
-                  "id": 20003,
-                  "name": "Radek Pospíšil",
-                  "nickname": "rpospisil",
-                  "date_of_challenge_registration": "2024-12-10T12:00:00.000000",
-                  "email": "radek.pospisil@moravske-pivovary.cz",
-                  "telephone": "555001005",
-                  "sex": "male",
+                  "id": 20005,
+                  "name": "Lucie Dvořáková",
+                  "nickname": "ldvorakova",
+                  "date_of_challenge_registration": "2025-02-03T14:20:00.000000",
+                  "email": "lucie.dvorakova@moravske-pivovary.cz",
+                  "telephone": "555001006",
+                  "sex": "female",
                   "avatar_url": "",
                   "approved_for_team": "approved",
-                  "payment_status": "done",
-                  "payment_type": "None",
-                  "payment_category": "None",
-                  "payment_amount": "None",
-                  "discount_coupon": "PIVOVAR-DISC",
-                  "user_profile_id": 60003,
-                  "is_payment_with_reward": true
+                  "payment_status": "waiting",
+                  "payment_type": "fc",
+                  "payment_category": "entry_fee",
+                  "payment_amount": "184",
+                  "discount_coupon": "",
+                  "user_profile_id": 60005,
+                  "is_payment_with_reward": false
                 }
-              ]
+              ],
+              "members_with_paid_entry_fee_by_org_coord": [],
+              "other_members": []
             },
             {
               "id": 4002,
