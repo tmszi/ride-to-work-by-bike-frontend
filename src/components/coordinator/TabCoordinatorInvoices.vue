@@ -44,8 +44,6 @@ export default defineComponent({
   setup() {
     const isDialogOpen = ref(false);
     const formCreateInvoiceRef = ref<typeof QForm | null>(null);
-
-    // Stores
     const adminOrganisationStore = useAdminOrganisationStore();
 
     const closeDialog = (): void => {
@@ -62,6 +60,8 @@ export default defineComponent({
       const success = await adminOrganisationStore.createInvoice();
       if (success) {
         closeDialog();
+        // Start polling after invoice creation
+        adminOrganisationStore.startInvoicePolling();
       }
     };
     const onReset = (): void => {

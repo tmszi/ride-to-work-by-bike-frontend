@@ -13,7 +13,7 @@
 
 // libraries
 import { QTable } from 'quasar';
-import { defineComponent, onMounted, ref } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
 
 // composables
 import { paginationLabel } from '../../composables/useTable';
@@ -23,7 +23,11 @@ import { useTableInvoicesData } from '../../composables/useTableInvoicesData';
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
+// enums
 import { InvoicesTableColumns } from '../../components/types/Table';
+
+// stores
+import { useAdminOrganisationStore } from 'src/stores/adminOrganisation';
 
 export default defineComponent({
   name: 'TableInvoices',
@@ -40,12 +44,17 @@ export default defineComponent({
     const { columns, visibleColumns } = useTableInvoices();
     const { invoicesData } = useTableInvoicesData();
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
+    const adminOrganisationStore = useAdminOrganisationStore();
+    const isInvoicePollingActive = computed(
+      () => adminOrganisationStore.getIsInvoicePollingActive,
+    );
 
     return {
       borderRadius,
       columns,
       InvoicesTableColumns,
       invoicesData,
+      isInvoicePollingActive,
       tableRef,
       visibleColumns,
       paginationLabel,
@@ -103,15 +112,30 @@ export default defineComponent({
             :props="props"
             data-cy="table-invoices-url"
           >
-            <div class="flex flex-wrap gap-4">
-              <!-- Button: Fakturoid invoice -->
+            <div class="flex flex-wrap gap-4 items-center">
+              <!-- Spinner: Invoice generation -->
+              <div
+                v-if="!props.row.invoiceUrl && isInvoicePollingActive"
+                class="q-px-xs"
+                data-cy="table-invoices-generating"
+                :title="$t('table.labelGeneratingPdf')"
+              >
+                <q-spinner
+                  color="primary"
+                  size="16px"
+                  data-cy="table-invoices-generating-spinner"
+                />
+              </div>
+              <!-- Button: Fakturoid invoice (only when URL is available) -->
               <q-btn
+                v-else-if="props.row.invoiceUrl"
                 dense
                 flat
                 no-caps
                 rounded
                 :href="props.row.invoiceUrl"
-                v-if="props.row.invoiceUrl"
+                target="_blank"
+                data-cy="table-invoices-pdf-button"
               >
                 <!-- Icon -->
                 <q-icon
