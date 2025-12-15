@@ -36,6 +36,7 @@ export const useChallengeStore = defineStore('challenge', {
     daysActive: null as number | null,
     maxTeamMembers: null as number | null,
     priceLevel: [] as PriceLevel[],
+    description: '',
   }),
 
   getters: {
@@ -81,6 +82,9 @@ export const useChallengeStore = defineStore('challenge', {
       );
       return entryPhase?.date_to || '';
     },
+    getDescription(): string {
+      return this.description;
+    },
   },
 
   actions: {
@@ -95,6 +99,9 @@ export const useChallengeStore = defineStore('challenge', {
     },
     setPhaseSet(phaseSet: Phase[]): void {
       this.phaseSet = phaseSet;
+    },
+    setDescription(description: string): void {
+      this.description = description;
     },
     async loadPhaseSet(): Promise<void> {
       const { campaigns, loadCampaign } = useApiGetCampaign(this.$log);
@@ -137,11 +144,21 @@ export const useChallengeStore = defineStore('challenge', {
 
       if (campaigns.value.length && campaigns.value[0]?.price_level) {
         this.$log?.debug(
-          `Set store this campaign price level <${campaigns.value[0].price_level}>.`,
+          'Set store this campaign price level' +
+            ` <${JSON.stringify(campaigns.value[0].price_level, null, 2)}>.`,
         );
         this.setPriceLevel(campaigns.value[0].price_level);
       } else {
         this.$log?.info('No this campaign price level found.');
+      }
+
+      if (campaigns.value.length && campaigns.value[0]?.description) {
+        this.$log?.debug(
+          `Set store this campaign description <${campaigns.value[0].description}>.`,
+        );
+        this.setDescription(campaigns.value[0].description);
+      } else {
+        this.$log?.info('No this campaign description found.');
       }
     },
     /**
@@ -196,6 +213,7 @@ export const useChallengeStore = defineStore('challenge', {
       this.daysActive = null;
       this.maxTeamMembers = null;
       this.priceLevel = [];
+      this.description = '';
     },
   },
 
