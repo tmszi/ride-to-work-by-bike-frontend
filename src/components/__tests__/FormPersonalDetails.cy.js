@@ -90,25 +90,30 @@ describe('<FormPersonalDetails>', () => {
       );
     });
 
-    it('renders link to register as coordinator', () => {
-      cy.dataCy('form-personal-details-register-as-coordinator').should(
-        'be.visible',
-      );
-      cy.dataCy('form-personal-details-register-as-coordinator-text')
-        .should('be.visible')
-        .and(
-          'contain',
-          i18n.global.t('register.form.hintRegisterAsCoordinator'),
+    if (
+      rideToWorkByBikeConfig.challengeAllowRegisterOrganizationAdmin ===
+      'enable'
+    ) {
+      it('renders link to register as coordinator', () => {
+        cy.dataCy('form-personal-details-register-as-coordinator').should(
+          'be.visible',
         );
-      cy.dataCy('form-personal-details-register-as-coordinator-link')
-        .should('be.visible')
-        .and(
-          'contain',
-          i18n.global.t('register.form.linkRegisterAsCoordinator'),
-        )
-        .invoke('attr', 'href')
-        .should('include', urlRegisterAsCoordinator);
-    });
+        cy.dataCy('form-personal-details-register-as-coordinator-text')
+          .should('be.visible')
+          .and(
+            'contain',
+            i18n.global.t('register.form.hintRegisterAsCoordinator'),
+          );
+        cy.dataCy('form-personal-details-register-as-coordinator-link')
+          .should('be.visible')
+          .and(
+            'contain',
+            i18n.global.t('register.form.linkRegisterAsCoordinator'),
+          )
+          .invoke('attr', 'href')
+          .should('include', urlRegisterAsCoordinator);
+      });
+    }
 
     it('does not render link to register as coordinator if user is organization admin', () => {
       cy.wrap(useRegisterChallengeStore()).then((store) => {
@@ -290,6 +295,31 @@ describe('<FormPersonalDetails>', () => {
           });
           i18n.global.locale = defLocale;
         });
+    });
+  });
+  context('desktop - register organization admin is disabled', () => {
+    beforeEach(() => {
+      setActivePinia(createPinia());
+      rideToWorkByBikeConfig.challengeAllowRegisterOrganizationAdmin =
+        'disable';
+      cy.mount(FormPersonalDetails, {
+        props: {
+          formValues: {
+            firstName: 'John',
+            lastName: 'Doe',
+            nickname: 'John Doe',
+            gender: 'male',
+            newsletter: ['all'],
+            terms: true,
+          },
+        },
+      });
+      cy.viewport('macbook-16');
+    });
+    it('link to register as coordinator is hidden', () => {
+      cy.dataCy('form-personal-details-register-as-coordinator').should(
+        'not.exist',
+      );
     });
   });
 });

@@ -69,6 +69,10 @@ export default defineComponent({
       () => store.getIsUserOrganizationAdmin,
     );
 
+    const getHasOrganizationAdmin = computed(
+      () => store.getHasOrganizationAdmin,
+    );
+
     const genderOptions: FormOption[] = [
       {
         label: i18n.global.t('global.man'),
@@ -98,9 +102,12 @@ export default defineComponent({
       );
     });
 
+    const { challengeAllowRegisterOrganizationAdmin } = rideToWorkByBikeConfig;
     const urlRegisterAsCoordinator = routesConf['register_coordinator'].path;
 
     return {
+      challengeAllowRegisterOrganizationAdmin,
+      getHasOrganizationAdmin,
       genderOptions,
       isUserOrganizationAdmin,
       personalDetails,
@@ -174,7 +181,11 @@ export default defineComponent({
       </div>
       <!-- Link: Register as coordinator -->
       <div
-        v-if="!isUserOrganizationAdmin"
+        v-if="
+          !isUserOrganizationAdmin &&
+          !getHasOrganizationAdmin &&
+          challengeAllowRegisterOrganizationAdmin === 'enable'
+        "
         class="col-12"
         data-cy="form-personal-details-register-as-coordinator"
       >
