@@ -43,6 +43,7 @@ import { TeamMemberStatus } from 'src/components/enums/TeamMember';
 // stores
 import { useChallengeStore } from './challenge';
 import { useRegisterStore } from './register';
+import { useLoginStore } from './login';
 
 // types
 import type { Logger } from '../components/types/Logger';
@@ -613,6 +614,12 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     async submitStep(
       step: RegisterChallengeStep,
     ): Promise<RegisterChallengePostResponse | null | true> {
+      // Fallback email from login store, because user attendance
+      // DB model doesn't exist yet, and register-challenge/ REST API
+      // GET URL endpoint return empty array data
+      if (!this.personalDetails.email) {
+        this.initUserEmail();
+      }
       // clear voucher on step change if payment subject is not voucher
       if (this.voucher && this.paymentSubject !== PaymentSubject.voucher) {
         this.setVoucher(null);
@@ -704,6 +711,26 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       }
       // post payload to API
       return this.postRegisterChallenge(payload);
+    },
+    /**
+     * Get user email from login store if not available
+     *
+     * Fallback email from login store, becuase user attendance
+     * DB model doesn't exist yet, and register-challenge/ REST API
+     * GET URL endpoint return empty array data
+     */
+    initUserEmail(): void {
+      this.$log?.debug(
+        'Initializing user email from the login store,' +
+          " because user attendance DB model doesn't exist yet.",
+      );
+      const loginStore = useLoginStore();
+      const userEmail = loginStore.getUserEmail;
+      if (userEmail) {
+        const personalDetails = this.getPersonalDetails;
+        personalDetails.email = userEmail;
+        this.setPersonalDetails(personalDetails);
+      }
     },
     /**
      * Post registration data to API
