@@ -8,6 +8,7 @@ import { useApiGetAdminOrganisation } from '../composables/useApiGetAdminOrganis
 import { useApiGetCoordinatorInvoices } from '../composables/useApiGetCoordinatorInvoices';
 import { useApiPostCoordinatorApprovePayments } from '../composables/useApiPostCoordinatorApprovePayments';
 import { useApiPostCoordinatorMakeInvoice } from '../composables/useApiPostCoordinatorMakeInvoice';
+import { useApiPostCoordinatorTeam } from '../composables/useApiPostCoordinatorTeam';
 
 // config
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
@@ -66,6 +67,7 @@ interface AdminOrganisationState {
   isLoadingOrganisations: boolean;
   isLoadingInvoices: boolean;
   isLoadingApprovePayments: boolean;
+  isLoadingCreateTeam: boolean;
   selectedPaymentsToApprove: TableFeeApprovalRow[];
   paymentRewards: Record<number, boolean | null>;
   paymentAmounts: Record<number, number>;
@@ -83,6 +85,7 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
     isLoadingOrganisations: false,
     isLoadingInvoices: false,
     isLoadingApprovePayments: false,
+    isLoadingCreateTeam: false,
     selectedPaymentsToApprove: [],
     paymentRewards: {},
     paymentAmounts: {},
@@ -108,10 +111,12 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
     getIsLoadingOrganisations: (state) => state.isLoadingOrganisations,
     getIsLoadingInvoices: (state) => state.isLoadingInvoices,
     getIsLoadingApprovePayments: (state) => state.isLoadingApprovePayments,
+    getIsLoadingCreateTeam: (state) => state.isLoadingCreateTeam,
     getIsLoadingAny: (state) =>
       state.isLoadingOrganisations ||
       state.isLoadingInvoices ||
-      state.isLoadingApprovePayments,
+      state.isLoadingApprovePayments ||
+      state.isLoadingCreateTeam,
     getCurrentAdminOrganisation: (state) => state.adminOrganisations[0],
     getCurrentAdminInvoice: (state) => state.adminInvoices[0],
     getSelectedPaymentsToApprove: (state) => state.selectedPaymentsToApprove,
@@ -501,6 +506,35 @@ export const useAdminOrganisationStore = defineStore('adminOrganisation', {
         });
       }
       this.isLoadingApprovePayments = false;
+    },
+    /**
+     * Create a new team for a specific subsidiary
+     * @param {number} subsidiaryId - The ID of the subsidiary to add the team to
+     * @param {string} teamName - The name of the new team
+     */
+    async createTeamForSubsidiary(
+      subsidiaryId: number,
+      teamName: string,
+    ): Promise<void> {
+      const { createTeam } = useApiPostCoordinatorTeam(this.$log);
+      const challengeStore = useChallengeStore();
+      const campaignId = challengeStore.getCampaignId;
+      if (!campaignId) {
+        this.$log?.error('Cannot create team, campaign ID is not available.');
+        return;
+      }
+      this.$log?.info(
+        'Create new team <${teamName}>' +
+          ` for subsidiary ID <${subsidiaryId}>` +
+          ` in campaign ID <${campaignId}>.`,
+      );
+      this.isLoadingCreateTeam = true;
+      const result = await createTeam(subsidiaryId, teamName, campaignId);
+      if (result?.id) {
+        this.$log?.debug(`Team created successfully with ID <${result.id}>.`);
+        await this.loadAdminOrganisations();
+      }
+      this.isLoadingCreateTeam = false;
     },
     /**
      * Create invoice from internal form state

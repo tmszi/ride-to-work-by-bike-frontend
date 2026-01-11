@@ -34,6 +34,9 @@ const selectorSubsidiaryHeader = 'table-attendance-subsidiary-header';
 const selectorCityChallenge = 'table-attendance-city-challenge';
 const selectorTeams = 'table-attendance-teams';
 const selectorMembers = 'table-attendance-members';
+const selectorAddTeamButton = 'table-attendance-button-add-team';
+const selectorDialog = 'dialog-add-team';
+const selectorDialogForm = 'form-add-team-name';
 
 // variables
 const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
@@ -69,7 +72,13 @@ describe('<TableAttendance>', () => {
       i18n,
     );
     cy.testLanguageStringsInContext(
-      ['labelCityChallenge', 'labelTeams', 'labelMembers', 'textClickToCopy'],
+      [
+        'labelCityChallenge',
+        'labelTeams',
+        'labelMembers',
+        'textClickToCopy',
+        'addTeam',
+      ],
       'coordinator',
       i18n,
     );
@@ -164,7 +173,7 @@ function coreTests() {
           .eq(subsidiaryIndex)
           .should('be.visible')
           .and('have.css', 'border-radius', borderRadius);
-        if (allMembers.length === 0) {
+        if (subsidiary.teams.length === 0) {
           // no members - no member rows
           cy.dataCy(selectorTable)
             .eq(subsidiaryIndex)
@@ -180,100 +189,104 @@ function coreTests() {
           cy.dataCy(selectorTable)
             .eq(subsidiaryIndex)
             .within(() => {
-              // test row styling and count
-              cy.dataCy(selectorTableRow)
-                .should('be.visible')
-                .and('have.color', grey10)
-                .and('have.length.at.least', 1);
-              // tests that all cells are visible (first row)
-              [
-                selectorTableName,
-                selectorTableNickname,
-                selectorTableContact,
-                selectorTableApprovedForTeam,
-                selectorTableFeeApproved,
-                selectorTablePaymentType,
-                selectorTablePaymentState,
-                selectorTableActions,
-              ].forEach((selector) => {
-                cy.dataCy(selector).first().should('be.visible');
-              });
-              // test contact icons (first row)
-              cy.dataCy(selectorTableContact)
-                .first()
-                .within(() => {
-                  cy.dataCy(selectorTablePhoneIcon)
-                    .find('i')
-                    .should('be.visible')
-                    .invoke('height')
-                    .should('be.equal', iconSize);
-                  cy.dataCy(selectorTablePhoneIcon)
-                    .find('i')
-                    .invoke('width')
-                    .should('be.equal', iconSize);
-                  cy.dataCy(selectorTableEmailIcon)
-                    .find('i')
-                    .should('be.visible')
-                    .invoke('height')
-                    .should('be.equal', iconSize);
-                  cy.dataCy(selectorTableEmailIcon)
-                    .find('i')
-                    .invoke('width')
-                    .should('be.equal', iconSize);
+              if (allMembers.length === 0) {
+                // no members - no member rows (only empty teams)
+                cy.dataCy(selectorTableRow).should('have.length', 0);
+              } else {
+                // test row styling and count
+                cy.dataCy(selectorTableRow)
+                  .should('be.visible')
+                  .and('have.color', grey10)
+                  .and('have.length.at.least', 1);
+                // tests that all cells are visible (first row)
+                [
+                  selectorTableName,
+                  selectorTableNickname,
+                  selectorTableContact,
+                  selectorTableApprovedForTeam,
+                  selectorTableFeeApproved,
+                  selectorTablePaymentType,
+                  selectorTablePaymentState,
+                  selectorTableActions,
+                ].forEach((selector) => {
+                  cy.dataCy(selector).first().should('be.visible');
                 });
-              // test payment state icons (first row)
-              cy.dataCy(selectorTablePaymentState)
-                .first()
-                .within(() => {
-                  cy.get(classSelectorIcon)
-                    .first()
-                    .invoke('height')
-                    .should('be.equal', iconSize);
-                  cy.get(classSelectorIcon)
-                    .first()
-                    .invoke('width')
-                    .should('be.equal', iconSize);
-                });
-              // test team approval status icons (first row)
-              cy.dataCy(selectorTableApprovedForTeam)
-                .first()
-                .within(() => {
-                  cy.get(classSelectorIcon)
-                    .invoke('height')
-                    .should('be.equal', iconSize);
-                  cy.get(classSelectorIcon)
-                    .invoke('width')
-                    .should('be.equal', iconSize);
-                });
-              // test fee approved icons (first row)
-              cy.dataCy(selectorTableFeeApproved)
-                .first()
-                .within(() => {
-                  cy.get(classSelectorIcon)
-                    .invoke('height')
-                    .should('be.equal', iconSize);
-                  cy.get(classSelectorIcon)
-                    .invoke('width')
-                    .should('be.equal', iconSize);
-                });
+                // test contact icons (first row)
+                cy.dataCy(selectorTableContact)
+                  .first()
+                  .within(() => {
+                    cy.dataCy(selectorTablePhoneIcon)
+                      .find('i')
+                      .should('be.visible')
+                      .invoke('height')
+                      .should('be.equal', iconSize);
+                    cy.dataCy(selectorTablePhoneIcon)
+                      .find('i')
+                      .invoke('width')
+                      .should('be.equal', iconSize);
+                    cy.dataCy(selectorTableEmailIcon)
+                      .find('i')
+                      .should('be.visible')
+                      .invoke('height')
+                      .should('be.equal', iconSize);
+                    cy.dataCy(selectorTableEmailIcon)
+                      .find('i')
+                      .invoke('width')
+                      .should('be.equal', iconSize);
+                  });
+                // test payment state icons (first row)
+                cy.dataCy(selectorTablePaymentState)
+                  .first()
+                  .within(() => {
+                    cy.get(classSelectorIcon)
+                      .first()
+                      .invoke('height')
+                      .should('be.equal', iconSize);
+                    cy.get(classSelectorIcon)
+                      .first()
+                      .invoke('width')
+                      .should('be.equal', iconSize);
+                  });
+                // test team approval status icons (first row)
+                cy.dataCy(selectorTableApprovedForTeam)
+                  .first()
+                  .within(() => {
+                    cy.get(classSelectorIcon)
+                      .invoke('height')
+                      .should('be.equal', iconSize);
+                    cy.get(classSelectorIcon)
+                      .invoke('width')
+                      .should('be.equal', iconSize);
+                  });
+                // test fee approved icons (first row)
+                cy.dataCy(selectorTableFeeApproved)
+                  .first()
+                  .within(() => {
+                    cy.get(classSelectorIcon)
+                      .invoke('height')
+                      .should('be.equal', iconSize);
+                    cy.get(classSelectorIcon)
+                      .invoke('width')
+                      .should('be.equal', iconSize);
+                  });
+              }
             });
-          // test team headers if there are multiple teams
-          const teamsWithMembers = subsidiary.teams.filter((team) => {
-            return (
-              team.members_without_paid_entry_fee_by_org_coord.length +
-                team.members_with_paid_entry_fee_by_org_coord.length +
-                team.other_members.length >
-              0
-            );
-          });
-          if (teamsWithMembers.length > 0) {
+          // team headers (show all teams including empty teams)
+          if (subsidiary.teams.length > 0) {
             cy.dataCy(selectorTable)
               .eq(subsidiaryIndex)
               .within(() => {
                 cy.dataCy(selectorTableTeamHeader)
                   .should('be.visible')
+                  .and('have.length', subsidiary.teams.length)
                   .and('have.backgroundColor', primary)
                   .and('have.color', white);
+                subsidiary.teams.forEach((team) => {
+                  cy.dataCy(selectorTableTeamHeader).should(
+                    'contain',
+                    team.name,
+                  );
+                });
               });
           }
         }
@@ -518,6 +531,26 @@ function dataDisplayTests() {
             }
           }
         });
+    });
+  });
+
+  it('displays add team button for each subsidiary table', () => {
+    cy.fixture('tableAttendanceTestData').then((tableAttendanceTestData) => {
+      // initiate store state
+      cy.wrap(useAdminOrganisationStore()).then((adminOrganisationStore) => {
+        adminOrganisationStore.setAdminOrganisations(
+          tableAttendanceTestData.storeData,
+        );
+      });
+      // button
+      cy.dataCy(selectorAddTeamButton)
+        .should('be.visible')
+        .and('not.be.disabled')
+        .and('contain', i18n.global.t('coordinator.addTeam'));
+      // dialog
+      cy.dataCy(selectorAddTeamButton).click();
+      cy.dataCy(selectorDialog).should('be.visible');
+      cy.dataCy(selectorDialogForm).should('be.visible');
     });
   });
 }
