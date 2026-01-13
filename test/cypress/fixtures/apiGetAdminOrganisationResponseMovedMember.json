@@ -35,33 +35,13 @@
                   "sex": "male",
                   "avatar_url": "",
                   "approved_for_team": "approved",
-                  "payment_status": "done",
+                  "payment_status": "waiting",
                   "payment_type": "fc",
                   "payment_category": "entry_fee",
                   "payment_amount": "390",
                   "discount_coupon": "",
                   "user_profile_id": 60002,
                   "is_payment_with_reward": null
-                }
-              ],
-              "members_with_paid_entry_fee_by_org_coord": [
-                {
-                  "id": 20001,
-                  "name": "Jana Novotná",
-                  "nickname": "jnovotna",
-                  "date_of_challenge_registration": "2025-02-01T10:00:00.000000",
-                  "email": "jana.novotna@moravske-pivovary.cz",
-                  "telephone": "555001001",
-                  "sex": "female",
-                  "avatar_url": "",
-                  "approved_for_team": "approved",
-                  "payment_status": "done",
-                  "payment_type": "fc",
-                  "payment_category": "entry_fee",
-                  "payment_amount": "390",
-                  "discount_coupon": "",
-                  "user_profile_id": 60001,
-                  "is_payment_with_reward": true
                 },
                 {
                   "id": 20005,
@@ -82,6 +62,7 @@
                   "is_payment_with_reward": false
                 }
               ],
+              "members_with_paid_entry_fee_by_org_coord": [],
               "other_members": [
                 {
                   "id": 20003,
@@ -107,7 +88,26 @@
               "id": 4002,
               "name": "Výroba",
               "icon_url": null,
-              "members_without_paid_entry_fee_by_org_coord": [],
+              "members_without_paid_entry_fee_by_org_coord": [
+                {
+                  "id": 20001,
+                  "name": "Jana Novotná",
+                  "nickname": "jnovotna",
+                  "date_of_challenge_registration": "2025-02-01T10:00:00.000000",
+                  "email": "jana.novotna@moravske-pivovary.cz",
+                  "telephone": "555001001",
+                  "sex": "female",
+                  "avatar_url": "",
+                  "approved_for_team": "approved",
+                  "payment_status": "waiting",
+                  "payment_type": "fc",
+                  "payment_category": "entry_fee",
+                  "payment_amount": "390",
+                  "discount_coupon": "",
+                  "user_profile_id": 60001,
+                  "is_payment_with_reward": true
+                }
+              ],
               "members_with_paid_entry_fee_by_org_coord": [
                 {
                   "id": 20004,
@@ -129,6 +129,75 @@
                 }
               ],
               "other_members": []
+            }
+          ],
+          "boxes": [
+            {
+              "dispatched": false,
+              "carrier_identification": "A 123 456 789",
+              "tracking_link": "https://gls-group.eu/CZ/cs/sledovani-zasilek?match=A123456789",
+              "modified": "2022-09-31T00:00:00Z",
+              "team_packages": [
+                {
+                  "dispatched": false,
+                  "package_transactions": [
+                    {
+                      "t_shirt_size": "2025-dámské S (dpnk2019)",
+                      "name": "Vy"
+                    },
+                    {
+                      "t_shirt_size": "2025-dámské M (dpnk2019)",
+                      "name": "Vy"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "dispatched": true,
+              "carrier_identification": "A 123 456 788",
+              "tracking_link": "https://gls-group.eu/CZ/cs/sledovani-zasilek?match=A123456788",
+              "modified": "2022-09-28T00:00:00Z",
+              "team_packages": [
+                {
+                  "dispatched": true,
+                  "package_transactions": [
+                    {
+                      "t_shirt_size": "2025-pánské L (dpnk2019)",
+                      "name": "Vy"
+                    },
+                    {
+                      "t_shirt_size": "2025-dámské S (dpnk2019)",
+                      "name": "Vy"
+                    },
+                    {
+                      "t_shirt_size": "2025-pánské M (dpnk2019)",
+                      "name": "Vy"
+                    },
+                    {
+                      "t_shirt_size": "2025-dámské L (dpnk2019)",
+                      "name": "Vy"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "dispatched": false,
+              "carrier_identification": "A 123 456 789",
+              "tracking_link": "https://gls-group.eu/CZ/cs/sledovani-zasilek?match=A123456789",
+              "modified": "2022-09-27T00:00:00Z",
+              "team_packages": [
+                {
+                  "dispatched": false,
+                  "package_transactions": [
+                    {
+                      "t_shirt_size": "2025-dámské S (dpnk2019)",
+                      "name": "Ludmila Anonymní"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
