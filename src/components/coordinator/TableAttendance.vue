@@ -52,6 +52,7 @@ import {
 import { useTableAttendanceData } from '../../composables/useTableAttendanceData';
 import { useCopyToClipboard } from '../../composables/useCopyToClipboard';
 import { useTeamMemberApprovalStatus } from '../../composables/useTeamMemberApprovalStatus';
+import { useValidation } from '../../composables/useValidation';
 
 // enums
 import { PaymentState } from '../enums/Payment';
@@ -69,6 +70,7 @@ import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // stores
 import { useAdminOrganisationStore } from '../../stores/adminOrganisation';
+import { useFeedStore } from '../../stores/feed';
 
 // types
 import type {
@@ -78,6 +80,7 @@ import type {
 } from '../types/Form';
 import type { TableAttendanceRow } from '../../composables/useTableAttendanceData';
 import type { AdminSubsidiary } from '../types/AdminOrganisation';
+import type { City } from '../types/City';
 
 export default defineComponent({
   name: 'TableAttendance',
@@ -128,6 +131,7 @@ export default defineComponent({
     const { getStatusLabel, getStatusColor, getStatusIcon } =
       useTeamMemberApprovalStatus();
     const { sortByTeam } = useTable();
+    const { isFilled } = useValidation();
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
 
     // table pagination settings
@@ -137,6 +141,7 @@ export default defineComponent({
 
     // dialog state for create team
     const adminOrganisationStore = useAdminOrganisationStore();
+    const feedStore = useFeedStore();
     const formRef = ref<QForm | null>(null);
     const isDialogOpen = ref<boolean>(false);
     const currentSubsidiaryId = ref<number | null>(null);
@@ -351,10 +356,23 @@ export default defineComponent({
       () => adminOrganisationStore.getIsLoadingUpdateSubsidiary,
     );
 
+    // challenge city state
+    const cities = computed<City[]>(() => feedStore.getCities);
+    const isLoadingCities = computed<boolean>(
+      () => feedStore.getIsLoadingCities,
+    );
+    // city options for select dropdown
+    const cityOptions = computed(() =>
+      cities.value.map((city) => ({
+        label: city.name,
+        value: city.id,
+      })),
+    );
+
     const onOpenEditSubsidiaryDialog = (subsidiary: AdminSubsidiary): void => {
       subsidiaryToEdit.value = subsidiary;
       subsidiaryEditAddress.value = deepObjectWithSimplePropsCopy(
-        subsidiaryAdapter.fromApiAddressToFormData(subsidiary),
+        subsidiaryAdapter.fromApiAddressToFormData(subsidiary, cities.value),
       ) as FormCompanyAddressFields;
       isEditSubsidiaryDialogOpen.value = true;
     };
@@ -461,6 +479,10 @@ export default defineComponent({
       subsidiaryToEdit,
       subsidiaryEditAddress,
       subsidiaryEditFormRef,
+      cities,
+      isLoadingCities,
+      cityOptions,
+      isFilled,
     };
   },
 });
@@ -487,7 +509,7 @@ export default defineComponent({
           <div class="flex flex-wrap gap-y-8 gap-x-32">
             <div data-cy="table-attendance-city-challenge">
               {{ $t('coordinator.labelCityChallenge') }}:
-              {{ subsidiaryData.subsidiary?.city }}
+              {{ subsidiaryData.subsidiary?.challenge_city }}
             </div>
             <div data-cy="table-attendance-teams">
               {{ subsidiaryData.subsidiary?.teams?.length }}
@@ -1034,7 +1056,7 @@ export default defineComponent({
       </template>
       <template #content>
         <!-- Current subsidiary info -->
-        <div class="q-mb-md">
+        <div class="q-mb-lg">
           <label class="text-grey-10 text-caption text-bold">
             {{ $t('form.labelSubsidiaryName') }}
           </label>
@@ -1054,8 +1076,35 @@ export default defineComponent({
             v-model:zip="subsidiaryEditAddress.zip"
             field-prefix="subsidiary"
           />
+          <!-- City Challenge Selection -->
+          <div class="q-mt-lg" data-cy="form-edit-subsidiary-city-challenge">
+            <label
+              for="form-subsidiary-city-challenge"
+              class="text-grey-10 text-caption text-bold"
+            >
+              {{ $t('form.labelCityChallenge') }}
+            </label>
+            <q-select
+              id="form-subsidiary-city-challenge"
+              v-model="subsidiaryEditAddress.cityChallenge"
+              :options="cityOptions"
+              :loading="isLoadingCities"
+              dense
+              outlined
+              option-value="value"
+              emit-value
+              map-options
+              :rules="[
+                (val) => isFilled(val) || $t('form.messageOptionRequired'),
+              ]"
+              lazy-rules
+              :hint="$t('form.hintCityChallenge')"
+              class="q-mt-sm"
+              data-cy="form-subsidiary-city-challenge"
+            />
+          </div>
           <!-- Box Addressee Fields -->
-          <div class="q-mt-lg">
+          <div class="q-mt-xl">
             <h4 class="text-subtitle2 q-mb-md">
               {{ $t('form.labelBoxAddressee') }}
             </h4>

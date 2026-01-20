@@ -133,6 +133,7 @@
           "box_addressee_name": "Jan Novák",
           "box_addressee_telephone": "420123456789",
           "box_addressee_email": "jan.novak@moravske-pivovary.cz",
+          "challenge_city": "Brandýs nad Labem",
           "boxes": [
             {
               "dispatched": false,
