@@ -10,7 +10,7 @@
  * @props
  * - `modelValue` (number, required) - The number value.
  *   It should be of type `number`.
- * - `min` (number) - The minimum value.
+ * - `min` (number) - The minimum value. Default from config.
  * - `max` (number) - The maximum value. Default from config.
  *
  * @events
@@ -25,14 +25,16 @@
 // libraries
 import { computed, defineComponent } from 'vue';
 
-import { defaultPaymentAmountMinComputed } from '../../utils/price_levels';
-import { defaultPaymentAmountMinComputedWithReward } from '../../utils/price_levels_with_reward';
-
+// config
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
 // stores
 import { useChallengeStore } from '../../stores/challenge';
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
+
+// utils
+import { defaultPaymentAmountMinComputed } from '../../utils/price_levels';
+import { defaultPaymentAmountMinComputedWithReward } from '../../utils/price_levels_with_reward';
 
 // variables
 const defaultMax = parseInt(rideToWorkByBikeConfig.entryFeePaymentMax);
@@ -60,7 +62,11 @@ export default defineComponent({
     const challengeStore = useChallengeStore();
     const registerChallengeStore = useRegisterChallengeStore();
 
-    const defaultMin = computed(() => {
+    const defaultMin = computed((): number => {
+      const configAmount = parseInt(rideToWorkByBikeConfig.entryFeeDonationMin);
+      if (configAmount && configAmount > 0) {
+        return configAmount;
+      }
       if (registerChallengeStore.getIsPaymentWithReward) {
         return defaultPaymentAmountMinComputedWithReward(
           challengeStore.getCurrentPriceLevelsWithReward,
@@ -72,9 +78,9 @@ export default defineComponent({
       }
     });
 
-    // compute final min value from props or default min
-    const computedMin = computed(() => {
-      return props.min || defaultMin.value;
+    // compute final min value from props or default min from config
+    const computedMin = computed((): number => {
+      return props.min ?? defaultMin.value;
     });
 
     const model = computed({

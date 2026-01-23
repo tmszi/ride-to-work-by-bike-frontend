@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { createPinia, setActivePinia } from 'pinia';
 import { colors } from 'quasar';
-import { computed, nextTick } from 'vue';
+import { computed } from 'vue';
 import RegisterChallengePayment from 'components/register/RegisterChallengePayment.vue';
 import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
@@ -810,7 +810,7 @@ function coreTests() {
     // clear input
     cy.dataCy(selectorDonation).should('be.visible');
     // donation shows without-reward prices
-    testDonation(defaultPaymentAmountMin);
+    testDonation();
     // switch back to individual
     cy.dataCy(getRadioOption(PaymentSubject.individual))
       .should('be.visible')
@@ -1182,7 +1182,7 @@ function coreTests() {
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,
-      defaultPaymentAmountMinWithReward,
+      rideToWorkByBikeConfig.entryFeeDonationMin,
       testNumberValue,
     );
 
@@ -1193,7 +1193,7 @@ function coreTests() {
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,
-      defaultPaymentAmountMinWithReward,
+      rideToWorkByBikeConfig.entryFeeDonationMin,
       testNumberValue,
     );
 
@@ -1221,7 +1221,7 @@ function coreTests() {
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,
-      defaultPaymentAmountMinWithReward,
+      rideToWorkByBikeConfig.entryFeeDonationMin,
       testNumberValue,
     );
   });
@@ -1264,7 +1264,7 @@ function coreTests() {
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,
-      defaultPaymentAmountMin,
+      rideToWorkByBikeConfig.entryFeeDonationMin,
       testNumberValue,
     );
     // company
@@ -1274,7 +1274,7 @@ function coreTests() {
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,
-      defaultPaymentAmountMin,
+      rideToWorkByBikeConfig.entryFeeDonationMin,
       testNumberValue,
     );
     // voucher
@@ -1301,7 +1301,7 @@ function coreTests() {
     cy.dataCy('total-price').should('not.exist');
     cy.testPaymentTotalPriceWithDonation(
       i18n,
-      defaultPaymentAmountMin,
+      rideToWorkByBikeConfig.entryFeeDonationMin,
       testNumberValue,
     );
   });
@@ -1384,19 +1384,19 @@ function coreTests() {
     // slider defaults to with-reward minimum
     cy.dataCy(selectorSliderNumberInput)
       .should('be.visible')
-      .and('have.value', defaultPaymentAmountMinWithReward.toString());
+      .and('have.value', rideToWorkByBikeConfig.entryFeeDonationMin.toString());
     // switch to regular pricing
     cy.dataCy(selectorCheckboxPaymentWithReward).click();
     // slider defaults to regular minimum
     cy.dataCy(selectorSliderNumberInput)
       .should('be.visible')
-      .and('have.value', defaultPaymentAmountMin.toString());
+      .and('have.value', rideToWorkByBikeConfig.entryFeeDonationMin.toString());
     // switch back to with-reward pricing
     cy.dataCy(selectorCheckboxPaymentWithReward).click();
     // slider defaults back to with-reward minimum
     cy.dataCy(selectorSliderNumberInput)
       .should('be.visible')
-      .and('have.value', defaultPaymentAmountMinWithReward.toString());
+      .and('have.value', rideToWorkByBikeConfig.entryFeeDonationMin.toString());
   });
 
   it('shows checkbox become coordinator if organization has no coordinator and user no coordinator - default lang', () => {
@@ -1489,7 +1489,9 @@ function coreTests() {
   });
 }
 
-function testDonation(defaultMinPrice = defaultPaymentAmountMinWithReward) {
+function testDonation(
+  defaultMinPrice = rideToWorkByBikeConfig.entryFeeDonationMin,
+) {
   cy.dataCy(selectorDonationCheckbox).click();
   cy.dataCy(selectorSliderNumberInput)
     .should('be.visible')

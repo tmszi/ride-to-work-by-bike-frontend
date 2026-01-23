@@ -21,8 +21,8 @@
 // libraries
 import { computed, defineComponent, onUnmounted, ref, watch } from 'vue';
 
-import { defaultPaymentAmountMinComputed } from '../../utils/price_levels';
-import { defaultPaymentAmountMinComputedWithReward } from '../../utils/price_levels_with_reward';
+// config
+import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 
 // components
 import FormFieldSliderNumber from './FormFieldSliderNumber.vue';
@@ -30,6 +30,10 @@ import FormFieldSliderNumber from './FormFieldSliderNumber.vue';
 // stores
 import { useChallengeStore } from '../../stores/challenge';
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
+
+// utils
+import { defaultPaymentAmountMinComputed } from '../../utils/price_levels';
+import { defaultPaymentAmountMinComputedWithReward } from '../../utils/price_levels_with_reward';
 
 export default defineComponent({
   name: 'FormFieldDonation',
@@ -41,7 +45,11 @@ export default defineComponent({
     const challengeStore = useChallengeStore();
     const registerChallengeStore = useRegisterChallengeStore();
 
-    const defaultPaymentAmountMin = computed(() => {
+    const defaultPaymentAmountMin = computed((): number => {
+      const configAmount = parseInt(rideToWorkByBikeConfig.entryFeeDonationMin);
+      if (configAmount && configAmount > 0) {
+        return configAmount;
+      }
       if (registerChallengeStore.getIsPaymentWithReward) {
         return defaultPaymentAmountMinComputedWithReward(
           challengeStore.getCurrentPriceLevelsWithReward,
