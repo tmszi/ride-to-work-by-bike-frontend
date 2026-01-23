@@ -33,7 +33,10 @@ dialogReason = "Deny reason"
 dialogTitle = "Approve team members"
 messageOtherMembersDenied = "Your team is full. Other members will be automatically denied."
 textMembersToApprove = "Someone in your team wants to be approved. Give them the green light?"
+textNoMembersPending = "You're on the team! No members waiting for approval."
 textReasonTeamFull = "Automatic denial due to exceeding the maximum number of {maxTeamMembers} team members in team {teamName}."
+buttonRefreshApprovalStatus = "Refresh status"
+buttonRefreshPendingApprovals = "Check for new member requests"
 textWaitingForApproval = "Your request to join the team is still pending. Let your colleagues know..."
 
 [breadcrumb]

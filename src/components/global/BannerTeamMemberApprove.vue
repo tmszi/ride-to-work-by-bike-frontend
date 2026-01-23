@@ -57,10 +57,11 @@ export default defineComponent({
     const memberDenialReasons = ref<Map<number, string>>(
       new Map<number, string>(),
     );
+    const isRefreshing = ref<boolean>(false);
 
     const registerChallengeStore = useRegisterChallengeStore();
     const challengeStore = useChallengeStore();
-    const { updateTeamMemberStatus, isLoading } = useApiPutMyTeam(null);
+    const { updateTeamMemberStatus, isLoading } = useApiPutMyTeam(logger);
 
     const remainingApprovalSlots = computed<number>((): number => {
       const myTeam = registerChallengeStore.getMyTeam;
@@ -97,11 +98,27 @@ export default defineComponent({
       },
     );
 
+    const isTeamFull = computed<boolean>((): boolean => {
+      const myTeam = registerChallengeStore.getMyTeam;
+      return myTeam?.is_full ?? false;
+    });
+
+    const showRefreshData = computed<boolean>((): boolean => {
+      return (
+        isCurrentUserApproved.value &&
+        pendingMembersCount.value === 0 &&
+        !isTeamFull.value
+      );
+    });
+
     const isBannerVisible = computed<boolean>((): boolean => {
       // if user is not approved, show the banner
       if (!isCurrentUserApproved.value) return true;
-      // if user is approved, show the banner if there are pending members
-      return isCurrentUserApproved.value && pendingMembersCount.value > 0;
+      // show if pending members or team is not full
+      return (
+        isCurrentUserApproved.value &&
+        (pendingMembersCount.value > 0 || !isTeamFull.value)
+      );
     });
 
     /**
@@ -171,7 +188,9 @@ export default defineComponent({
       }
     };
 
-    const openDialog = (): void => {
+    const openDialog = async (): Promise<void> => {
+      // first refresh team data
+      await refreshPendingMembers();
       isDialogOpen.value = true;
       // reset member decisions when opening dialog
       memberDecisions.value = new Map();
@@ -237,9 +256,14 @@ export default defineComponent({
         return;
       }
       // submit the changes
-      await updateTeamMemberStatus(registerChallengeStore.getTeamId, payload);
-      // reload team data after successful update
-      await registerChallengeStore.loadMyTeamToStore(null);
+      const response = await updateTeamMemberStatus(
+        registerChallengeStore.getTeamId,
+        payload,
+      );
+      if (response && response.members) {
+        // update team store
+        await registerChallengeStore.loadMyTeamToStore(logger);
+      }
       isDialogOpen.value = false;
     };
 
@@ -248,6 +272,12 @@ export default defineComponent({
         memberDecisions.value.get(member.id) === TeamMemberStatus.denied &&
         memberDenialReasons.value.get(member.id) !== undefined
       );
+    };
+
+    const refreshPendingMembers = async (): Promise<void> => {
+      isRefreshing.value = true;
+      await registerChallengeStore.loadMyTeamToStore(logger);
+      isRefreshing.value = false;
     };
 
     // colors
@@ -280,6 +310,10 @@ export default defineComponent({
       handleMemberDecision,
       isLoading,
       isShownDenyReason,
+      isTeamFull,
+      showRefreshData,
+      isRefreshing,
+      refreshPendingMembers,
     };
   },
 });
@@ -318,15 +352,19 @@ export default defineComponent({
           data-cy="banner-team-member-approve-title"
         >
           <!-- Approved members -->
-          <span v-if="isCurrentUserApproved">
+          <span v-if="isCurrentUserApproved && pendingMembersCount > 0">
             {{ $t('bannerTeamMemberApprove.textMembersToApprove') }}
+          </span>
+          <!-- No pending members, show refresh message -->
+          <span v-else-if="showRefreshData">
+            {{ $t('bannerTeamMemberApprove.textNoMembersPending') }}
           </span>
           <!-- Waiting for approval -->
           <span v-else>
             {{ $t('bannerTeamMemberApprove.textWaitingForApproval') }}
           </span>
         </h3>
-        <!-- Button section -->
+        <!-- Button section: Approve -->
         <div
           v-if="isCurrentUserApproved && pendingMembersCount > 0"
           class="col-12 col-md-auto flex items-center justify-end q-py-sm"
@@ -343,6 +381,31 @@ export default defineComponent({
             data-cy="banner-team-member-approve-button"
           >
             {{ $t('bannerTeamMemberApprove.buttonApproveMembers') }}
+          </q-btn>
+        </div>
+        <!-- Button section: Refresh data -->
+        <div
+          v-else-if="showRefreshData || !isCurrentUserApproved"
+          class="col-12 col-md-auto flex items-center justify-end gap-8"
+          data-cy="banner-team-member-approve-section-refresh"
+        >
+          <!-- Button: Refresh -->
+          <q-btn
+            flat
+            rounded
+            color="grey-7"
+            class="text-caption"
+            :loading="isRefreshing"
+            @click="refreshPendingMembers"
+            data-cy="banner-team-member-approve-button-refresh"
+          >
+            <template v-if="showRefreshData">{{
+              $t('bannerTeamMemberApprove.buttonRefreshPendingApprovals')
+            }}</template>
+            <template v-else-if="!isCurrentUserApproved">{{
+              $t('bannerTeamMemberApprove.buttonRefreshApprovalStatus')
+            }}</template>
+            <q-icon name="refresh" size="18px" color="grey-7" class="q-ml-sm" />
           </q-btn>
         </div>
       </div>

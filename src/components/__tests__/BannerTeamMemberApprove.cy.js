@@ -30,6 +30,9 @@ describe('<BannerTeamMemberApprove>', () => {
         'dialogTitle',
         'messageOtherMembersDenied',
         'textMembersToApprove',
+        'textNoMembersPending',
+        'buttonRefreshApprovalStatus',
+        'buttonRefreshPendingApprovals',
         'textWaitingForApproval',
       ],
       'bannerTeamMemberApprove',
@@ -118,10 +121,95 @@ describe('<BannerTeamMemberApprove>', () => {
       cy.viewport('macbook-16');
     });
 
-    it('does not show the banner', () => {
-      cy.dataCy('banner-team-member-approve').should('not.exist');
+    it('shows the banner with refresh button', () => {
+      cy.dataCy('banner-team-member-approve').should('be.visible');
+      // title
+      cy.dataCy('banner-team-member-approve-title').should(
+        'contain',
+        i18n.global.t('bannerTeamMemberApprove.textNoMembersPending'),
+      );
+      // refresh button section
+      cy.dataCy('banner-team-member-approve-section-refresh').should(
+        'be.visible',
+      );
+      // refresh button
+      cy.dataCy('banner-team-member-approve-button-refresh')
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t(
+            'bannerTeamMemberApprove.buttonRefreshPendingApprovals',
+          ),
+        );
+      // approve members button not visible
+      cy.dataCy('banner-team-member-approve-button').should('not.exist');
+    });
+
+    it('refresh button triggers loadMyTeamToStore', () => {
+      cy.wrap(useRegisterChallengeStore()).then((registerChallengeStore) => {
+        // spy on loadMyTeamToStore method
+        cy.spy(registerChallengeStore, 'loadMyTeamToStore').as(
+          'loadMyTeamToStore',
+        );
+        // click refresh button
+        cy.dataCy('banner-team-member-approve-button-refresh')
+          .should('be.visible')
+          .click();
+        // verify loadMyTeamToStore was called
+        cy.get('@loadMyTeamToStore').should('have.been.calledOnce');
+      });
     });
   });
+
+  context(
+    'desktop - approved member with full team and no pending members',
+    () => {
+      beforeEach(() => {
+        setActivePinia(createPinia());
+        cy.mount(BannerTeamMemberApprove, {
+          props: {},
+        });
+        cy.fixture('apiGetMyTeamResponseFullTeamNoPending.json').then(
+          (responseMyTeam) => {
+            cy.wrap(useChallengeStore()).then((challengeStore) => {
+              cy.fixture('apiGetThisCampaign.json').then(
+                (thisCampaignResponse) => {
+                  const maxTeamMembers = computed(
+                    () => challengeStore.getMaxTeamMembers,
+                  );
+                  challengeStore.setMaxTeamMembers(
+                    thisCampaignResponse.results[0].max_team_members,
+                  );
+                  // test max team members number in store
+                  cy.wrap(maxTeamMembers)
+                    .its('value')
+                    .should(
+                      'be.equal',
+                      thisCampaignResponse.results[0].max_team_members,
+                    );
+                },
+              );
+            });
+            cy.wrap(useRegisterChallengeStore()).then(
+              (registerChallengeStore) => {
+                // set myTeam in store
+                const myTeam = computed(() => registerChallengeStore.getMyTeam);
+                registerChallengeStore.setMyTeam(responseMyTeam.results[0]);
+                cy.wrap(myTeam)
+                  .its('value')
+                  .should('deep.equal', responseMyTeam.results[0]);
+              },
+            );
+          },
+        );
+        cy.viewport('macbook-16');
+      });
+
+      it('does not show the banner', () => {
+        cy.dataCy('banner-team-member-approve').should('not.exist');
+      });
+    },
+  );
 
   // handle case where team is full and there are still pending members
   context(
@@ -261,15 +349,41 @@ describe('<BannerTeamMemberApprove>', () => {
       );
     });
 
-    it('shows the banner with text for undecided member', () => {
+    it('shows the banner with text and refresh button for undecided member', () => {
       cy.dataCy('banner-team-member-approve').should('be.visible');
       // title
       cy.dataCy('banner-team-member-approve-title').should(
         'contain',
         i18n.global.t('bannerTeamMemberApprove.textWaitingForApproval'),
       );
-      // button
+      // refresh button section
+      cy.dataCy('banner-team-member-approve-section-refresh').should(
+        'be.visible',
+      );
+      // refresh button
+      cy.dataCy('banner-team-member-approve-button-refresh')
+        .should('be.visible')
+        .and(
+          'contain',
+          i18n.global.t('bannerTeamMemberApprove.buttonRefreshApprovalStatus'),
+        );
+      // approve members button not visible
       cy.dataCy('banner-team-member-approve-button').should('not.exist');
+    });
+
+    it('refresh button triggers loadMyTeamToStore', () => {
+      cy.wrap(useRegisterChallengeStore()).then((registerChallengeStore) => {
+        // spy on loadMyTeamToStore method
+        cy.spy(registerChallengeStore, 'loadMyTeamToStore').as(
+          'loadMyTeamToStore',
+        );
+        // click refresh button
+        cy.dataCy('banner-team-member-approve-button-refresh')
+          .should('be.visible')
+          .click();
+        // verify loadMyTeamToStore was called
+        cy.get('@loadMyTeamToStore').should('have.been.calledOnce');
+      });
     });
   });
 
