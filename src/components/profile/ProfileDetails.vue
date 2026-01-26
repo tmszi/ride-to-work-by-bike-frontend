@@ -304,17 +304,32 @@ export default defineComponent({
 
     const onUpdateTeam = async (teamId: number | null): Promise<void> => {
       logger?.debug(`Team ID was changed to <${teamId}>.`);
+
+      if (!teamId) {
+        logger?.warn('No team ID provided.');
+        return;
+      }
+
       const canJoinTeam = await registerChallengeStore.validateTeamJoin(teamId);
       logger?.debug(`Can join to team <${canJoinTeam}> with ID <${teamId}>.`);
-      if (teamId && canJoinTeam) {
-        logger?.debug(`Update team to ID <${teamId}>.`);
-        await onUpdateRegisterChallengeDetails({
-          teamId: teamId,
-          personalDetails: {
-            approvedForTeam: TeamMemberStatus.undecided,
-          },
+
+      if (!canJoinTeam) {
+        Notify.create({
+          message: i18n.global.t('profile.messageTeamFull'),
+          color: 'negative',
         });
+        return;
       }
+
+      logger?.debug(`Update team to ID <${teamId}>.`);
+      await onUpdateRegisterChallengeDetails({
+        teamId: teamId,
+        personalDetails: {
+          approvedForTeam: TeamMemberStatus.undecided,
+        },
+      });
+      // reload team data to show updated info in UI
+      await registerChallengeStore.loadMyTeamToStore(logger);
     };
 
     /**
