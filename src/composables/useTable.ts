@@ -742,12 +742,21 @@ export const useTableBoxes = () => {
     },
     {
       align: 'left',
+      field: BoxesTableColumns.addressee,
+      format: (val: number | string | null): string => (val ? `${val}` : ''),
+      label: i18n.global.t('table.labelAddressee'),
+      name: BoxesTableColumns.addressee,
+      required: false,
+      sortable: true,
+    },
+    {
+      align: 'left',
       field: BoxesTableColumns.lastModified,
       format: (val: number | string | null): string =>
         val ? i18n.global.d(new Date(String(val)), 'numeric') : '',
       label: i18n.global.t('table.labelLastModified'),
       name: BoxesTableColumns.lastModified,
-      required: true,
+      required: false,
       sortable: true,
     },
     {
@@ -766,7 +775,7 @@ export const useTableBoxes = () => {
     BoxesTableColumns.trackingNumber,
     BoxesTableColumns.packageStatus,
     BoxesTableColumns.recipients,
-    BoxesTableColumns.lastModified,
+    BoxesTableColumns.addressee,
   ];
 
   return {
