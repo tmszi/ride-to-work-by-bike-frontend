@@ -28,15 +28,7 @@
  */
 
 // libraries
-import {
-  computed,
-  defineComponent,
-  inject,
-  nextTick,
-  onMounted,
-  ref,
-  watch,
-} from 'vue';
+import { computed, defineComponent, inject, onMounted, ref, watch } from 'vue';
 import { QCard, QForm } from 'quasar';
 
 // components
@@ -76,8 +68,6 @@ export default defineComponent({
   },
   setup() {
     const logger = inject('vuejs3-logger') as Logger | null;
-    // show merch checkbox
-    const isNotMerch = ref<boolean>(false);
 
     // template ref
     const formMerchRef = ref<typeof QForm | null>(null);
@@ -103,12 +93,12 @@ export default defineComponent({
     onMounted(async () => {
       await registerChallengeStore.loadMerchandiseToStore(logger);
 
-      // Automatic selection "no merch" when merchandise options are empty
-      if (optionsEmpty.value) {
-        logger?.info(
-          'Merchandise options empty, automatic selection "no merch" option.',
+      // if payment is without reward or options are empty, load no-merch ID
+      if (!isPaymentWithReward.value || optionsEmpty.value) {
+        logger?.debug(
+          `Payment without reward <${!isPaymentWithReward.value}> or ` +
+            ` options empty <${optionsEmpty.value}>, loading no-merch ID.`,
         );
-        isNotMerch.value = true;
         await loadNoMerchId();
         return;
       }
@@ -125,32 +115,26 @@ export default defineComponent({
         );
         // select gender and size
         if (item) {
-          isNotMerch.value = false;
           logger?.debug(`Found item <${JSON.stringify(item, null, 2)}>.`);
           selectedGender.value = item.gender;
           selectedSize.value = item.id;
         } else {
-          isNotMerch.value = true;
           logger?.debug(
-            `No item found for merch ID <${registerChallengeStore.getMerchId}>,` +
-              ` setting isNotMerch to <${isNotMerch.value}>.`,
+            `No item found for merch ID <${registerChallengeStore.getMerchId}>.`,
           );
         }
-      }
-      // set isNotMerch to true if payment with reward is disabled
-      if (!registerChallengeStore.getIsPaymentWithReward) {
-        isNotMerch.value = true;
-        onCheckboxUpdate(true);
       }
     });
 
     // ensure tracking of isPaymentWithReward changes
     watch(
       () => registerChallengeStore.getIsPaymentWithReward,
-      (newVal: boolean) => {
+      async (newVal: boolean) => {
         if (!newVal) {
-          isNotMerch.value = true;
-          onCheckboxUpdate(true);
+          logger?.info(
+            'Payment changed to without reward, loading no-merch ID.',
+          );
+          await loadNoMerchId();
         }
       },
     );
@@ -218,6 +202,15 @@ export default defineComponent({
       return optionsEmpty.value && !isPriceLevelEmpty;
     });
 
+    const showMerchDisabledBanner = computed((): boolean => {
+      const isPriceLevelEmpty = challengeStore.getPriceLevel.length === 0;
+      logger?.debug(
+        'Show merch disabled banner check' +
+          ` isPriceLevelEmpty <${isPriceLevelEmpty}>.`,
+      );
+      return isPriceLevelEmpty;
+    });
+
     // get current item's options
     const currentGenderOptions = computed((): FormOption[] => {
       return selectedOption.value?.genderOptions || [];
@@ -228,8 +221,8 @@ export default defineComponent({
     });
 
     const isShowingBottomSizeInput = computed((): boolean => {
-      // hide - user selected "no merch" or no options available
-      if (isNotMerch.value || optionsEmpty.value) return false;
+      // hide - payment without reward or no options available
+      if (!isPaymentWithReward.value || optionsEmpty.value) return false;
       // hide - current item has only one size
       if (currentSizeOptions.value.length <= 1) return false;
       // hide - no item selected
@@ -378,45 +371,6 @@ export default defineComponent({
       }
     };
 
-    /**
-     * Scroll to merch tabs if you uncheck
-     * "I don't want merch" checkbox widget
-     */
-    const onCheckboxUpdate = function (val: boolean): void {
-      if (optionsEmpty.value) {
-        logger?.info('Update checkbox state aborted, checkbox is disabled.');
-        return;
-      }
-      if (val) {
-        loadNoMerchId();
-      } else {
-        nextTick(() => {
-          // if no merch is selected, reset selected size
-          selectedSize.value = null;
-          // scroll to merch tabs
-          tabsMerchRef.value?.$el.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
-        });
-      }
-      registerChallengeStore.setIsMerchandiseSavedIntoDb(false);
-    };
-
-    const hintInputPhone = computed((): string => {
-      if (isNotMerch.value) {
-        return i18n.global.t('form.merch.hintPhoneNoMerch');
-      }
-      return i18n.global.t('form.merch.hintPhoneWithMerch');
-    });
-
-    const labelPhoneOptIn = computed((): string => {
-      if (isNotMerch.value) {
-        return i18n.global.t('form.merch.labelPhoneOptInNoMerch');
-      }
-      return i18n.global.t('form.merch.labelPhoneOptInWithMerch');
-    });
-
     const urlSizeConversionChart = computed(() => {
       return getApiBaseUrlWithLang(
         logger,
@@ -425,19 +379,18 @@ export default defineComponent({
         i18n,
       );
     });
+
     return {
       currentItemLabelSize,
       formMerchRef,
       Gender,
-      hintInputPhone,
-      isNotMerch,
       isOpen,
       isShowingBottomSizeInput,
-      labelPhoneOptIn,
       optionsFemale,
       optionsMale,
       optionsUnisex,
       optionsEmpty,
+      showMerchDisabledBanner,
       showMerchUnavailableBanner,
       selectedOption,
       selectedSize,
@@ -448,7 +401,6 @@ export default defineComponent({
       onSubmit,
       isSelected,
       tabsMerchRef,
-      onCheckboxUpdate,
       isLoading,
       isPaymentWithReward,
       merchandiseCards,
@@ -459,42 +411,34 @@ export default defineComponent({
 </script>
 
 <template>
+  <!-- Message: Merch disabled (not part of campaign) -->
+  <q-banner
+    v-if="showMerchDisabledBanner"
+    class="bg-warning text-grey-10 rounded-borders q-mb-md"
+    data-cy="text-merch-disabled"
+  >
+    {{ $t('form.merch.textMerchDisabled') }}
+  </q-banner>
+  <!-- Message: No merch selected (payment without reward) -->
+  <q-banner
+    v-if="!showMerchDisabledBanner && !isPaymentWithReward"
+    class="bg-warning text-grey-10 rounded-borders q-mb-md"
+    data-cy="text-no-merch-selected"
+  >
+    {{ $t('form.merch.textNoMerchSelected') }}
+  </q-banner>
   <!-- Message: Merch unavailable -->
   <q-banner
-    v-if="showMerchUnavailableBanner"
+    v-if="showMerchUnavailableBanner && isPaymentWithReward"
     class="bg-warning text-grey-10 rounded-borders q-mb-md"
     data-cy="text-merch-unavailable"
   >
     {{ $t('form.merch.textMerchUnavailable') }}
   </q-banner>
-  <!-- Checkbox: No merch -->
-  <q-item tag="label" v-ripple data-cy="no-merch">
-    <q-item-section avatar top>
-      <q-checkbox
-        dense
-        v-model="isNotMerch"
-        :val="true"
-        color="primary"
-        :disable="!isPaymentWithReward || optionsEmpty"
-        @update:model-value="onCheckboxUpdate"
-        data-cy="form-merch-no-merch-checkbox"
-      />
-    </q-item-section>
-    <q-item-section>
-      <!-- Checkbox title -->
-      <q-item-label class="text-grey-10" data-cy="no-merch-label">{{
-        $t('form.merch.labelNoMerch')
-      }}</q-item-label>
-      <!-- Checkbox hint -->
-      <q-item-label class="text-grey-8" caption data-cy="no-merch-hint">
-        {{ $t('form.merch.hintNoMerch') }}
-      </q-item-label>
-    </q-item-section>
-  </q-item>
   <!-- Tabs: Merch -->
-  <q-card ref="tabsMerchRef" flat class="q-mt-lg" style="max-width: 1024px">
+  <q-card ref="tabsMerchRef" flat style="max-width: 1024px">
     <div
-      v-show="!isNotMerch && !optionsEmpty"
+      v-show="isPaymentWithReward && !optionsEmpty"
       data-cy="list-merch"
       class="q-mb-sm"
     >
@@ -594,7 +538,7 @@ export default defineComponent({
       />
     </div>
 
-    <div v-if="!optionsEmpty" class="q-mb-md">
+    <div v-if="isPaymentWithReward && !optionsEmpty" class="q-mb-md">
       <a
         class="text-primary"
         :href="urlSizeConversionChart"

@@ -59,17 +59,16 @@ Cypress.Commands.add('switchToPaymentWithReward', () => {
 
 /**
  * Validate step Merch without reward
- * "I don't want merch" checkbox should be selected and disabled
+ * Shows banner "no merch selected"
  * Next step button should be visible and enabled
  */
 Cypress.Commands.add('validateStepMerchWithoutReward', () => {
-  cy.dataCy('form-merch-no-merch-checkbox')
-    .should('be.visible')
-    .and('have.class', 'disabled')
-    .find('.q-checkbox__inner')
-    .should('have.class', 'q-checkbox__inner--truthy');
+  // verify banner "no merch"
+  cy.dataCy('text-no-merch-selected').should('be.visible');
   // merch cards should not be visible
   cy.dataCy('list-merch').should('not.be.visible');
+  // sizes table link should not be visible
+  cy.dataCy('form-merch-size-conversion-chart-link').should('not.exist');
   // go to next step
   cy.dataCy('step-6-continue').should('be.visible').click();
   // on step 7
