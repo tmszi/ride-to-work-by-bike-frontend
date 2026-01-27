@@ -821,55 +821,53 @@ describe('Register Challenge page', () => {
         .first()
         .click();
       cy.fixture('apiPostSubsidiaryRequest').then((subsidiaryRequest) => {
-        cy.fixture('apiPostSubsidiaryResponse').then((subsidiaryResponse) => {
-          // open dialog
-          cy.dataCy('button-add-address').click();
-          cy.dataCy('dialog-add-address').should('be.visible');
-          // fill the form
-          cy.dataCy('form-add-subsidiary').within(() => {
-            cy.dataCy('form-add-subsidiary-street').type(
-              subsidiaryRequest.address.street,
-            );
-            cy.dataCy('form-add-subsidiary-house-number').type(
-              subsidiaryRequest.address.street_number,
-            );
-            cy.dataCy('form-add-subsidiary-city').type(
-              subsidiaryRequest.address.city,
-            );
-            cy.dataCy('form-add-subsidiary-zip').type(
-              subsidiaryRequest.address.psc,
-            );
-            cy.dataCy('form-add-subsidiary-department').type(
-              subsidiaryRequest.address.recipient,
-            );
-            // select city challenge
-            cy.dataCy('form-add-subsidiary-city-challenge').click();
-          });
-          // select city challenge (outside the form)
-          cy.fixture('apiGetCitiesResponse').then((citiesResponse) => {
-            cy.get('.q-menu').within(() => {
-              cy.contains(citiesResponse.results[0].name)
-                .should('be.visible')
-                .click();
-            });
-          });
-          // submit form
-          cy.dataCy('dialog-button-submit').click();
-          // wait for API response
-          cy.waitForSubsidiaryPostApi(subsidiaryResponse);
-          // verify dialog was closed
-          cy.dataCy('dialog-add-address').should('not.exist');
-          // verify the new address is selected in the dropdown
-          cy.dataCy('form-company-address')
-            .find('.q-field__input')
-            .invoke('val')
-            .should('contain', subsidiaryRequest.address.street);
-          // verify we can proceed to step 5
-          cy.dataCy('step-4-continue').click();
-          cy.dataCy('step-5')
-            .find('.q-stepper__step-content')
-            .should('be.visible');
+        // open dialog
+        cy.dataCy('button-add-address').click();
+        cy.dataCy('dialog-add-address').should('be.visible');
+        // fill the form
+        cy.dataCy('form-add-subsidiary').within(() => {
+          cy.dataCy('form-add-subsidiary-street').type(
+            subsidiaryRequest.address.street,
+          );
+          cy.dataCy('form-add-subsidiary-house-number').type(
+            subsidiaryRequest.address.street_number,
+          );
+          cy.dataCy('form-add-subsidiary-city').type(
+            subsidiaryRequest.address.city,
+          );
+          cy.dataCy('form-add-subsidiary-zip').type(
+            subsidiaryRequest.address.psc,
+          );
+          cy.dataCy('form-add-subsidiary-department').type(
+            subsidiaryRequest.address.recipient,
+          );
+          // select city challenge
+          cy.dataCy('form-add-subsidiary-city-challenge').click();
         });
+        // select city challenge (outside the form)
+        cy.fixture('apiGetCitiesResponse').then((citiesResponse) => {
+          cy.get('.q-menu').within(() => {
+            cy.contains(citiesResponse.results[0].name)
+              .should('be.visible')
+              .click();
+          });
+        });
+        // submit form
+        cy.dataCy('dialog-button-submit').click();
+        // wait for API response
+        cy.waitForSubsidiaryPostApi();
+        // verify dialog was closed
+        cy.dataCy('dialog-add-address').should('not.exist');
+        // verify the new address is selected in the dropdown
+        cy.dataCy('form-company-address')
+          .find('.q-field__input')
+          .invoke('val')
+          .should('contain', subsidiaryRequest.address.street);
+        // verify we can proceed to step 5
+        cy.dataCy('step-4-continue').click();
+        cy.dataCy('step-5')
+          .find('.q-stepper__step-content')
+          .should('be.visible');
       });
     });
 
@@ -2505,50 +2503,12 @@ describe('Register Challenge page', () => {
     it('allows to submit form inside registration with Enter key', () => {
       cy.get('@config').then((config) => {
         cy.get('@i18n').then((i18n) => {
-          cy.passToStep2();
-          // select payment voucher
-          cy.dataCy(getRadioOption(PaymentSubject.voucher))
-            .should('be.visible')
-            .click();
-          // fill voucher code
-          cy.fixture('apiGetDiscountCouponResponseFull').then((apiResponse) => {
-            // intercept coupon endpoint
-            cy.interceptDiscountCouponGetApi(
-              config,
-              i18n,
-              apiResponse.results[0].name,
-              apiResponse,
-            );
-            // submit voucher
-            cy.dataCy('form-field-voucher-input').type(
-              apiResponse.results[0].name,
-            );
-            cy.dataCy('form-field-voucher-input').type('{enter}');
-            // wait for API response
-            cy.waitForDiscountCouponApi(apiResponse);
-            // check success message
-            cy.contains(i18n.global.t('notify.voucherApplySuccess')).should(
-              'be.visible',
-            );
-            // verify banner content
-            cy.dataCy('voucher-banner-code')
-              .should('be.visible')
-              .and('contain', apiResponse.results[0].name);
-            cy.dataCy('voucher-banner-name')
-              .should('be.visible')
-              .and(
-                'contain',
-                i18n.global.t(
-                  'register.challenge.labelVoucherFreeRegistration',
-                ),
-              );
+          cy.passToStep4();
+          // intercepts
+          cy.fixture('apiPostOrganization').then((apiPostOrganization) => {
+            cy.interceptSubsidiaryPostApi(config, i18n, apiPostOrganization.id);
+            cy.interceptOrganizationPostApi(config, i18n);
           });
-          // go to next step
-          cy.dataCy('step-2-continue').should('be.visible').click();
-          // select participation - company
-          cy.dataCy('form-field-option').should('be.visible').first().click();
-          // go to next step
-          cy.dataCy('step-3-continue').should('be.visible').click();
           // create a new company
           cy.dataCy('form-select-table-company').within(() => {
             cy.dataCy('button-add-option').should('be.visible').click();
@@ -2556,50 +2516,36 @@ describe('Register Challenge page', () => {
           // dialog is open
           cy.dataCy('dialog-add-option').should('be.visible');
           // fill in form
-          cy.fixture('companyAddress').then((companyAddress) => {
-            // fill in basic fields
-            cy.dataCy('form-add-company-name')
-              .find('input')
-              .type(companyAddress.name);
-            cy.dataCy('form-add-company-vat-id')
-              .find('input')
-              .type(companyAddress.vatId);
-            // fill in address fields
-            cy.dataCy('form-add-subsidiary-street')
-              .find('input')
-              .type(companyAddress.address.street);
-            cy.dataCy('form-add-subsidiary-house-number')
-              .find('input')
-              .type(companyAddress.address.houseNumber);
-            cy.dataCy('form-add-subsidiary-city')
-              .find('input')
-              .type(companyAddress.address.city);
-            cy.dataCy('form-add-subsidiary-zip')
-              .find('input')
-              .type(companyAddress.address.zip);
-            cy.dataCy('form-add-subsidiary-city-challenge').click();
-            cy.get('.q-menu')
-              .should('be.visible')
-              .within(() => {
-                cy.get('.q-item').first().click();
-              });
-            cy.dataCy('form-add-subsidiary-department').type(
-              companyAddress.address.department,
-            );
-            // submit form with enter
-            cy.dataCy('form-add-subsidiary-department').type('{enter}');
-            // dialog is closed
-            cy.dataCy('dialog-add-option').should('not.exist');
-            // new company is created and selected
-            cy.dataCy('form-select-table-option')
-              .first()
-              .should('be.visible')
-              .find('.q-radio__inner')
-              .should('have.class', 'q-radio__inner--truthy');
-            cy.dataCy('form-select-table-option')
-              .first()
-              .should('contain', companyAddress.name);
-          });
+          cy.fixture('apiPostSubsidiaryRequest').then(
+            (apiPostSubsidiaryRequest) => {
+              cy.fixture('formFieldCompanyCreateRequest').then(
+                (formFieldCompanyCreateRequest) => {
+                  cy.fillOrganizationSubsidiaryForm(
+                    formFieldCompanyCreateRequest,
+                    apiPostSubsidiaryRequest,
+                  );
+                  // submit form with enter
+                  cy.dataCy('form-add-subsidiary-department').type('{enter}');
+                  // dialog is closed
+                  cy.dataCy('dialog-add-option').should('not.exist');
+                  // await organization POST request
+                  cy.waitForOrganizationPostApi();
+                  cy.get('@createOrganization.all').should('have.length', 1);
+                  cy.waitForSubsidiaryPostApi();
+                  cy.get('@postSubsidiary.all').should('have.length', 1);
+                  // new company is created and selected
+                  cy.dataCy('form-select-table-option')
+                    .first()
+                    .should('be.visible')
+                    .find('.q-radio__inner')
+                    .should('have.class', 'q-radio__inner--truthy');
+                  cy.dataCy('form-select-table-option')
+                    .first()
+                    .should('contain', formFieldCompanyCreateRequest.name);
+                },
+              );
+            },
+          );
           // create new address
           cy.dataCy('button-add-address').should('be.visible').click();
           // dialog is open
@@ -2652,6 +2598,8 @@ describe('Register Challenge page', () => {
                 .should('contain', subsidiaryResponse.address.street);
             },
           );
+          // verify second subsidiary POST
+          cy.get('@postSubsidiary.all').should('have.length', 2);
           // go to next step
           cy.dataCy('step-4-continue').should('be.visible').click();
           // create new team

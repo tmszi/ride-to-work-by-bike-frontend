@@ -1378,21 +1378,28 @@ Cypress.Commands.add(
 /*
  * Wait for intercept subsidiary POST API call and compare request/response object
  * Wait for `@postSubsidiary` intercept
+ * @param {object|null} requestBody - Optional custom request body to validate
+ * @param {object|null} responseBody - Optional custom response body to validate
  */
-Cypress.Commands.add('waitForSubsidiaryPostApi', () => {
-  cy.fixture('apiPostSubsidiaryRequest').then((subsidiaryRequest) => {
-    cy.fixture('apiPostSubsidiaryResponse').then((subsidiaryResponse) => {
-      cy.wait('@postSubsidiary').then(({ request, response }) => {
-        expect(request.headers.authorization).to.include(bearerTokeAuth);
-        expect(request.body).to.deep.equal(subsidiaryRequest);
-        if (response) {
-          expect(response.statusCode).to.equal(httpSuccessfullStatus);
-          expect(response.body).to.deep.equal(subsidiaryResponse);
-        }
+Cypress.Commands.add(
+  'waitForSubsidiaryPostApi',
+  (requestBody = null, responseBody = null) => {
+    cy.fixture('apiPostSubsidiaryRequest').then((defaultRequest) => {
+      cy.fixture('apiPostSubsidiaryResponse').then((defaultResponse) => {
+        cy.wait('@postSubsidiary').then(({ request, response }) => {
+          expect(request.headers.authorization).to.include(bearerTokeAuth);
+          expect(request.body).to.deep.equal(requestBody || defaultRequest);
+          if (response) {
+            expect(response.statusCode).to.equal(httpSuccessfullStatus);
+            expect(response.body).to.deep.equal(
+              responseBody || defaultResponse,
+            );
+          }
+        });
       });
     });
-  });
-});
+  },
+);
 
 /**
  * Intercept merchandise GET API call
@@ -1594,22 +1601,46 @@ Cypress.Commands.add('waitForDiscountCouponApi', (responseBody) => {
 });
 
 /**
+ * Intercept organization POST API call
+ * Provides `@postOrganization` alias
+ * @param {Object} config - App global config
+ * @param {Object|String} i18n - i18n instance or locale lang string e.g. en
+ * @param {Object|null} responseFixture - Optional custom response fixture
+ */
+Cypress.Commands.add(
+  'interceptOrganizationPostApi',
+  (config, i18n, responseFixture = null) => {
+    const { apiBase, apiDefaultLang, urlApiOrganizations } = config;
+    const apiBaseUrl = getApiBaseUrlWithLang(
+      null,
+      apiBase,
+      apiDefaultLang,
+      i18n,
+    );
+    const urlApiOrganizationLocalized = `${apiBaseUrl}${urlApiOrganizations}`;
+
+    const fixtureToUse = responseFixture || 'apiPostOrganization';
+    cy.fixture(fixtureToUse).then((organizationResponse) => {
+      cy.intercept('POST', urlApiOrganizationLocalized, {
+        statusCode: httpSuccessfullStatus,
+        body: organizationResponse,
+      }).as('createOrganization');
+    });
+  },
+);
+
+/**
  * Wait for intercept organization creation API call and compare request/response object
  * Wait for `@createOrganization` intercept
  */
 Cypress.Commands.add('waitForOrganizationPostApi', () => {
-  cy.fixture('formFieldCompanyCreateRequest').then(
-    (formFieldCompanyCreateRequest) => {
+  cy.fixture('apiPostOrganizationRequest').then(
+    (apiPostOrganizationRequest) => {
       cy.fixture('formFieldCompanyCreate').then(
         (formFieldCompanyCreateResponse) => {
           cy.wait('@createOrganization').then(({ request, response }) => {
             expect(request.headers.authorization).to.include(bearerTokeAuth);
-            expect(request.body).to.deep.equal({
-              name: formFieldCompanyCreateRequest.name,
-              vatId: formFieldCompanyCreateRequest.vatId,
-              organization_type:
-                formFieldCompanyCreateRequest.organization_type,
-            });
+            expect(request.body).to.deep.equal(apiPostOrganizationRequest);
             if (response) {
               expect(response.statusCode).to.equal(httpSuccessfullStatus);
               expect(response.body).to.deep.equal(
@@ -1637,7 +1668,19 @@ Cypress.Commands.add(
       .type(formFieldCompanyCreateRequest.name);
     cy.dataCy('form-add-company-vat-id')
       .find('input')
-      .type(formFieldCompanyCreateRequest.vatId);
+      .type(formFieldCompanyCreateRequest.ico);
+    cy.dataCy('form-orgAddress-street')
+      .find('input')
+      .type(formFieldCompanyCreateRequest.address.street);
+    cy.dataCy('form-orgAddress-house-number')
+      .find('input')
+      .type(formFieldCompanyCreateRequest.address.houseNumber);
+    cy.dataCy('form-orgAddress-city')
+      .find('input')
+      .type(formFieldCompanyCreateRequest.address.city);
+    cy.dataCy('form-orgAddress-zip')
+      .find('input')
+      .type(formFieldCompanyCreateRequest.address.zip);
     // fill subsidiary address data
     cy.dataCy('form-add-subsidiary-street')
       .find('input')

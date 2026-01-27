@@ -3,15 +3,17 @@ import type { Ref } from 'vue';
 
 export interface PostOrganizationPayload {
   name: string;
-  vatId: string;
+  ico: string;
   organization_type: string;
-  address?: {
-    street: string;
-    street_number: string;
-    city: string;
-    zip: string;
-    recipient: string;
-  };
+  address?: PostOrganizationAddress;
+}
+
+export interface PostOrganizationAddress {
+  street: string;
+  street_number: string;
+  city: string;
+  psc: string;
+  recipient: string;
 }
 
 export interface PostOrganizationResponse {
