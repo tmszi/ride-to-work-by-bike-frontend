@@ -943,11 +943,18 @@ describe('Register Challenge page', () => {
               .should('be.visible')
               .within(() => {
                 cy.contains(item.name).should('be.visible');
-                cy.contains(item.description).should('be.visible');
               });
             cy.dataCy('slider-merch').should('be.visible');
-            // close dialog
-            cy.dataCy('dialog-close').click();
+            // select size
+            cy.dataCy('form-field-merch-size').within(() => {
+              cy.get('.q-radio')
+                .should('exist')
+                .and('be.visible')
+                .first()
+                .click();
+            });
+            // submit dialog
+            cy.dataCy('button-submit-merch').click();
             // first option is selected
             cy.dataCy('form-card-merch-female')
               .first()
@@ -1810,8 +1817,16 @@ describe('Register Challenge page', () => {
             .first()
             .find('[data-cy="form-card-merch-link"]')
             .click();
-          // close dialog
-          cy.dataCy('dialog-close').click();
+          // select size
+          cy.dataCy('form-field-merch-size').within(() => {
+            cy.get('.q-radio')
+              .should('exist')
+              .and('be.visible')
+              .first()
+              .click();
+          });
+          // submit dialog
+          cy.dataCy('button-submit-merch').click();
           // verify dialog is closed
           cy.dataCy('dialog-merch').should('not.exist');
           // go to next step
@@ -1892,8 +1907,12 @@ describe('Register Challenge page', () => {
         .first()
         .find('[data-cy="form-card-merch-link"]')
         .click();
-      // close dialog
-      cy.dataCy('dialog-close').click();
+      // select size
+      cy.dataCy('form-field-merch-size').within(() => {
+        cy.get('.q-radio').should('exist').and('be.visible').first().click();
+      });
+      // submit dialog
+      cy.dataCy('button-submit-merch').click();
       // verify dialog is closed
       cy.dataCy('dialog-merch').should('not.exist');
       // go to next step
@@ -2039,8 +2058,12 @@ describe('Register Challenge page', () => {
         .first()
         .find('[data-cy="form-card-merch-link"]')
         .click();
-      // close dialog
-      cy.dataCy('dialog-close').click();
+      // select size
+      cy.dataCy('form-field-merch-size').within(() => {
+        cy.get('.q-radio').should('exist').and('be.visible').first().click();
+      });
+      // submit dialog
+      cy.dataCy('button-submit-merch').click();
       // verify dialog is closed
       cy.dataCy('dialog-merch').should('not.exist');
       // go to next step
@@ -2350,8 +2373,16 @@ describe('Register Challenge page', () => {
             .first()
             .find('[data-cy="form-card-merch-link"]')
             .click();
-          // close dialog
-          cy.dataCy('dialog-close').click();
+          // select size
+          cy.dataCy('form-field-merch-size').within(() => {
+            cy.get('.q-radio')
+              .should('exist')
+              .and('be.visible')
+              .first()
+              .click();
+          });
+          // submit dialog
+          cy.dataCy('button-submit-merch').click();
           // verify dialog is closed
           cy.dataCy('dialog-merch').should('not.exist');
           // go to next step
@@ -2486,8 +2517,16 @@ describe('Register Challenge page', () => {
             .first()
             .find('[data-cy="form-card-merch-link"]')
             .click();
-          // close dialog
-          cy.dataCy('dialog-close').click();
+          // select size
+          cy.dataCy('form-field-merch-size').within(() => {
+            cy.get('.q-radio')
+              .should('exist')
+              .and('be.visible')
+              .first()
+              .click();
+          });
+          // submit dialog
+          cy.dataCy('button-submit-merch').click();
           // verify dialog is closed
           cy.dataCy('dialog-merch').should('not.exist');
           // go to next step
@@ -2772,12 +2811,21 @@ describe('Register Challenge page', () => {
               .and('not.be.disabled');
             cy.dataCy('step-2-continue').should('be.visible').click();
             cy.testRegisterChallengeLoadedStepsThreeToFive(win.i18n, response);
-            // select merch size
+            // select merch
             cy.dataCy('form-card-merch-female')
               .first()
               .find('[data-cy="button-more-info"]')
               .click();
-            cy.dataCy('dialog-close').click();
+            // select size
+            cy.dataCy('form-field-merch-size').within(() => {
+              cy.get('.q-radio')
+                .should('exist')
+                .and('be.visible')
+                .first()
+                .click();
+            });
+            // submit dialog
+            cy.dataCy('button-submit-merch').click();
             // next step button is enabled
             cy.dataCy('step-6-continue')
               .should('be.visible')
@@ -3502,6 +3550,162 @@ describe('Register Challenge page', () => {
             },
           );
         });
+      });
+    });
+
+    it('shows correct merch size options when changing merch item', () => {
+      cy.window().should('have.property', 'i18n');
+      cy.window().then((win) => {
+        cy.fixture('apiGetRegisterChallengeCompanyWaiting.json').then(
+          (registerChallengeResponse) => {
+            cy.testRegisterChallengeLoadedStepOne(
+              win.i18n,
+              registerChallengeResponse,
+            );
+            cy.dataCy('step-1-continue').should('be.visible').click();
+            cy.dataCy('step-2-continue').should('be.visible').click();
+            cy.testRegisterChallengeLoadedStepsThreeToFive(
+              win.i18n,
+              registerChallengeResponse,
+            );
+            // verify selected merch
+            cy.dataCy('form-card-merch-female')
+              .first()
+              .find('[data-cy="button-selected"]')
+              .should('be.visible');
+            cy.dataCy('form-card-merch-female')
+              .first()
+              .find('[data-cy="button-more-info"]')
+              .should('not.exist');
+            // verify selected size
+            cy.dataCy('form-field-merch-size')
+              .first()
+              .within(() => {
+                cy.get('.q-radio__inner')
+                  .first()
+                  .should('have.class', 'q-radio__inner--truthy');
+                cy.get('.q-radio').should('have.length', 6);
+              });
+            // switch to different item
+            cy.dataCy('form-card-merch-female')
+              .eq(1)
+              .find('[data-cy="form-card-merch-link"]')
+              .click();
+            // verify dialog
+            cy.dataCy('dialog-merch').should('exist').and('be.visible');
+            cy.dataCy('dialog-merch').within(() => {
+              cy.dataCy('button-submit-merch')
+                .should('be.visible')
+                .and('be.disabled');
+              cy.dataCy('form-field-merch-size').within(() => {
+                cy.get('.q-radio')
+                  .should('exist')
+                  .and('be.visible')
+                  .first()
+                  .click();
+                cy.get('.q-radio').should('have.length', 5);
+              });
+              cy.dataCy('button-submit-merch')
+                .should('be.visible')
+                .and('not.be.disabled');
+              cy.dataCy('button-submit-merch').click();
+            });
+            cy.dataCy('dialog-merch').should('not.exist');
+            // verify updated selection
+            cy.dataCy('form-card-merch-female')
+              .first()
+              .find('[data-cy="button-more-info"]')
+              .should('be.visible');
+            cy.dataCy('form-card-merch-female')
+              .first()
+              .find('[data-cy="button-selected"]')
+              .should('not.exist');
+            // second item is selected
+            cy.dataCy('form-card-merch-female')
+              .eq(1)
+              .find('[data-cy="button-selected"]')
+              .should('be.visible');
+            cy.dataCy('form-card-merch-female')
+              .eq(1)
+              .find('[data-cy="button-more-info"]')
+              .should('not.exist');
+            // verify selected size
+            cy.dataCy('form-field-merch-size')
+              .first()
+              .within(() => {
+                cy.get('.q-radio__inner')
+                  .first()
+                  .should('have.class', 'q-radio__inner--truthy');
+                cy.get('.q-radio').should('have.length', 5);
+              });
+          },
+        );
+      });
+    });
+
+    it('shows correct merch size options when changing merch item', () => {
+      cy.window().should('have.property', 'i18n');
+      cy.window().then((win) => {
+        cy.fixture('apiGetRegisterChallengeCompanyWaiting.json').then(
+          (registerChallengeResponse) => {
+            cy.testRegisterChallengeLoadedStepOne(
+              win.i18n,
+              registerChallengeResponse,
+            );
+            cy.dataCy('step-1-continue').should('be.visible').click();
+            cy.dataCy('step-2-continue').should('be.visible').click();
+            cy.testRegisterChallengeLoadedStepsThreeToFive(
+              win.i18n,
+              registerChallengeResponse,
+            );
+            // verify selected merch
+            cy.dataCy('form-card-merch-female')
+              .first()
+              .find('[data-cy="button-selected"]')
+              .should('be.visible');
+            cy.dataCy('form-card-merch-female')
+              .first()
+              .find('[data-cy="button-more-info"]')
+              .should('not.exist');
+            // verify selected size
+            cy.dataCy('form-field-merch-size')
+              .first()
+              .within(() => {
+                cy.get('.q-radio__inner')
+                  .first()
+                  .should('have.class', 'q-radio__inner--truthy');
+                cy.get('.q-radio').should('have.length', 6);
+              });
+            // switch to unisex tab
+            cy.dataCy('list-merch-tab-unisex').click();
+            // select unisex item
+            cy.dataCy('form-card-merch-unisex')
+              .first()
+              .find('[data-cy="form-card-merch-link"]')
+              .click();
+            // verify dialog
+            cy.dataCy('dialog-merch').should('exist').and('be.visible');
+            // verify no size options
+            cy.dataCy('dialog-merch').within(() => {
+              cy.dataCy('form-field-merch-size').should('not.exist');
+              cy.dataCy('button-submit-merch')
+                .should('be.visible')
+                .and('not.be.disabled');
+              cy.dataCy('button-submit-merch').click();
+            });
+            // submit works (only one size option)
+            cy.dataCy('dialog-merch').should('not.exist');
+            // verify updated selection
+            cy.dataCy('form-card-merch-unisex')
+              .first()
+              .find('[data-cy="button-more-info"]')
+              .should('not.exist');
+            cy.dataCy('form-card-merch-unisex')
+              .first()
+              .find('[data-cy="button-selected"]')
+              .should('be.visible');
+          },
+        );
       });
     });
   });

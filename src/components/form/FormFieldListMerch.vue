@@ -78,6 +78,9 @@ export default defineComponent({
       get: () => registerChallengeStore.getMerchId,
       set: (value: number | null) => registerChallengeStore.setMerchId(value),
     });
+    const selectedSizeLocal = ref<number | null>(null);
+    // track which card the dialog is currently showing
+    const currentDialogCard = ref<MerchandiseCard | null>(null);
 
     // dialog
     const isOpen = ref<boolean>(false);
@@ -117,12 +120,16 @@ export default defineComponent({
         if (item) {
           logger?.debug(`Found item <${JSON.stringify(item, null, 2)}>.`);
           selectedGender.value = item.gender;
-          selectedSize.value = item.id;
+          selectedSizeLocal.value = item.id;
         } else {
           logger?.debug(
             `No item found for merch ID <${registerChallengeStore.getMerchId}>.`,
           );
+          selectedSizeLocal.value = null;
         }
+      } else {
+        // No merchId in store, initialize to null
+        selectedSizeLocal.value = null;
       }
     });
 
@@ -161,6 +168,44 @@ export default defineComponent({
             (item) => item.id === selectedSize.value,
           ) || null
         );
+      },
+    );
+
+    // locally selected option computed from size ID
+    const selectedOptionLocal = computed<MerchandiseItem | null>(
+      (): MerchandiseItem | null => {
+        if (!merchandiseItems.value) return null;
+        return (
+          merchandiseItems.value.find(
+            (item) => item.id === selectedSizeLocal.value,
+          ) || null
+        );
+      },
+    );
+
+    /**
+     * Current item displayed in dialog.
+     * Computed for title, description, image etc.
+     * It can be identical with selectedOptionLocal, but has fallback so that
+     * it is defined whenever dialog is open, even if no item is selected.
+     */
+    const currentDialogItem = computed<MerchandiseItem | null>(
+      (): MerchandiseItem | null => {
+        if (!currentDialogCard.value) return null;
+        // if size (ID) is selected, use corresponding item
+        if (selectedSizeLocal.value) {
+          const item = merchandiseItems.value.find(
+            (item) => item.id === selectedSizeLocal.value,
+          );
+          if (item) return item;
+        }
+        // else, use first item from current card with given gender
+        const cardItems = merchandiseItems.value.filter(
+          (item) =>
+            currentDialogCard.value?.itemIds?.includes(item.id) &&
+            item.gender === selectedGender.value,
+        );
+        return cardItems[0] || null;
       },
     );
 
@@ -211,28 +256,43 @@ export default defineComponent({
       return isPriceLevelEmpty;
     });
 
-    // get current item's options
-    const currentGenderOptions = computed((): FormOption[] => {
-      return selectedOption.value?.genderOptions || [];
+    /**
+     * Size options for dialog input.
+     * Based on current dialog card.
+     */
+    const dialogSizeOptions = computed((): FormOption[] => {
+      if (!currentDialogCard.value) return [];
+      // get first item from current card
+      const cardItems = merchandiseItems.value.filter(
+        (item) =>
+          currentDialogCard.value?.itemIds?.includes(item.id) &&
+          item.gender === selectedGender.value,
+      );
+      return cardItems[0]?.sizeOptions || [];
     });
 
-    const currentSizeOptions = computed((): FormOption[] => {
-      return selectedOption.value?.sizeOptions || [];
+    /**
+     * Size options for bottom input (under cards).
+     * Based on currently selected item.
+     */
+    const bottomSizeOptions = computed((): FormOption[] => {
+      if (!selectedOption.value) return [];
+      return selectedOption.value.sizeOptions || [];
     });
 
     const isShowingBottomSizeInput = computed((): boolean => {
       // hide - payment without reward or no options available
       if (!isPaymentWithReward.value || optionsEmpty.value) return false;
-      // hide - current item has only one size
-      if (currentSizeOptions.value.length <= 1) return false;
       // hide - no item selected
       if (!selectedOption.value) return false;
+      // hide - current item has only one size
+      if (selectedOption.value.sizeOptions.length <= 1) return false;
       // show if selected item is in current tab
       return selectedOption.value.gender === selectedGender.value;
     });
 
     const currentItemLabelSize = computed((): string => {
-      switch (selectedOption.value?.gender) {
+      switch (selectedGender.value) {
         case Gender.female:
           return i18n.global.t('form.merch.labelSizeFemale');
         case Gender.male:
@@ -257,31 +317,6 @@ export default defineComponent({
     };
 
     /**
-     * When gender changes, find appropriate card option.
-     * Then run onSelectCardOption logic without opening the dialog.
-     */
-    const onGenderChange = (newGender: string) => {
-      logger?.debug(`Gender was changed to <${newGender}>.`);
-      // find card option in merchandiseCards
-      const cardOption = merchandiseCards.value[newGender as Gender].find(
-        (card) => card.label === selectedOption.value?.label,
-      );
-      if (cardOption) {
-        logger?.debug(
-          `Card option for gender <${newGender}> has been` +
-            ` found <${JSON.stringify(cardOption, null, 2)}>.`,
-        );
-        onSelectCardOption(cardOption, false);
-      } else {
-        logger?.debug(`No card option found for gender <${newGender}>.`);
-        return;
-      }
-    };
-
-    // watch for gender changes
-    watch(selectedGender, onGenderChange);
-
-    /**
      * Handles the card "select" button click.
      * Opens the dialog with more details.
      * @param option MerchandiseCard
@@ -290,44 +325,42 @@ export default defineComponent({
       option: MerchandiseCard,
       openDialog: boolean = true,
     ): void => {
-      // find items from the given card option
+      currentDialogCard.value = option;
+
       const cardItems = merchandiseItems.value.filter((item) =>
         option.itemIds?.includes(item.id),
       );
       logger?.debug(`Card items <${JSON.stringify(cardItems, null, 2)}>.`);
-      // find item that matches current selected size (compares string labels)
-      const item = cardItems.find(
-        (item) => item.size === selectedOption.value?.size,
-      );
-      // if same-size item exists, select it
-      if (item) {
+      // check if this is the selected item
+      const validItem = cardItems.find((item) => {
+        return item.id === registerChallengeStore.getMerchId;
+      });
+      if (validItem) {
+        // restore saved selection to local state
         logger?.debug(
-          'Found item matching current size ' +
-            `<${JSON.stringify(item, null, 2)}>.`,
+          'Found valid stored item ' +
+            `<${JSON.stringify(validItem, null, 2)}>.`,
         );
-        selectedSize.value = item.id;
-        selectedGender.value = item.gender;
-        // if parameter is not overridden, open the dialog
-        if (openDialog) {
-          isOpen.value = true;
+        selectedSizeLocal.value = validItem.id;
+        selectedGender.value = validItem.gender;
+      } else {
+        // local state for new selection
+        logger?.debug('No valid stored item, starting with null selection.');
+        selectedSizeLocal.value = null;
+        selectedGender.value = cardItems[0]?.gender || Gender.female;
+        // auto-select size if there is only one option
+        const itemsForGender = cardItems.filter(
+          (item) => item.gender === selectedGender.value,
+        );
+        if (itemsForGender.length === 1) {
+          logger?.debug(
+            `Only one size option available, auto-selecting <${itemsForGender[0].id}>.`,
+          );
+          selectedSizeLocal.value = itemsForGender[0].id;
         }
       }
-      // if same-size item does not exist, select the first available item
-      else if (cardItems.length) {
-        logger?.debug(
-          'No item matching current size, selecting the first available ' +
-            `item <${JSON.stringify(cardItems[0], null, 2)}>.`,
-        );
-        selectedGender.value = cardItems[0].gender;
-        selectedSize.value = cardItems[0].id;
-        // if parameter is not overridden, open the dialog
-        if (openDialog) {
-          isOpen.value = true;
-        }
-      }
-      // if there are no items, do nothing
-      else {
-        logger?.debug('No items match the selected option.');
+      if (openDialog) {
+        isOpen.value = true;
       }
     };
 
@@ -340,12 +373,18 @@ export default defineComponent({
       if (!formMerchRef.value) return;
       const isFormMerchValid: boolean = await formMerchRef.value.validate();
       if (isFormMerchValid) {
-        // close dialog
+        // save local selection to store
+        logger?.debug(
+          `Saving selected size <${selectedSizeLocal.value}> to store.`,
+        );
+        registerChallengeStore.setMerchId(selectedSizeLocal.value);
+        registerChallengeStore.setIsMerchandiseSavedIntoDb(false);
         isOpen.value = false;
       } else {
+        // validation error
+        logger?.info('Form validation failed, keeping dialog open.');
         formMerchRef.value.$el.scrollIntoView({ behavior: 'smooth' });
       }
-      registerChallengeStore.setIsMerchandiseSavedIntoDb(false);
     };
 
     let iDontWantMerchandiseCachedId: number | null = null;
@@ -380,8 +419,17 @@ export default defineComponent({
       );
     });
 
+    // clear dialog card when dialog closes to prevent state leakage
+    watch(isOpen, (newVal) => {
+      if (!newVal) {
+        currentDialogCard.value = null;
+      }
+    });
+
     return {
       currentItemLabelSize,
+      currentDialogCard,
+      currentDialogItem,
       formMerchRef,
       Gender,
       isOpen,
@@ -393,10 +441,12 @@ export default defineComponent({
       showMerchDisabledBanner,
       showMerchUnavailableBanner,
       selectedOption,
+      selectedOptionLocal,
+      selectedSizeLocal,
       selectedSize,
       selectedGender,
-      currentGenderOptions,
-      currentSizeOptions,
+      dialogSizeOptions,
+      bottomSizeOptions,
       onSelectCardOption,
       onSubmit,
       isSelected,
@@ -532,7 +582,7 @@ export default defineComponent({
       <form-field-radio-required
         inline
         v-model="selectedSize"
-        :options="currentSizeOptions"
+        :options="bottomSizeOptions"
         class="q-mt-sm"
         data-cy="form-field-merch-size"
       />
@@ -552,30 +602,15 @@ export default defineComponent({
     <dialog-default v-model="isOpen" data-cy="dialog-merch">
       <template #title>
         <!-- Merch Title -->
-        <span v-if="selectedOption">{{ selectedOption.label }}</span>
+        <span v-if="currentDialogItem">{{ currentDialogItem.label }}</span>
       </template>
       <template #content>
-        <div v-if="selectedOption">
+        <div v-if="currentDialogItem">
           <!-- Merch Image Slider -->
-          <slider-merch :items="selectedOption.images" />
-          <!-- Merch Description -->
-          <div v-html="selectedOption.description"></div>
+          <slider-merch :items="currentDialogItem.images" />
           <q-form ref="formMerchRef">
-            <!-- Input: Merch gender -->
-            <div v-if="currentGenderOptions.length" class="q-pt-sm">
-              <span class="text-caption text-weight-medium text-grey-10">{{
-                $t('form.merch.labelVariant')
-              }}</span>
-              <form-field-radio-required
-                inline
-                v-model="selectedGender"
-                :options="currentGenderOptions"
-                class="q-mt-sm"
-                data-cy="form-field-merch-gender"
-              />
-            </div>
             <!-- Input: Merch size (dialog) - duplicated in card -->
-            <div class="q-pt-sm" v-if="currentSizeOptions.length > 1">
+            <div class="q-pt-sm" v-if="dialogSizeOptions.length > 1">
               <span
                 class="text-caption text-weight-medium text-grey-10"
                 v-if="currentItemLabelSize"
@@ -583,8 +618,8 @@ export default defineComponent({
               >
               <form-field-radio-required
                 inline
-                v-model="selectedSize"
-                :options="currentSizeOptions"
+                v-model="selectedSizeLocal"
+                :options="dialogSizeOptions"
                 class="q-mt-sm"
                 data-cy="form-field-merch-size"
               />
@@ -595,6 +630,7 @@ export default defineComponent({
                 rounded
                 unelevated
                 color="primary"
+                :disable="!selectedSizeLocal"
                 :label="$t('navigation.select')"
                 text-color="white"
                 @click="onSubmit"

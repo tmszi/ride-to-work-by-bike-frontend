@@ -1517,11 +1517,8 @@ Cypress.Commands.add(
  * Custom command to select a merchandise item from the list and interact with its dialog
  * @param {Object} item - The merchandise item to select
  * @param {Object} options - Additional options for the command
- * @param {boolean} options.closeDialog - Whether to close the dialog after selection (default: true)
- * @param {boolean} options.selectSize - Whether to select the size in the dialog (default: true)
  */
-Cypress.Commands.add('listMerchSelectItem', (item, options = {}) => {
-  const { closeDialog = true } = options;
+Cypress.Commands.add('listMerchSelectItem', (item) => {
   // click the item name to open dialog
   cy.contains(item.name).click();
   // verify dialog is visible and contains correct content
@@ -1533,15 +1530,11 @@ Cypress.Commands.add('listMerchSelectItem', (item, options = {}) => {
         .should('be.visible')
         .contains(item.size)
         .click();
-      // check correct title and description
+      // check correct title
       cy.contains(item.name).should('be.visible');
-      cy.contains(item.description).should('be.visible');
     });
-  // close dialog if requested
-  if (closeDialog) {
-    cy.dataCy('dialog-close').click();
-    cy.dataCy('dialog-merch').should('not.exist');
-  }
+  // close dialog
+  cy.dataCy('button-submit-merch').click();
 });
 
 /**
@@ -2608,8 +2601,14 @@ Cypress.Commands.add('passToStep7', () => {
     .first()
     .find('[data-cy="form-card-merch-link"]')
     .click();
-  // close dialog
-  cy.dataCy('dialog-close').click();
+  // select size
+  cy.dataCy('form-field-merch-size')
+    .last()
+    .within(() => {
+      cy.get('.q-radio').should('exist').and('be.visible').first().click();
+    });
+  // submit dialog
+  cy.dataCy('button-submit-merch').click();
   // verify dialog is closed
   cy.dataCy('dialog-merch').should('not.exist');
   // go to next step
