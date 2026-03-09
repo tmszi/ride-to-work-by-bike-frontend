@@ -66,12 +66,6 @@ export default defineComponent({
         adminOrganisationStore.invoiceForm.orderNumber = value;
       },
     });
-    const orderNote = computed({
-      get: () => adminOrganisationStore.invoiceForm.orderNote,
-      set: (value) => {
-        adminOrganisationStore.invoiceForm.orderNote = value;
-      },
-    });
     const isDonorEntryFee = computed({
       get: () => adminOrganisationStore.invoiceForm.isDonorEntryFee,
       set: (value) => {
@@ -156,7 +150,6 @@ export default defineComponent({
       isBillingDetailsCorrect,
       isDonorEntryFee,
       anonymize,
-      orderNote,
       orderNumber,
       organization,
       subsidiaries,
@@ -357,27 +350,6 @@ export default defineComponent({
             id="form-create-invoice-order-number"
             name="create-invoice-order-number"
             data-cy="form-create-invoice-order-number-input"
-          />
-        </div>
-        <!-- Input: Note -->
-        <div class="col-12 col-sm-6" data-cy="form-create-invoice-note">
-          <!-- Label -->
-          <label
-            for="form-create-invoice-note"
-            class="text-grey-10 text-caption text-bold"
-          >
-            {{ $t('form.labelOrderNote') }}
-          </label>
-          <!-- Input -->
-          <q-input
-            dense
-            outlined
-            hide-bottom-space
-            v-model="orderNote"
-            class="q-mt-sm"
-            id="form-create-invoice-note"
-            name="create-invoice-note"
-            data-cy="form-create-invoice-note-input"
           />
         </div>
       </div>
