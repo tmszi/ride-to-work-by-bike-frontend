@@ -236,6 +236,9 @@ facebookLoginSdkOptions = '''
 }
 '''
 
+urlMatomoAnalytics = "https://matomo.dopracenakole.net"
+matomoAnalyticsRtwbbAppSiteId = "1"
+
 # MAP SETTINGS
 
 mapProjection = "EPSG:3857"
