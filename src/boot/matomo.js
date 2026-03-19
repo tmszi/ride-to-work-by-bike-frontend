@@ -23,6 +23,13 @@ export { matomo };
 
 export default boot(({ app }) => {
   if (rideToWorkByBikeConfig.urlMatomoAnalytics !== 'disable') {
+    const matomo = initMatomo({
+      host: rideToWorkByBikeConfig.urlMatomoAnalytics,
+      siteId: rideToWorkByBikeConfig.matomoAnalyticsRtwbbAppSiteId,
+      enableLinkTracking: true,
+      requireConsent: false, // GDPR compliance
+      trackRouter: true, // Automatic SPA page changes via history tracking
+    });
     app.provide('matomo', matomo);
   }
 });
