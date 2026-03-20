@@ -59,6 +59,7 @@ export default defineComponent({
     flat
     no-caps
     :href="linkUrl"
+    target="_blank"
     class="q-pa-none"
     data-cy="header-logo-button"
   >

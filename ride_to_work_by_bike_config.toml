@@ -50,7 +50,7 @@ contactEmail = "kontakt@dopracenakole.cz"
 
 # LOCAL URLS
 
-urlRTWBBLogo = "#/"
+urlRTWBBLogo = "https://dopracenakole.cz/"
 urlLoginRegisterBackgroundImage = "/image/login-register-layout.webp"
 urlBaseBackend = "https://test.dopracenakole.cz/"
 
