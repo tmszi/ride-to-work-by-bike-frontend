@@ -237,7 +237,9 @@ facebookLoginSdkOptions = '''
 }
 '''
 
-urlMatomoAnalytics = "https://matomo.dopracenakole.net"
+# Disable Matomo Analytics by default (localhost and test instance),
+# enable it via global ENV
+urlMatomoAnalytics = "disable"
 matomoAnalyticsRtwbbAppSiteId = "1"
 
 # MAP SETTINGS

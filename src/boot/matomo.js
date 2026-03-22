@@ -10,7 +10,7 @@ import { rideToWorkByBikeConfig } from './global_vars';
  * @see https://matomo.org/
  */
 export default boot(({ app }) => {
-  if (rideToWorkByBikeConfig.urlMatomoAnalytics.length > 0) {
+  if (rideToWorkByBikeConfig.urlMatomoAnalytics !== 'disable') {
     const matomo = initMatomo({
       host: rideToWorkByBikeConfig.urlMatomoAnalytics,
       siteId: rideToWorkByBikeConfig.matomoAnalyticsRtwbbAppSiteId,
