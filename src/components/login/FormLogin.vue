@@ -27,7 +27,7 @@
 
 // libraries
 import { colors } from 'quasar';
-import { computed, defineComponent, ref, reactive } from 'vue';
+import { computed, defineComponent, inject, ref, reactive } from 'vue';
 
 // components
 import BannerAppButtons from './BannerAppButtons.vue';
@@ -45,6 +45,7 @@ import { useLoginStore } from '../../stores/login';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+import { matomo } from '../../boot/matomo';
 
 import { formFieldCustomValidationErrCssClass } from '../../utils';
 
@@ -64,6 +65,7 @@ export default defineComponent({
   },
   emits: ['formSubmit'],
   setup(props) {
+    const logger = inject('vuejs3-logger') as Logger | null;
     const loginStore = useLoginStore();
     const formLogin = reactive({
       username: '',
@@ -90,7 +92,12 @@ export default defineComponent({
 
       // uses default login options from store
       await loginStore.login(formLogin);
-
+      // Set Matomo Analytics user ID
+      if (rideToWorkByBikeConfig.urlMatomoAnalytics !== 'disable') {
+        const user = loginStore.getUser;
+        logger.debug(`Set Matomo Analytics user ID by user PK <${user.pk}>.`);
+        matomo.setUserId(String(user.pk));
+      }
       loginLoading.value = false;
     };
 
