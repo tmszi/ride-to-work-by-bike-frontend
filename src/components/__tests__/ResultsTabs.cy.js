@@ -8,10 +8,7 @@ import { ResultsReportType } from 'src/components/enums/Results';
 describe('<ResultsTabs>', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
-    cy.viewport('macbook-16');
-    cy.mount(ResultsTabs, {
-      props: {},
-    });
+    cy.viewport(1920, 1080);
     cy.fixture('apiGetResultsResponses').then((resultsResponses) => {
       resultsResponses.forEach((resultsResponse) => {
         cy.interceptGetResultsApi(
@@ -34,11 +31,15 @@ describe('<ResultsTabs>', () => {
         });
       },
     );
+    cy.mount(ResultsTabs, {
+      props: {},
+    });
   });
 
   it('has translation for all strings', () => {
     cy.testLanguageStringsInContext(
       [
+        'cityCoordinator',
         'may',
         'organizationsReview',
         'performanceCity',
@@ -177,6 +178,65 @@ describe('<ResultsTabs>', () => {
           }
         });
       });
+    });
+  });
+
+  context('results page when user is city coordinator', () => {
+    it('should show city coordinator tab when URL is not null', () => {
+      cy.fixture('apiGetResultsByChallengeResponses').then(
+        (resultsByChallengeResponses) => {
+          resultsByChallengeResponses.forEach((resultsByChallengeResponse) => {
+            cy.waitForGetResultsByChallengeApi(
+              resultsByChallengeResponse.response,
+              resultsByChallengeResponse.key,
+            );
+            cy.dataCy(`results-tab-${resultsByChallengeResponse.key}`).should(
+              'be.visible',
+            );
+          });
+        },
+      );
+      cy.fixture('apiGetResultsResponses').then((resultsResponses) => {
+        const cityCoordinatorResponse = resultsResponses.find(
+          (resultsResponse) =>
+            resultsResponse.key === ResultsReportType.cityCoordinator,
+        );
+        cy.waitForGetResultsApi(
+          cityCoordinatorResponse.response,
+          cityCoordinatorResponse.key,
+        );
+        // tab visible
+        cy.dataCy(`results-tab-${ResultsReportType.cityCoordinator}`).should(
+          'be.visible',
+        );
+      });
+    });
+
+    it('should not show city coordinator tab when URL is null', () => {
+      // override intercept
+      cy.interceptGetResultsApi(
+        rideToWorkByBikeConfig,
+        i18n,
+        ResultsReportType.cityCoordinator,
+        { data_report_url: null },
+      );
+      cy.fixture('apiGetResultsByChallengeResponses').then(
+        (resultsByChallengeResponses) => {
+          resultsByChallengeResponses.forEach((resultsByChallengeResponse) => {
+            cy.waitForGetResultsByChallengeApi(
+              resultsByChallengeResponse.response,
+              resultsByChallengeResponse.key,
+            );
+            cy.dataCy(`results-tab-${resultsByChallengeResponse.key}`).should(
+              'be.visible',
+            );
+          });
+        },
+      );
+      // tab not visible
+      cy.dataCy(`results-tab-${ResultsReportType.cityCoordinator}`).should(
+        'not.exist',
+      );
     });
   });
 
