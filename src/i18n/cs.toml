@@ -90,6 +90,11 @@ apiMessageError = "Aktualizace týmu selhala."
 apiMessageErrorWithMessage = "Aktualizace týmu selhala. Chyba: {error}"
 apiMessageSuccess = "Tým byl úspěšně aktualizován."
 
+[updateCoordinatorOrganization]
+apiMessageError = "Aktualizace organizace selhala."
+apiMessageErrorWithMessage = "Aktualizace organizace selhala. Chyba: {error}"
+apiMessageSuccess = "Organizace byla úspěšně aktualizována."
+
 [updateCoordinatorSubsidiary]
 apiMessageError = "Aktualizace adresy pobočky selhala."
 apiMessageErrorWithMessage = "Aktualizace adresy pobočky selhala. Chyba: {error}"
@@ -352,6 +357,8 @@ buttonDownloadDiploma = "Stáhnout"
 downloadTeamDiploma = "Stáhnout týmový diplom"
 downloadMemberDiploma = "Stáhnout členský diplom"
 buttonRefreshFeeData = "Aktualizovat data"
+editOrganization = "Upravit organizaci"
+buttonEditOrganization = "Upravit"
 
 [createOrganization]
 apiMessageError = "Vytvoření organizace selhalo."

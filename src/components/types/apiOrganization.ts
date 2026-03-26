@@ -44,3 +44,31 @@ export interface UseApiGetMyOrganizationAdminReturn {
   isLoading: Ref<boolean>;
   getMyOrganizationAdmin: () => Promise<OrganizationAdmin[]>;
 }
+
+export interface PutOrganizationPayload {
+  ico?: string;
+  dic?: string;
+  address: PostOrganizationAddress;
+}
+
+export interface PutOrganizationAddress {
+  street: string;
+  street_number: string;
+  recipient: string;
+  psc: number;
+  city: string;
+}
+
+export interface PutOrganizationResponse {
+  ico: string;
+  dic: string;
+  address: PutOrganizationAddress;
+}
+
+export interface UseApiPutCoordinatorOrganizationReturn {
+  isLoading: Ref<boolean>;
+  updateOrganization: (
+    organizationId: number,
+    payload: PutOrganizationPayload,
+  ) => Promise<PutOrganizationResponse | null>;
+}
