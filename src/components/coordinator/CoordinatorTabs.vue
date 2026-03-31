@@ -16,7 +16,9 @@
  */
 
 // libraries
-import { defineComponent, ref } from 'vue';
+import { EventBus } from 'quasar';
+import { defineComponent, inject, onBeforeUnmount, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 // components
 import TabCoordinatorAttendance from './TabCoordinatorAttendance.vue';
@@ -53,7 +55,22 @@ export default defineComponent({
     TaskListCoordinator,
   },
   setup() {
+    const bus = inject<EventBus>('bus')!;
     const activeTab = ref(tabsCoordinator.none);
+    const router = useRouter();
+    /**
+     * Handles event from `FormCreateInvoice` - edit organization details.
+     * We switch to `attendance` tab to show edit dialog.
+     */
+    const onEditOrganizationRequested = (): void => {
+      router.push(routesConf['coordinator_attendance'].path);
+    };
+    // listen to event from `FormCreateInvoice`
+    bus.on('request-edit-organization', onEditOrganizationRequested);
+
+    onBeforeUnmount(() => {
+      bus.off('request-edit-organization', onEditOrganizationRequested);
+    });
 
     return {
       activeTab,
