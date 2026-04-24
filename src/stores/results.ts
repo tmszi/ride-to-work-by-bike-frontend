@@ -49,6 +49,9 @@ export const useResultsStore = defineStore('results', {
         ResultsReportType | ResultsReportTypeByChallenge,
         string
       > = {
+        [ResultsReportType.tachometers]: i18n.global.t(
+          'results.reportType.tachometers',
+        ),
         [ResultsReportType.regularity]: i18n.global.t(
           'results.reportType.regularity',
         ),
@@ -131,6 +134,7 @@ export const useResultsStore = defineStore('results', {
         const reportTypesPerRole = new Set<ResultsReportType>();
         // Basic challenge member (default)
         [
+          ResultsReportType.tachometers,
           ResultsReportType.regularity,
           ResultsReportType.teamRegularityCity,
           ResultsReportType.performanceCity,
@@ -216,6 +220,23 @@ export const useResultsStore = defineStore('results', {
       reportType: ResultsReportType | ResultsReportTypeByChallenge,
     ): ResultsResponse | undefined {
       return this.resultsUrls[reportType];
+    },
+
+    /**
+     * Load tachometers results URL
+     * Used by homepage to only load tachometers
+     * @returns {Promise<void>}
+     */
+    async loadTachometersUrl(): Promise<void> {
+      // skip if loaded
+      if (this.resultsUrls[ResultsReportType.tachometers]) {
+        return;
+      }
+      this.isLoading = true;
+      const { load: loadResults } = useApiGetResults(this.$log);
+      const response = await loadResults(ResultsReportType.tachometers);
+      this.resultsUrls[ResultsReportType.tachometers] = response;
+      this.isLoading = false;
     },
 
     /**

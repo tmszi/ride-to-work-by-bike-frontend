@@ -1,5 +1,11 @@
 [
   {
+    "key": "tachometers",
+    "response": {
+      "data_report_url": "https://metabase.dopracenakole.net/public/dashboard/7f73ee3b-215d-4dac-bb08-5ec9855b2f73"
+    }
+  },
+  {
     "key": "regularity",
     "response": {
       "data_report_url": "https://metabase.dopracenakole.net/public/question/11d87a37-c391-45fd-8f97-dd2c52b869bc"
