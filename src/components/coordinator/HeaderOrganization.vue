@@ -73,9 +73,17 @@ export default defineComponent({
       return currentAdminOrganisation.value.subsidiaries ?? [];
     });
 
-    const subsidiariesCount = computed((): number => {
-      return subsidiaries.value.length;
-    });
+    const activeSubsidiariesCount = computed(
+      (): number =>
+        subsidiaries.value.filter((subsidiary) =>
+          subsidiary.teams.some(
+            (team) =>
+              team.members_with_paid_entry_fee_by_org_coord.length > 0 ||
+              team.members_without_paid_entry_fee_by_org_coord.length > 0 ||
+              team.other_members.length > 0,
+          ),
+        ).length,
+    );
 
     // provides total count of members of all teams in all subsidiaries
     const membersCount = computed((): number => {
@@ -176,7 +184,7 @@ export default defineComponent({
       ExportFileType,
       organizationId,
       organizationTitle,
-      subsidiariesCount,
+      activeSubsidiariesCount,
       membersCount,
       isEditOrganizationDialogOpen,
       organizationEditFormRef,
@@ -229,8 +237,8 @@ export default defineComponent({
                 icon="mdi-office-building"
                 data-cy="header-organization-branch-count"
               >
-                {{ subsidiariesCount }}
-                {{ $t('coordinator.labelBranches', subsidiariesCount) }}
+                {{ activeSubsidiariesCount }}
+                {{ $t('coordinator.labelBranches', activeSubsidiariesCount) }}
               </q-chip>
               <!-- Members -->
               <q-chip
