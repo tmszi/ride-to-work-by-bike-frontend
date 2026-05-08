@@ -3,8 +3,19 @@
  * PlayVideoModalDialog Component
  *
  * @description * Use this component to automatic playing video in the modal dialog.
- * can be validated and received.
- * This snippet component is used by the `RoutesCalendarPanel` component.
+
+ * Component is used by the `RouteCalendarPanel`, `RouteItemEdit` component.
+ *
+ * @props
+ * - `videoUrl` (String, required): Video URL
+ * - `btnLabel` (String, required): Activating video modal dialog
+ *                                  button element label
+ * - `btnIconName` (String, required): Activating video modal dialog
+ *                                     button element icon name
+ * - `btnIconColor` (String, default: 'primary'): Activating video modal dialog button
+ *                                                element color name
+ * - `videoContainerWidth` (String, default: '50vw'): Vide container width
+ * - `videoMaxHeight` (String, default: '450px'): Video max height
  *
  * @example
  * <play-video-modal-dialog
