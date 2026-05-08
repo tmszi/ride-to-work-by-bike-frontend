@@ -53,6 +53,8 @@ contactEmail = "kontakt@dopracenakole.cz"
 urlRTWBBLogo = "https://dopracenakole.cz/"
 urlLoginRegisterBackgroundImage = "/image/login-register-layout.webp"
 urlBaseBackend = "https://test.dopracenakole.cz/"
+urlLogRouteCalendarNumberVideo = "video/log_route_calendar_number.mp4"
+urlLogRouteListNumberVideo = "video/log_route_list_number.mp4"
 
 # EXTERNAL URLS
 

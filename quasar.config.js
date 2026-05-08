@@ -43,6 +43,7 @@ module.exports = configure(function (ctx) {
       'pinia',
       'swiper',
       'matomo',
+      'video_player',
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

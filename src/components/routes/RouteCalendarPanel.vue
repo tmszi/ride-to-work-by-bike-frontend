@@ -34,6 +34,7 @@ import { computed, defineComponent, inject } from 'vue';
 // components
 import RouteInputDistance from './RouteInputDistance.vue';
 import RouteInputTransportType from './RouteInputTransportType.vue';
+import PlayVideoModalDialog from '../global/PlayVideoModalDialog.vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
@@ -67,6 +68,7 @@ export default defineComponent({
   components: {
     RouteInputDistance,
     RouteInputTransportType,
+    PlayVideoModalDialog,
   },
   props: {
     modelValue: {
@@ -86,7 +88,8 @@ export default defineComponent({
     // styles
     const minWidth = '65vw';
 
-    const { defaultDistanceZero } = rideToWorkByBikeConfig;
+    const { defaultDistanceZero, urlLogRouteCalendarNumberVideo } =
+      rideToWorkByBikeConfig;
 
     const isOpen = computed({
       get: (): boolean => props.modelValue,
@@ -223,6 +226,7 @@ export default defineComponent({
       optionsAction,
       transportType,
       onSave,
+      urlLogRouteCalendarNumberVideo,
     };
   },
 });
@@ -285,7 +289,15 @@ export default defineComponent({
               class="q-mt-none"
               data-cy="route-input-distance"
             />
+            <!-- Play video modal dialog -->
+            <play-video-modal-dialog
+              :btnLabel="$t('routes.logRouterPlayVideoBtnLabel')"
+              :videoUrl="urlLogRouteCalendarNumberVideo"
+              btnIconName="info"
+              videoContainerWidth="100vw"
+            />
           </div>
+
           <!-- Button: Save -->
           <div class="col-12 col-sm-auto flex self-end justify-end">
             <q-btn

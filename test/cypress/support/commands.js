@@ -4277,3 +4277,53 @@ Cypress.Commands.add(
     });
   },
 );
+
+/**
+ * Test play video modal dialog
+ *
+ * @param {string} videoFileName - Video file name
+ * @param {object} i18n - i18n object instance
+ * @param {boolean|string} closestElement - False if you don't need escape from the
+ *                                          cy.within() to find video modal dialog
+ *                                          or closest element name or CSS class to
+ *                                          escaping from cy.within() to find video
+ *                                          modal dialog, default value is false
+ */
+Cypress.Commands.add(
+  'playVideoModalDialog',
+  (videoFileName, i18n, closestElement = false) => {
+    const selectorPlayVideoModalDialog = 'play-video-modal-dialog';
+    const selectorVideo = 'video';
+    const selectorPlayVideoBtn = 'play-video-btn';
+
+    const checkModalVideoDialog = () => {
+      cy.dataCy(selectorPlayVideoModalDialog)
+        .should('be.visible')
+        .then(() => {
+          cy.dataCy(selectorVideo)
+            .should('be.visible')
+            .get('source')
+            .invoke('attr', 'src')
+            .should('contain', videoFileName);
+          cy.dataCy(selectorVideo).click();
+          cy.dataCy(selectorPlayVideoModalDialog).should('not.exist');
+        });
+    };
+    cy.dataCy(selectorPlayVideoBtn)
+      .should('be.visible')
+      .then(($el) => {
+        expect($el.text()).contain(
+          i18n.global.t('routes.logRouterPlayVideoBtnLabel'),
+        );
+      });
+    cy.dataCy(selectorPlayVideoBtn).click();
+    if (!closestElement) checkModalVideoDialog();
+    else {
+      cy.root()
+        .closest(closestElement)
+        .within(() => {
+          checkModalVideoDialog();
+        });
+    }
+  },
+);

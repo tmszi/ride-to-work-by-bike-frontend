@@ -326,6 +326,20 @@ function coreTests() {
       cy.dataCy(selectorRouteInputTransportType).should('be.visible');
     });
   });
+  it('show how to log route number play video modal dialog', () => {
+    cy.fixture('routeList').then((routes) => {
+      cy.mount(RouteCalendarPanel, {
+        props: {
+          modelValue: true,
+          routes,
+        },
+      });
+    });
+    cy.playVideoModalDialog(
+      rideToWorkByBikeConfig.urlLogRouteCalendarNumberVideo.split('/').pop(),
+      i18n,
+    );
+  });
 }
 
 function unloggedRouteTests() {

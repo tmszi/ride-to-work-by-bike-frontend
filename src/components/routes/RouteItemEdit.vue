@@ -25,12 +25,13 @@
  */
 
 // libraries
-import { date, Notify } from 'quasar';
-import { computed, defineComponent, inject } from 'vue';
+import { date, Notify, Screen } from 'quasar';
+import { computed, defineComponent, inject, watch } from 'vue';
 
 // components
 import RouteInputDistance from './RouteInputDistance.vue';
 import RouteInputTransportType from './RouteInputTransportType.vue';
+import PlayVideoModalDialog from '../global/PlayVideoModalDialog.vue';
 
 // composables
 import { i18n } from '../../boot/i18n';
@@ -63,6 +64,7 @@ export default defineComponent({
   components: {
     RouteInputDistance,
     RouteInputTransportType,
+    PlayVideoModalDialog,
   },
   props: {
     route: {
@@ -105,6 +107,7 @@ export default defineComponent({
       borderRadiusCard: borderRadius,
       colorGray: borderColor,
       defaultDistanceZero,
+      urlLogRouteListNumberVideo,
     } = rideToWorkByBikeConfig;
 
     const optionsAction: FormOption[] = [
@@ -263,6 +266,22 @@ export default defineComponent({
 
     const iconSize = '18px';
 
+    const isLargeScreen = computed((): boolean => {
+      return Screen.gt.sm;
+    });
+
+    let videoContainerWidth = computed((): string => {
+      return isLargeScreen.value ? '50vw' : '100vw';
+    });
+
+    watch(isLargeScreen, (isLargeScreen) => {
+      if (isLargeScreen) {
+        videoContainerWidth.value = '50vw';
+      } else {
+        videoContainerWidth.value = '100vw';
+      }
+    });
+
     return {
       action,
       borderRadius,
@@ -280,6 +299,8 @@ export default defineComponent({
       onUpdateFile,
       onUpdateAction,
       routeStateDefault,
+      urlLogRouteListNumberVideo,
+      videoContainerWidth,
     };
   },
 });
@@ -324,6 +345,14 @@ export default defineComponent({
     <q-separator class="q-mx-md" />
     <div class="q-pa-md" data-cy="section-transport-distance">
       <div>
+        <!-- Play video modal dialog -->
+        <play-video-modal-dialog
+          :btnLabel="$t('routes.logRouterPlayVideoBtnLabel')"
+          btnIconName="info"
+          :videoUrl="urlLogRouteListNumberVideo"
+          :videoContainerWidth="videoContainerWidth"
+          data-cy="play-video-log-route-tutorial"
+        />
         <!-- Section: Transport type -->
         <route-input-transport-type
           horizontal
