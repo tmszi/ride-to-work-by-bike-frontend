@@ -1251,6 +1251,7 @@ tooltipDrawing = "Tracing"
 tooltipRouteLength = "Length"
 tooltipSave = "Save path"
 tooltipUndo = "Undo"
+logRouterPlayVideoBtnLabel = "How to log route"
 
 [sendRegistrationConfirmationEmail]
 apiMessageAlreadyConfirmed = "Email already confirmed."

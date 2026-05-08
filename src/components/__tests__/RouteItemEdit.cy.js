@@ -316,6 +316,13 @@ function coreTests() {
         retries: 2,
       });
   });
+
+  it('show how to log route number play video modal dialog', () => {
+    cy.playVideoModalDialog(
+      rideToWorkByBikeConfig.urlLogRouteListNumberVideo.split('/').pop(),
+      i18n,
+    );
+  });
 }
 
 function testLabelToWork() {

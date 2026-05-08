@@ -1251,6 +1251,7 @@ tooltipDrawing = "Zapisujete"
 tooltipRouteLength = "Dĺžka trasy"
 tooltipSave = "Uložiť cestu"
 tooltipUndo = "Späť"
+logRouterPlayVideoBtnLabel = "Ako zapísať jazdu"
 
 [sendRegistrationConfirmationEmail]
 apiMessageAlreadyConfirmed = "E-mail už bol potvrdený."

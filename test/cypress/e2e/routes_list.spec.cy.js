@@ -557,6 +557,8 @@ describe('Routes list page', () => {
       });
     });
 
+    coreTests();
+
     it('shows floating button that does not overlap with footer', () => {
       cy.dataCy('button-save-sticky').should('be.visible');
       // scroll down to bottom of page
@@ -608,5 +610,42 @@ describe('Routes list page', () => {
 function coreTests() {
   it('renders component', () => {
     cy.dataCy('route-list-edit').should('be.visible');
+  });
+  it('show how to log route number play video modal dialog', () => {
+    cy.get('@i18n').then((i18n) => {
+      cy.get('@config').then((config) => {
+        cy.fixture('routeListEditInputTest.json').then((testCases) => {
+          // intercept API call with response matching the payload
+          const responseBody = {
+            trips: testCases.test_1.apiPayload.trips.map((trip, index) => ({
+              id: index + 1,
+              ...trip,
+              durationSeconds: null,
+              sourceId: null,
+              file: null,
+              description: '',
+              track: null,
+            })),
+          };
+          cy.interceptPostTripsApi(config, i18n, responseBody);
+          const testCaseDate = testCases.test_1.propRoutes[0].date;
+          const testCaseDirection = testCases.test_1.propRoutes[0].direction;
+          // wait for routes list to be visible
+          cy.dataCy('route-list-edit').should('be.visible');
+          // update the route list item
+          cy.get(`[data-date="${testCaseDate}"]`)
+            .should('be.visible')
+            .find(`[data-direction="${testCaseDirection}"]`)
+            .should('be.visible')
+            .within(() => {
+              cy.playVideoModalDialog(
+                config.urlLogRouteListNumberVideo.split('/').pop(),
+                i18n,
+                'body',
+              );
+            });
+        });
+      });
+    });
   });
 }

@@ -146,6 +146,12 @@ export default defineComponent({
       }
     };
 
+    const onClick = (evt) => {
+      const input = evt.target;
+      const length = input.value.length;
+      input.setSelectionRange(length, length);
+    };
+
     return {
       action,
       customSVGIconsFilePath,
@@ -160,6 +166,7 @@ export default defineComponent({
       onFileRejected,
       acceptedFileFormats,
       maxFileSizeBytes,
+      onClick,
     };
   },
 });
@@ -221,6 +228,7 @@ export default defineComponent({
                 $t('form.messageFieldAboveZero'),
             ]"
             data-cy="input-distance"
+            @click.once="onClick"
             maxlength="6"
           >
             <template v-slot:append>

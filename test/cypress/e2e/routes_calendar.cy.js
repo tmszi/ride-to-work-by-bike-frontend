@@ -123,6 +123,41 @@ describe('Routes calendar page', () => {
       });
     });
 
+    it('show how to log route number play video modal dialog', () => {
+      cy.get('@i18n').then((i18n) => {
+        cy.get('@config').then((config) => {
+          cy.fixture('routeCalendarPanelInputTest.json').then((testCases) => {
+            // intercept API call with response matching the payload
+            const responseBody = {
+              trips: testCases.test_1.apiPayload.trips.map((trip, index) => ({
+                id: index + 1,
+                ...trip,
+                durationSeconds: null,
+                sourceId: null,
+                file: null,
+                description: '',
+                track: null,
+              })),
+            };
+            cy.interceptPostTripsApi(config, i18n, responseBody);
+            const testCaseDate = testCases.test_1.propRoutes[0].date;
+            // wait for routes calendar to be visible
+            cy.dataCy('routes-calendar').should('be.visible');
+            // click on the calendar item
+            cy.get(`[data-date="${testCaseDate}"]`)
+              .find('[data-cy="calendar-item-icon-towork-empty"]')
+              .click({ force: true });
+            // route calendar panel should be open
+            cy.dataCy('route-calendar-panel').should('exist');
+            cy.playVideoModalDialog(
+              config.urlLogRouteCalendarNumberVideo.split('/').pop(),
+              i18n,
+            );
+          });
+        });
+      });
+    });
+
     it('allows to enter multiple new routes', () => {
       cy.get('@i18n').then((i18n) => {
         cy.get('@config').then((config) => {

@@ -159,6 +159,8 @@ export interface ConfigGlobal {
   apiDateFormat: string;
   urlMatomoAnalytics: string;
   urlMatomoAnalyticsHomePage: string;
+  urlLogRouteCalendarNumberVideo: string;
+  urlLogRouteListNumberVideo: string;
 }
 
 export interface ConfigAppVersion {

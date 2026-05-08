@@ -80,6 +80,7 @@ installQuasarPlugin({
 
 import VueLogger from 'vuejs3-logger';
 import { register } from 'swiper/element/bundle';
+import { Plugin } from 'vue-responsive-video-background-player';
 
 import { options as loggerOptions } from '../../../src/boot/logger';
 import { i18n as i18nApp } from '../../../src/boot/i18n';
@@ -114,6 +115,7 @@ Cypress.Commands.add('mount', (component, options = {}) => {
       app.use(createPinia());
       app.use(OpenLayersMap);
       app.provide('bus', bus);
+      app.use(Plugin);
     },
   });
 
