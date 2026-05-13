@@ -207,6 +207,12 @@ export default defineComponent({
         !registerChallengeStore.getIsMerchandiseAvailable
       );
     });
+    const showMerchNotAvailableTooltip = computed((): boolean => {
+      return (
+        !registerChallengeStore.getIsMerchandiseAvailable &&
+        activeVoucher.value === null
+      );
+    });
     // init organization admin status
     const hasOrganizationAdmin = computed<boolean | null>(() => {
       return registerChallengeStore.getHasOrganizationAdmin;
@@ -246,6 +252,12 @@ export default defineComponent({
       // load merchandise if data not available
       if (registerChallengeStore.getMerchandiseItems.length === 0) {
         await registerChallengeStore.loadMerchandiseToStore(logger);
+      }
+      if (showMerchNotAvailableTooltip.value) {
+        Notify.create({
+          message: i18n.global.t('register.challenge.tooltipMerchNotAvailable'),
+          type: 'warning',
+        });
       }
     });
     const isRegistrationCoordinator = computed<boolean>({
@@ -684,6 +696,7 @@ export default defineComponent({
       hasOrganizationAdmin,
       isPriceLevelSwitchDisabled,
       isPaymentWithReward,
+      showMerchNotAvailableTooltip,
       isRegistrationCoordinator,
       optionsPaymentAmountComputed,
       optionsPaymentSubject,
@@ -927,18 +940,26 @@ export default defineComponent({
     </div>
     <!-- Checkbox: With reward toggle -->
     <div class="q-my-lg">
-      <q-checkbox
-        dense
-        v-model="isPaymentWithReward"
-        color="primary"
-        :true-value="true"
-        :false-value="false"
-        :disable="isPriceLevelSwitchDisabled"
-        class="text-grey-10"
-        data-cy="checkbox-payment-with-reward"
-      >
-        {{ $t('register.challenge.labelPaymentWithReward') }}
-      </q-checkbox>
+      <span>
+        <q-checkbox
+          dense
+          v-model="isPaymentWithReward"
+          color="primary"
+          :true-value="true"
+          :false-value="false"
+          :disable="isPriceLevelSwitchDisabled"
+          class="text-grey-10"
+          data-cy="checkbox-payment-with-reward"
+        >
+          {{ $t('register.challenge.labelPaymentWithReward') }}
+        </q-checkbox>
+        <!-- Tooltip: Merchandise not available -->
+        <q-tooltip v-if="showMerchNotAvailableTooltip">
+          <span data-cy="tooltip-merch-not-available">
+            {{ $t('register.challenge.tooltipMerchNotAvailable') }}
+          </span>
+        </q-tooltip>
+      </span>
     </div>
     <!-- Banner: Available t-shirt sizes -->
     <q-banner
