@@ -7,7 +7,15 @@ import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
 describe('<ListChallenges>', () => {
   it('has translation for all strings', () => {
     cy.testLanguageStringsInContext(
-      ['buttonShowResults'],
+      [
+        'buttonShowResults',
+        'buttonMoreInfo',
+        'chipCompetitionTypeFrequency',
+        'chipCompetitionTypeLength',
+        'chipCompetitorTypeSingleUser',
+        'chipCompetitorTypeTeam',
+        'chipCompetitorTypeSubsidiary',
+      ],
       'index.cardListChallenge',
       i18n,
     );
@@ -122,6 +130,105 @@ function coreTests() {
           });
       });
     });
+  });
+
+  it('renders competition type chip on each card', () => {
+    cy.setupAdminCompetitionStoreWithCompetitions(
+      useAdminCompetitionStore,
+      'apiGetCompetitionResponsePopulated',
+    );
+    cy.fixture('apiGetCompetitionResponsePopulated').then((response) => {
+      response.results.forEach((competition, index) => {
+        const labelMap = {
+          frequency: i18n.global.t(
+            'index.cardListChallenge.chipCompetitionTypeFrequency',
+          ),
+          length: i18n.global.t(
+            'index.cardListChallenge.chipCompetitionTypeLength',
+          ),
+        };
+        cy.dataCy('list-challenges-card')
+          .eq(index)
+          .within(() => {
+            cy.dataCy('list-challenges-chip-competition-type')
+              .should('be.visible')
+              .and('contain', labelMap[competition.competition_type]);
+          });
+      });
+    });
+  });
+
+  it('renders competitor type chip on each card', () => {
+    cy.setupAdminCompetitionStoreWithCompetitions(
+      useAdminCompetitionStore,
+      'apiGetCompetitionResponsePopulated',
+    );
+    cy.fixture('apiGetCompetitionResponsePopulated').then((response) => {
+      response.results.forEach((competition, index) => {
+        const labelMap = {
+          single_user: i18n.global.t(
+            'index.cardListChallenge.chipCompetitorTypeSingleUser',
+          ),
+          team: i18n.global.t('index.cardListChallenge.chipCompetitorTypeTeam'),
+          subsidiary: i18n.global.t(
+            'index.cardListChallenge.chipCompetitorTypeSubsidiary',
+          ),
+        };
+        cy.dataCy('list-challenges-card')
+          .eq(index)
+          .within(() => {
+            cy.dataCy('list-challenges-chip-competitor-type')
+              .should('be.visible')
+              .and('contain', labelMap[competition.competitor_type]);
+          });
+      });
+    });
+  });
+
+  it('renders more info button if URL available', () => {
+    cy.setupAdminCompetitionStoreWithCompetitions(
+      useAdminCompetitionStore,
+      'apiGetCompetitionResponsePopulated',
+    );
+    cy.fixture('apiGetCompetitionResponsePopulated').then((response) => {
+      response.results.forEach((competition, index) => {
+        if (competition.url) {
+          cy.dataCy('list-challenges-card')
+            .eq(index)
+            .within(() => {
+              cy.dataCy('list-challenges-button-more-info')
+                .should('be.visible')
+                .and(
+                  'contain',
+                  i18n.global.t('index.cardListChallenge.buttonMoreInfo'),
+                )
+                .and('have.attr', 'href', competition.url);
+            });
+        }
+      });
+    });
+  });
+
+  it('does not render more info button if URL is null', () => {
+    cy.wrap(useAdminCompetitionStore()).then((store) => {
+      store.setCompetitions([
+        {
+          id: 99,
+          name: 'No URL Challenge',
+          slug: 'no-url-challenge',
+          competitor_type: 'single_user',
+          competition_type: 'frequency',
+          url: null,
+          description: null,
+          priority: 1,
+          date_from: '2024-09-16',
+          date_to: '2024-09-29',
+          commute_modes: [],
+          results: '',
+        },
+      ]);
+    });
+    cy.dataCy('list-challenges-button-more-info').should('not.exist');
   });
 
   it('renders show results button on each card', () => {
