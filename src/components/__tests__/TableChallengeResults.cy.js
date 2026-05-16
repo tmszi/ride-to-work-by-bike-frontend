@@ -11,7 +11,6 @@ describe('<TableChallengeResults>', () => {
         'emptyStateChallengeResults',
         'labelColumnName',
         'labelColumnPlace',
-        'labelColumnResult',
         'labelColumnFrequency',
         'labelColumnDistance',
       ],
@@ -90,25 +89,6 @@ function coreTests() {
     });
   });
 
-  it('renders result column formatted to 2 decimal places', () => {
-    cy.fixture('apiGetCompetitionResultsResponse').then((response) => {
-      cy.mount(TableChallengeResults, {
-        props: {
-          rows: response.results,
-          competitionType: CompetitionType.frequency,
-        },
-      });
-      response.results.forEach((result, index) => {
-        cy.dataCy('table-challenge-results-result')
-          .eq(index)
-          .should(
-            'contain',
-            i18n.global.n(result.result, competitionResultDecimalNumber),
-          );
-      });
-    });
-  });
-
   it('renders frequency column formatted to 2 decimal places', () => {
     cy.fixture('apiGetCompetitionResultsResponse').then((response) => {
       cy.mount(TableChallengeResults, {
@@ -122,7 +102,7 @@ function coreTests() {
           .eq(index)
           .should(
             'contain',
-            i18n.global.n(result.frequency, competitionResultDecimalNumber),
+            `${i18n.global.n(result.frequency * 100, competitionResultDecimalNumber)}`,
           );
       });
     });
@@ -147,7 +127,7 @@ function coreTests() {
     });
   });
 
-  it('renders co2 column values from emissions.co2', () => {
+  it('renders CO2 column values from emissions CO2', () => {
     cy.fixture('apiGetCompetitionResultsResponse').then((response) => {
       cy.mount(TableChallengeResults, {
         props: {
