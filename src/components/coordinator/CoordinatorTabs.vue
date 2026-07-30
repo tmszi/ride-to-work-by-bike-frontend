@@ -17,8 +17,11 @@
 
 // libraries
 import { EventBus } from 'quasar';
-import { defineComponent, inject, onBeforeUnmount, ref } from 'vue';
+import { computed, defineComponent, inject, onBeforeUnmount, ref } from 'vue';
 import { useRouter } from 'vue-router';
+
+// config
+import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // components
 import TabCoordinatorAttendance from './TabCoordinatorAttendance.vue';
@@ -71,9 +74,16 @@ export default defineComponent({
     onBeforeUnmount(() => {
       bus.off('request-edit-organization', onEditOrganizationRequested);
     });
+    // september/october challenge does not have packages
+    const isPackagesTabDisabled = computed(
+      () =>
+        rideToWorkByBikeConfig.challengeMonth === 'september' ||
+        rideToWorkByBikeConfig.challengeMonth === 'october',
+    );
 
     return {
       activeTab,
+      isPackagesTabDisabled,
       routesConf,
       tabsCoordinator,
     };
@@ -115,6 +125,7 @@ export default defineComponent({
         :to="routesConf['coordinator_packages'].path"
         :name="tabsCoordinator.packages"
         :label="$t('coordinator.tabPackages')"
+        :disable="isPackagesTabDisabled"
         data-cy="coordinator-tabs-button-packages"
       />
       <q-route-tab
