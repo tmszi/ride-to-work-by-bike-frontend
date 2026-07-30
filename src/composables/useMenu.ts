@@ -23,6 +23,8 @@ export const useMenu = () => {
    *   isResultsEnabled - Whether the results are enabled
    * @param {ComputedRef<boolean | null> | boolean | null}
    *   getHasOrganizationAdmin - Whether the organization has an admin
+   * @param {'may' | 'october' | 'september' | 'january'}
+   *   challengeMonth - Challenge month
    * @returns {Link[]} - Array of top menu items
    */
   const getMenuTop = ({
@@ -32,6 +34,7 @@ export const useMenu = () => {
     isEntryEnabled,
     isResultsEnabled,
     getHasOrganizationAdmin,
+    challengeMonth,
   }: {
     isUserOrganizationAdmin: ComputedRef<boolean | null> | boolean | null;
     isUserStaff: ComputedRef<boolean | null> | boolean | null;
@@ -39,6 +42,7 @@ export const useMenu = () => {
     isEntryEnabled: ComputedRef<boolean | null> | boolean | null;
     isResultsEnabled: ComputedRef<boolean | null> | boolean | null;
     getHasOrganizationAdmin: ComputedRef<boolean | null> | boolean | null;
+    challengeMonth: 'may' | 'october' | 'september' | 'january';
   }): Link[] => {
     let menuTop: Link[] = [
       {
@@ -61,13 +65,20 @@ export const useMenu = () => {
         title: 'results',
         disabled: !unref(isResultsEnabled),
       },
-      {
-        url: routesConf['prizes']['children']['fullPath'],
-        icon: 'svguse:icons/drawer_menu/icons.svg#lucide-badge-percent',
-        name: 'discounts',
-        title: 'discounts',
-      },
     ];
+
+    // prizes/discounts item is hidden for september/october challenge
+    if (challengeMonth !== 'september' && challengeMonth !== 'october') {
+      menuTop = [
+        ...menuTop,
+        {
+          url: routesConf['prizes']['children']['fullPath'],
+          icon: 'svguse:icons/drawer_menu/icons.svg#lucide-badge-percent',
+          name: 'discounts',
+          title: 'discounts',
+        },
+      ];
+    }
 
     const showCoordinatorMenu =
       unref(isUserOrganizationAdmin) ||
