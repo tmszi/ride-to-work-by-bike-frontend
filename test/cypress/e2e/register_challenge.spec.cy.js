@@ -137,6 +137,14 @@ describe('Register Challenge page', () => {
           );
         },
       );
+      // intercept age groups
+      cy.fixture('apiGetAgeGroupsResponse').then((response) => {
+        cy.interceptAgeGroupsGetApi(config, defLocale, response);
+      });
+      // intercept occupations
+      cy.fixture('apiGetOccupationsResponse').then((response) => {
+        cy.interceptOccupationsGetApi(config, defLocale, response);
+      });
     });
   });
 
@@ -416,6 +424,22 @@ describe('Register Challenge page', () => {
         .find('.q-radio__label')
         .first()
         .click();
+      // click
+      cy.dataCy('step-1-continue').should('be.visible').click();
+      // not on step 2
+      cy.dataCy('step-2').find('.q-stepper__step-content').should('not.exist');
+      // fill age group
+      cy.wait('@ageGroupsGetApi');
+      cy.dataCy('form-personal-details-age-group-input').click();
+      cy.get('.q-menu .q-item').first().click();
+      // click
+      cy.dataCy('step-1-continue').should('be.visible').click();
+      // not on step 2
+      cy.dataCy('step-2').find('.q-stepper__step-content').should('not.exist');
+      // fill occupation
+      cy.wait('@occupationsGetApi');
+      cy.dataCy('form-personal-details-occupation-input').click();
+      cy.get('.q-menu .q-item').first().click();
       // agree with terms
       cy.dataCy('form-personal-details-terms')
         .find('.q-checkbox__inner')
@@ -438,7 +462,8 @@ describe('Register Challenge page', () => {
       // fill in phone number
       cy.dataCy('form-personal-details-phone-input')
         .find('input')
-        .type('736123456');
+        .should('be.enabled')
+        .type('736123456', { force: true });
       // click
       cy.dataCy('step-1-continue').should('be.visible').click();
       // on step 2
@@ -447,32 +472,8 @@ describe('Register Challenge page', () => {
     });
 
     it('sends correct API payload when empty nickname', () => {
-      cy.dataCy('form-personal-details').should('be.visible');
-      // fill firstName
-      cy.dataCy('form-firstName-input').type('John');
-      // fill lastName
-      cy.dataCy('form-lastName-input').type('Doe');
-      // skip nickname
-      // fill gender
-      cy.dataCy('form-personal-details-gender')
-        .find('.q-radio__label')
-        .first()
-        .click();
-      // skip newsletter
-      // fill in phone number
-      cy.dataCy('form-personal-details-phone-input')
-        .find('input')
-        .type('736123456');
-      cy.dataCy('form-personal-details-phone-opt-in-input')
-        .should('be.visible')
-        .click();
-      // agree with terms
-      cy.dataCy('form-personal-details-terms')
-        .find('.q-checkbox__inner')
-        .first()
-        .click();
-      // click
-      cy.dataCy('step-1-continue').should('be.visible').click();
+      cy.clock(systemTimeChallengeActive, ['Date']);
+      cy.passToStep2({ skipNickname: true });
       // wait for request
       cy.fixture('apiPostRegisterChallengePersonalDetailsNoNickname').then(
         (testData) => {
@@ -2154,6 +2155,16 @@ describe('Register Challenge page', () => {
           cy.dataCy('form-nickname-input').type(
             personalDetailsRequest.nickname,
           );
+          cy.wait('@ageGroupsGetApi');
+          cy.selectDropdownMenuByLabel(
+            'form-personal-details-age-group',
+            '1990',
+          );
+          cy.wait('@occupationsGetApi');
+          cy.selectDropdownMenuByLabel(
+            'form-personal-details-occupation',
+            'IT',
+          );
           // select first newsletter option
           cy.dataCy('newsletter-option').first().click();
           // select gender
@@ -2164,7 +2175,8 @@ describe('Register Challenge page', () => {
           // fill in phone number
           cy.dataCy('form-personal-details-phone-input')
             .find('input')
-            .type(personalDetailsRequest.telephone);
+            .should('be.enabled')
+            .type(personalDetailsRequest.telephone, { force: true });
           // opt-in phone
           cy.dataCy('form-personal-details-phone-opt-in-input')
             .should('be.visible')
@@ -2407,41 +2419,54 @@ describe('Register Challenge page', () => {
           // try to pass to step 2
           cy.fixture('apiPostRegisterChallengePersonalDetailsRequest').then(
             (personalDetailsRequest) => {
-              cy.dataCy('form-firstName-input').type(
-                personalDetailsRequest.first_name,
-              );
-              cy.dataCy('form-lastName-input').type(
-                personalDetailsRequest.last_name,
-              );
-              cy.dataCy('form-nickname-input').type(
-                personalDetailsRequest.nickname,
-              );
-              cy.dataCy('newsletter-option').each((newsletterOption) => {
-                cy.wrap(newsletterOption).click();
+              cy.wait('@ageGroupsGetApi').then(() => {
+                cy.wait('@occupationsGetApi').then(() => {
+                  cy.dataCy('form-firstName-input').type(
+                    personalDetailsRequest.first_name,
+                  );
+                  cy.dataCy('form-lastName-input').type(
+                    personalDetailsRequest.last_name,
+                  );
+                  cy.dataCy('form-nickname-input').type(
+                    personalDetailsRequest.nickname,
+                  );
+                  cy.selectDropdownMenuByLabel(
+                    'form-personal-details-age-group',
+                    '1990',
+                  );
+                  cy.selectDropdownMenuByLabel(
+                    'form-personal-details-occupation',
+                    'IT',
+                  );
+                  cy.dataCy('newsletter-option').each((newsletterOption) => {
+                    cy.wrap(newsletterOption).click();
+                  });
+                  cy.dataCy('form-personal-details-gender')
+                    .find('.q-radio__label')
+                    .first()
+                    .click();
+                  // fill in phone number
+                  cy.dataCy('form-personal-details-phone-input')
+                    .find('input')
+                    .should('be.enabled')
+                    .type(personalDetailsRequest.telephone, { force: true });
+                  cy.dataCy('form-personal-details-phone-opt-in-input')
+                    .should('be.visible')
+                    .click();
+                  // agree with terms
+                  cy.dataCy('form-personal-details-terms')
+                    .find('.q-checkbox__inner')
+                    .first()
+                    .click();
+                  cy.dataCy('step-1-continue').should('be.visible').click();
+                  cy.dataCy('step-1-continue')
+                    .find('.q-spinner')
+                    .should('be.visible');
+                  // still on step 1
+                  cy.dataCy('step-2-continue').should('not.exist');
+                  cy.dataCy('step-1-continue').should('be.visible');
+                });
               });
-              cy.dataCy('form-personal-details-gender')
-                .find('.q-radio__label')
-                .first()
-                .click();
-              // fill in phone number
-              cy.dataCy('form-personal-details-phone-input')
-                .find('input')
-                .type(personalDetailsRequest.telephone);
-              cy.dataCy('form-personal-details-phone-opt-in-input')
-                .should('be.visible')
-                .click();
-              // agree with terms
-              cy.dataCy('form-personal-details-terms')
-                .find('.q-checkbox__inner')
-                .first()
-                .click();
-              cy.dataCy('step-1-continue').should('be.visible').click();
-              cy.dataCy('step-1-continue')
-                .find('.q-spinner')
-                .should('be.visible');
-              // still on step 1
-              cy.dataCy('step-2-continue').should('not.exist');
-              cy.dataCy('step-1-continue').should('be.visible');
             },
           );
         });

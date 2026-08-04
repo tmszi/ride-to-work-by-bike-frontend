@@ -2004,6 +2004,56 @@ Cypress.Commands.add('waitForMerchandiseNoneApi', () => {
 });
 
 /**
+ * Intercept age groups GET API
+ * @param {object} config - App configuration
+ * @param {string} defLocale - Default locale
+ * @param {Array} response - Fixture response data
+ */
+Cypress.Commands.add(
+  'interceptAgeGroupsGetApi',
+  (config, defLocale, response) => {
+    const { apiBase, apiDefaultLang, urlApiAgeGroups } = config;
+    const apiBaseUrl = getApiBaseUrlWithLang(
+      null,
+      apiBase,
+      apiDefaultLang,
+      defLocale,
+    );
+    const urlApiAgeGroupsLocalized = `${apiBaseUrl}${urlApiAgeGroups}`;
+
+    cy.intercept('GET', urlApiAgeGroupsLocalized, {
+      statusCode: httpSuccessfullStatus,
+      body: response,
+    }).as('ageGroupsGetApi');
+  },
+);
+
+/**
+ * Intercept occupations GET API
+ * @param {object} config - App configuration
+ * @param {string} defLocale - Default locale
+ * @param {Array} response - Fixture response data
+ */
+Cypress.Commands.add(
+  'interceptOccupationsGetApi',
+  (config, defLocale, response) => {
+    const { apiBase, apiDefaultLang, urlApiOccupations } = config;
+    const apiBaseUrl = getApiBaseUrlWithLang(
+      null,
+      apiBase,
+      apiDefaultLang,
+      defLocale,
+    );
+    const urlApiOccupationsLocalized = `${apiBaseUrl}${urlApiOccupations}`;
+
+    cy.intercept('GET', urlApiOccupationsLocalized, {
+      statusCode: httpSuccessfullStatus,
+      body: response,
+    }).as('occupationsGetApi');
+  },
+);
+
+/**
  * Wait for PayU create order API call and compare request/response object
  * Wait for `@postPayuCreateOrder` intercept
  * @param {Object} requestBody - Expected request body override
@@ -2089,6 +2139,14 @@ Cypress.Commands.add(
           i18n,
           formOrganizationOptions[0].subsidiaries[0].id,
         );
+        // intercept age groups
+        cy.fixture('apiGetAgeGroupsResponse').then((response) => {
+          cy.interceptAgeGroupsGetApi(config, defLocale, response);
+        });
+        // intercept occupations
+        cy.fixture('apiGetOccupationsResponse').then((response) => {
+          cy.interceptOccupationsGetApi(config, defLocale, response);
+        });
         cy.interceptMerchandiseGetApi(config, i18n);
       });
     });
@@ -2272,6 +2330,27 @@ Cypress.Commands.add('selectDropdownMenu', (dataCy, index = 0, length = 0) => {
   }
   // select option
   cy.get('.q-menu .q-item').eq(index).click();
+  cy.get('.q-menu').should('not.exist');
+});
+
+/**
+ * Select element from dropdown menu by label
+ * @param {String} dataCy - data-cy selector for the dropdown menu
+ * @param {Number} label - index of the option to select
+ */
+Cypress.Commands.add('selectDropdownMenuByLabel', (dataCy, label) => {
+  // ensure dropdown icon is visible
+  cy.dataCy(dataCy)
+    .find('.q-field__append')
+    .last()
+    .find('i')
+    .should('be.visible')
+    .and('have.class', 'q-select__dropdown-icon');
+  // click dropdown icon
+  cy.dataCy(dataCy).find('.q-field__append').last().click();
+  cy.get('.q-menu').should('be.visible');
+  // select option
+  cy.get('.q-menu .q-item').contains(label).click();
   cy.get('.q-menu').should('not.exist');
 });
 
@@ -2489,9 +2568,14 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('moveThroughStep1', () => {
-  cy.dataCy('step-1').find('.q-stepper__step-content').should('be.visible');
-  cy.dataCy('step-1-continue').should('be.visible').and('not.be.disabled');
-  cy.dataCy('step-1-continue').click({ force: true });
+  cy.wait('@ageGroupsGetApi').then(() => {
+    cy.wait('@occupationsGetApi').then(() => {
+      cy.dataCy('step-1').find('.q-stepper__step-content').should('be.visible');
+      cy.get('.q-spinner').should('not.exist');
+      cy.dataCy('step-1-continue').should('be.visible').and('not.be.disabled');
+      cy.dataCy('step-1-continue').click({ force: true });
+    });
+  });
 });
 
 Cypress.Commands.add('moveThroughStep2', () => {
@@ -2544,12 +2628,15 @@ Cypress.Commands.add('moveThroughStep7', () => {
   cy.dataCy('step-7-continue').click({ force: true });
 });
 
-Cypress.Commands.add('passToStep2', () => {
+Cypress.Commands.add('passToStep2', (options = {}) => {
+  const { skipNickname = false } = options;
   cy.fixture('apiPostRegisterChallengePersonalDetailsRequest').then(
     (personalDetailsRequest) => {
       cy.dataCy('form-firstName-input').type(personalDetailsRequest.first_name);
       cy.dataCy('form-lastName-input').type(personalDetailsRequest.last_name);
-      cy.dataCy('form-nickname-input').type(personalDetailsRequest.nickname);
+      if (!skipNickname) {
+        cy.dataCy('form-nickname-input').type(personalDetailsRequest.nickname);
+      }
       cy.dataCy('newsletter-option').each((newsletterOption) => {
         cy.wrap(newsletterOption).click();
       });
@@ -2557,11 +2644,17 @@ Cypress.Commands.add('passToStep2', () => {
         .find('.q-radio__label')
         .first()
         .click();
+      // select age group
+      cy.wait('@ageGroupsGetApi');
+      cy.selectDropdownMenuByLabel('form-personal-details-age-group', '1990');
+      // select occupation
+      cy.wait('@occupationsGetApi');
+      cy.selectDropdownMenuByLabel('form-personal-details-occupation', 'IT');
       // fill phone number
       cy.dataCy('form-personal-details-phone-input')
-        .should('be.visible')
         .find('input')
-        .type(personalDetailsRequest.telephone);
+        .should('be.enabled')
+        .type(personalDetailsRequest.telephone, { force: true });
       // opt in to info phone calls
       cy.dataCy('form-personal-details-phone-opt-in-input')
         .should('be.visible')
@@ -2570,7 +2663,10 @@ Cypress.Commands.add('passToStep2', () => {
         .find('.q-checkbox__inner')
         .first()
         .click();
-      cy.moveThroughStep1();
+      // move to next step
+      cy.get('.q-spinner').should('not.exist');
+      cy.dataCy('step-1-continue').should('be.visible').and('not.be.disabled');
+      cy.dataCy('step-1-continue').click({ force: true });
       // on step 2
       cy.dataCy('step-2').find('.q-stepper__step-content').should('be.visible');
     },

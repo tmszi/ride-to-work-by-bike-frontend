@@ -32,6 +32,7 @@ import FormFieldTextRequired from '../global/FormFieldTextRequired.vue';
 // composables
 import { i18n } from '../../boot/i18n';
 import { defaultLocale } from '../../i18n/def_locale';
+import { useSelectSearch } from 'src/composables/useSelectSearch';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
@@ -44,7 +45,10 @@ import { Gender } from 'src/components/types/Profile';
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
 
 // types
-import type { FormOption } from 'src/components/types/Form';
+import type {
+  FormOption,
+  FormSelectOptionNumberValue,
+} from 'src/components/types/Form';
 import type { RegisterChallengePersonalDetailsForm } from 'src/components/types/RegisterChallenge';
 import type { Logger } from '../types/Logger';
 
@@ -137,6 +141,76 @@ export default defineComponent({
       });
     });
 
+    const ageGroups = computed<FormSelectOptionNumberValue[]>(
+      () => store.getAgeGroups,
+    );
+    const { optionsFiltered: filteredAgeGroups, onFilter: filterAgeGroups } =
+      useSelectSearch(ageGroups);
+    /**
+     * Computed ensures personalDetails.ageGroup reactivity.
+     * V-model can fail to update if options are loaded later than value.
+     */
+    const selectedAgeGroup = computed<FormSelectOptionNumberValue | null>({
+      get: () => {
+        if (ageGroups.value?.length && personalDetails.value.ageGroup != null) {
+          return (
+            ageGroups.value.find(
+              (option) => option.value === personalDetails.value.ageGroup,
+            ) || null
+          );
+        }
+        return null;
+      },
+      set: (newValue) => {
+        onTrack({
+          detail: {
+            targetName: 'chooseAgeGroupId',
+            timestamp: Date.now(),
+          },
+        });
+        personalDetails.value.ageGroup = newValue?.value ?? null;
+      },
+    });
+
+    const occupations = computed<FormSelectOptionNumberValue[]>(
+      () => store.getOccupations,
+    );
+    const {
+      optionsFiltered: filteredOccupations,
+      onFilter: filterOccupations,
+    } = useSelectSearch(occupations);
+    /**
+     * Computed ensures personalDetails.occupation reactivity.
+     * V-model can fail to update if options are loaded later than value.
+     */
+    const selectedOccupation = computed<FormSelectOptionNumberValue | null>({
+      get: () => {
+        if (
+          occupations.value?.length &&
+          personalDetails.value.occupation != null
+        ) {
+          return (
+            occupations.value.find(
+              (option) => option.value === personalDetails.value.occupation,
+            ) || null
+          );
+        }
+        return null;
+      },
+      set: (newValue) => {
+        onTrack({
+          detail: {
+            targetName: 'chooseOccupationId',
+            timestamp: Date.now(),
+          },
+        });
+        personalDetails.value.occupation = newValue?.value ?? null;
+      },
+    });
+
+    const isLoadingAgeGroups = computed(() => store.isLoadingAgeGroups);
+    const isLoadingOccupations = computed(() => store.isLoadingOccupations);
+
     return {
       challengeAllowRegisterOrganizationAdmin,
       getHasOrganizationAdmin,
@@ -148,6 +222,14 @@ export default defineComponent({
       urlAppDataPrivacyPolicy,
       urlAppDataTermsOfService,
       urlRegisterAsCoordinator,
+      filteredAgeGroups,
+      filterAgeGroups,
+      selectedAgeGroup,
+      isLoadingAgeGroups,
+      filteredOccupations,
+      filterOccupations,
+      selectedOccupation,
+      isLoadingOccupations,
       onTrack,
     };
   },
@@ -218,6 +300,59 @@ export default defineComponent({
           :options="genderOptions"
           :hint="$t('form.personalDetails.hintGender')"
           class="q-mt-sm"
+        />
+      </div>
+      <!-- Input: Age Group -->
+      <div class="col-12 col-sm-6" data-cy="form-personal-details-age-group">
+        <label for="form-age-group" class="text-grey-10 text-caption text-bold">
+          {{ $t('form.labelAgeGroup') }}
+        </label>
+        <q-select
+          dense
+          outlined
+          use-input
+          hide-selected
+          fill-input
+          clearable
+          hide-bottom-space
+          input-debounce="0"
+          v-model="selectedAgeGroup"
+          :options="filteredAgeGroups"
+          :loading="isLoadingAgeGroups"
+          :rules="[(val) => val != null || $t('form.messageFieldRequired')]"
+          @filter="filterAgeGroups"
+          id="form-age-group"
+          class="q-mt-sm"
+          data-cy="form-personal-details-age-group-input"
+          name="ageGroup"
+        />
+      </div>
+      <!-- Input: Occupation -->
+      <div class="col-12 col-sm-6" data-cy="form-personal-details-occupation">
+        <label
+          for="form-occupation"
+          class="text-grey-10 text-caption text-bold"
+        >
+          {{ $t('form.labelOccupation') }}
+        </label>
+        <q-select
+          dense
+          outlined
+          use-input
+          hide-selected
+          fill-input
+          clearable
+          hide-bottom-space
+          input-debounce="0"
+          v-model="selectedOccupation"
+          :options="filteredOccupations"
+          :loading="isLoadingOccupations"
+          :rules="[(val) => val != null || $t('form.messageFieldRequired')]"
+          @filter="filterOccupations"
+          id="form-occupation"
+          class="q-mt-sm"
+          data-cy="form-personal-details-occupation-input"
+          name="occupation"
         />
       </div>
       <!-- Link: Register as coordinator -->
