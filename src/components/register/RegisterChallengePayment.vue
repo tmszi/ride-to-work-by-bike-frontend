@@ -71,7 +71,9 @@ import type { Logger } from '../types/Logger';
 import type { ValidatedCoupon } from '../types/Coupon';
 import { tShirtSizeOrder } from '../types/Merchandise';
 
+// utils
 import { getApiBaseUrlWithLang } from '../../utils/get_api_base_url_with_lang';
+import { isSeptemberChallenge } from '../../utils/challenge';
 import { onTrack } from '../../utils/track';
 
 export default defineComponent({
@@ -269,7 +271,7 @@ export default defineComponent({
       }
       if (showMerchNotAvailableTooltip.value) {
         Notify.create({
-          message: i18n.global.t('register.challenge.tooltipMerchNotAvailable'),
+          message: tooltipMerchNotAvailableText.value,
           type: 'warning',
         });
       }
@@ -727,6 +729,16 @@ export default defineComponent({
       );
     });
 
+    const tooltipMerchNotAvailableText = computed((): string => {
+      if (isSeptemberChallenge()) {
+        return i18n.global.t(
+          'register.challenge.tooltipMerchNotAvailableSeptember',
+        );
+      } else {
+        return i18n.global.t('register.challenge.tooltipMerchNotAvailable');
+      }
+    });
+
     return {
       borderRadius,
       computedCurrentValue,
@@ -738,6 +750,7 @@ export default defineComponent({
       isPriceLevelSwitchDisabled,
       isPaymentWithReward,
       showMerchNotAvailableTooltip,
+      tooltipMerchNotAvailableText,
       isRegistrationCoordinator,
       optionsPaymentAmountComputed,
       optionsPaymentSubject,
@@ -1026,7 +1039,7 @@ export default defineComponent({
         <!-- Tooltip: Merchandise not available -->
         <q-tooltip v-if="showMerchNotAvailableTooltip">
           <span data-cy="tooltip-merch-not-available">
-            {{ $t('register.challenge.tooltipMerchNotAvailable') }}
+            {{ tooltipMerchNotAvailableText }}
           </span>
         </q-tooltip>
       </span>

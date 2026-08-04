@@ -59,7 +59,9 @@ import type { FormOption } from '../types/Form';
 import type { MerchandiseCard, MerchandiseItem } from '../types/Merchandise';
 import type { Logger } from '../types/Logger';
 
+// utils
 import { getApiBaseUrlWithLang } from '../../utils/get_api_base_url_with_lang';
+import { isSeptemberChallenge } from '../../utils/challenge';
 
 export default defineComponent({
   name: 'FormFieldListMerch',
@@ -483,6 +485,10 @@ export default defineComponent({
       });
     });
 
+    const isSeptemberChallengeComputed = computed((): boolean =>
+      isSeptemberChallenge(),
+    );
+
     return {
       currentItemLabelSize,
       currentDialogCard,
@@ -490,6 +496,7 @@ export default defineComponent({
       formMerchRef,
       Gender,
       isOpen,
+      isSeptemberChallenge: isSeptemberChallengeComputed,
       isShowingBottomSizeInput,
       optionsFemale,
       optionsMale,
@@ -546,7 +553,18 @@ export default defineComponent({
     class="bg-warning text-grey-10 rounded-borders q-mb-md"
     data-cy="text-merch-unavailable"
   >
+    <!-- September/October merch unavailable message -->
     <div
+      v-if="isSeptemberChallenge"
+      v-html="
+        $t('form.merch.textMerchUnavailableSeptember', {
+          url: rideToWorkByBikeConfig.urlAutoMatShop,
+        })
+      "
+    />
+    <!-- May merch "sold out" message -->
+    <div
+      v-else
       v-html="
         $t('form.merch.textMerchUnavailable', {
           url: rideToWorkByBikeConfig.urlAutoMatShop,

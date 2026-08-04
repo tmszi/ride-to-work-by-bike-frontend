@@ -31,6 +31,7 @@ import {
 import DialogDefault from '../global/DialogDefault.vue';
 
 // composables
+import { i18n } from '../../boot/i18n';
 import {
   paginationLabel,
   selectedRowsLabel,
@@ -47,6 +48,9 @@ import type { TableFeeApprovalRow } from '../../components/types/AdminOrganisati
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
+// utils
+import { isSeptemberChallenge } from '../../utils/challenge';
 
 export default defineComponent({
   name: 'TableFeeApproval',
@@ -161,6 +165,16 @@ export default defineComponent({
 
     const borderRadius = rideToWorkByBikeConfig.borderRadiusCardSmall;
 
+    const tooltipMerchNotAvailableText = computed((): string => {
+      if (isSeptemberChallenge()) {
+        return i18n.global.t(
+          'register.challenge.tooltipMerchNotAvailableSeptember',
+        );
+      } else {
+        return i18n.global.t('register.challenge.tooltipMerchNotAvailable');
+      }
+    });
+
     return {
       borderRadius,
       columns,
@@ -168,6 +182,7 @@ export default defineComponent({
       isLoading,
       isLoadingApprovePayments,
       isMerchandiseAvailable,
+      tooltipMerchNotAvailableText,
       isLoadingDisapprovePayments,
       selected,
       tableRef,
@@ -198,7 +213,7 @@ export default defineComponent({
       class="q-mb-md"
       data-cy="table-fee-approval-merch-unavailable"
     >
-      {{ $t('register.challenge.tooltipMerchNotAvailable') }}
+      {{ tooltipMerchNotAvailableText }}
     </q-chip>
     <div>
       <!-- Table -->
