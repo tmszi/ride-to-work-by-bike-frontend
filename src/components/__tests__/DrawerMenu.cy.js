@@ -362,7 +362,8 @@ describe('DrawerMenu', () => {
         defaultLocale,
         i18n,
       );
-      const menuBottom = getMenuBottom(urlDonate, urlContact);
+      const logoutAction = cy.spy().as('logoutSpy');
+      const menuBottom = getMenuBottom(urlDonate, urlContact, logoutAction);
       cy.mount(DrawerMenu, {
         props: {
           items: menuBottom,
@@ -433,6 +434,19 @@ describe('DrawerMenu', () => {
           });
         });
     });
+
+    it('renders logout item and calls logout action on click', () => {
+      cy.dataCy(selectorDrawerMenuItem)
+        .contains(i18n.global.t('drawerMenu.logout'))
+        .should('be.visible')
+        .within(() => {
+          cy.dataCy(selectorDrawerMenuItemIcon).should('be.visible');
+        });
+      cy.dataCy(selectorDrawerMenuItem)
+        .contains(i18n.global.t('drawerMenu.logout'))
+        .click();
+      cy.get('@logoutSpy').should('have.been.calledOnce');
+    });
   });
 
   context('menu bottom - change lang to en lang', () => {
@@ -452,7 +466,8 @@ describe('DrawerMenu', () => {
         defaultLocale,
         i18n,
       );
-      const menuBottom = getMenuBottom(urlDonate, urlContact);
+      const logoutAction = cy.spy().as('logoutSpy');
+      const menuBottom = getMenuBottom(urlDonate, urlContact, logoutAction);
       cy.mount(DrawerMenu, {
         props: {
           items: menuBottom,
