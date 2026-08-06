@@ -67,6 +67,8 @@ import type {
 import { i18n } from '../boot/i18n';
 import { PriceLevelCategory } from '../components/enums/Challenge';
 import type {
+  AgeGroupApiObject,
+  OccupationApiObject,
   RegisterChallengePostPayload,
   RegisterChallengePostResponse,
   RegisterChallengeResult,
@@ -107,6 +109,8 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     teams: [] as OrganizationTeam[],
     ageGroups: [] as FormSelectOptionNumberValue[],
     occupations: [] as FormSelectOptionNumberValue[],
+    ageGroupObject: null as AgeGroupApiObject | null,
+    occupationObject: null as OccupationApiObject | null,
     merchandiseItems: [] as MerchandiseItem[],
     merchandiseCards: {} as Record<Gender, MerchandiseCard[]>,
     myTeam: null as MyTeamResults | null,
@@ -163,6 +167,10 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     getTeams: (state): OrganizationTeam[] => state.teams,
     getAgeGroups: (state): FormSelectOptionNumberValue[] => state.ageGroups,
     getOccupations: (state): FormSelectOptionNumberValue[] => state.occupations,
+    getAgeGroupObject: (state): AgeGroupApiObject | null =>
+      state.ageGroupObject,
+    getOccupationObject: (state): OccupationApiObject | null =>
+      state.occupationObject,
     getMerchandiseItems: (state): MerchandiseItem[] => state.merchandiseItems,
     getMerchandiseCards: (state): Record<Gender, MerchandiseCard[]> =>
       state.merchandiseCards,
@@ -514,6 +522,12 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
     setThirdPartyVouchers(vouchers: ThirdPartyVoucher[]) {
       this.thirdPartyVouchers = vouchers;
     },
+    setAgeGroupObject(ageGroupObject: AgeGroupApiObject | null) {
+      this.ageGroupObject = ageGroupObject;
+    },
+    setOccupationObject(occupationObject: OccupationApiObject | null) {
+      this.occupationObject = occupationObject;
+    },
     /**
      * Switch between regular and with-reward price sets
      * Handle side effects (clear voucher, reset payment amount)
@@ -699,6 +713,14 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
       this.setThirdPartyVouchers(parsedResponse.thirdPartyVouchers);
       this.$log?.debug(
         `Third-party vouchers store updated to <${JSON.stringify(this.getThirdPartyVouchers)}>.`,
+      );
+      this.setAgeGroupObject(parsedResponse.ageGroupObject);
+      this.$log?.debug(
+        `Age group object store updated to <${JSON.stringify(this.getAgeGroupObject)}>.`,
+      );
+      this.setOccupationObject(parsedResponse.occupationObject);
+      this.$log?.debug(
+        `Occupation object store updated to <${JSON.stringify(this.getOccupationObject)}>.`,
       );
     },
     /**
