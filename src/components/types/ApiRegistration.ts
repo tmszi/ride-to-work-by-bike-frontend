@@ -48,6 +48,7 @@ export type PersonalDetails = CorePersonalDetails & {
   is_payment_with_reward: boolean | null;
   thirdparty_voucher?: ThirdPartyVoucher[];
   diploma: string;
+  diplomas: Diploma[];
 };
 
 export type ThirdPartyVoucher = {
@@ -57,6 +58,14 @@ export type ThirdPartyVoucher = {
   voucher_type_name: string;
   voucher_type_url: string;
   voucher_type_image: string;
+};
+
+// diploma earned for a single challenge participation
+export type Diploma = {
+  id: number;
+  year: string;
+  name: string;
+  url: string;
 };
 
 export type RegisterChallengeResult = {
