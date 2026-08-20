@@ -19,6 +19,8 @@ jobs:
         ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.name }}-${{ matrix.os }}-${{ matrix.containers }}
       cancel-in-progress: true
 
+    # Skip tests for Mend Renovate PRs
+    if: github.actor != 'renovate[bot]'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
