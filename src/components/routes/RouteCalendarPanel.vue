@@ -29,7 +29,7 @@
 
 // libraries
 import { Notify } from 'quasar';
-import { computed, defineComponent, inject } from 'vue';
+import { computed, defineComponent, inject, watch } from 'vue';
 
 // components
 import RouteInputDistance from './RouteInputDistance.vue';
@@ -49,7 +49,7 @@ import { tripsAdapter } from '../../adapters/tripsAdapter';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 
 // enums
-import { RouteInputType } from '../types/Route';
+import { RouteInputType, TransportType } from '../types/Route';
 
 // stores
 import { useRegisterChallengeStore } from '../../stores/registerChallenge';
@@ -128,13 +128,34 @@ export default defineComponent({
 
     const { isEntryEnabled } = useRoutes();
 
+    const isVacationMode = computed((): boolean => tripsStore.getVacationMode);
+
+    /**
+     * Defaults an unmarked day to `vacation`, or load selected days's
+     * transport type.
+     */
+    watch(
+      [isVacationMode, routes],
+      (): void => {
+        if (!isVacationMode.value) return;
+        // check if route is logged
+        const loggedRoute = routes.value.find((route) => route.id !== '');
+        transportType.value = loggedRoute
+          ? loggedRoute.transport
+          : TransportType.vacation;
+      },
+      { immediate: true },
+    );
+
     // Determines if save button should be disabled.
     const isSaveBtnDisabled = computed((): boolean => {
-      const noTransport = transportType.value === null;
       const noRoutes = routesCount.value === 0;
+      const noTransport = transportType.value === null;
       const noDistance =
-        isShownDistance.value && distance.value === defaultDistanceZero;
-      const noFile = file.value === null;
+        !isVacationMode.value &&
+        isShownDistance.value &&
+        distance.value === defaultDistanceZero;
+      const noFile = !isVacationMode.value && file.value === null;
       return (
         noRoutes ||
         (noDistance && noFile) ||
@@ -222,6 +243,7 @@ export default defineComponent({
       isOpen,
       isSaveBtnDisabled,
       isShownDistance,
+      isVacationMode,
       minWidth,
       optionsAction,
       transportType,
@@ -268,16 +290,25 @@ export default defineComponent({
         </h3>
       </q-card-section>
       <q-card-section class="q-pa-lg">
-        <div class="row q-col-gutter-lg items-start" data-cy="dialog-body">
+        <div
+          class="row q-col-gutter-lg items-start"
+          :class="{ 'justify-between': isVacationMode }"
+          data-cy="dialog-body"
+        >
           <!-- Input: Transport type -->
           <div class="col-12 col-sm-auto" data-cy="section-transport">
             <route-input-transport-type
               v-model="transportType"
+              :isVacationMode="isVacationMode"
               data-cy="route-input-transport-type"
             />
           </div>
           <!-- Input: Distance (or link to map) -->
-          <div class="col-12 col-sm" data-cy="section-distance">
+          <div
+            v-if="!isVacationMode"
+            class="col-12 col-sm"
+            data-cy="section-distance"
+          >
             <route-input-distance
               v-show="isShownDistance"
               v-model="distance"

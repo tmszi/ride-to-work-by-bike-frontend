@@ -102,6 +102,56 @@ describe('<RouteInputTransportType>', () => {
     coreTests();
     interactionTests();
   });
+
+  context('vacation mode', () => {
+    beforeEach(() => {
+      setActivePinia(createPinia());
+      cy.fixture('apiGetCommuteMode').then((commuteModeResponse) => {
+        cy.mount(RouteInputTransportType, {
+          props: {
+            modelValue: TransportType.vacation,
+            isVacationMode: true,
+          },
+        });
+        cy.setupTripsStoreWithCommuteModes(useTripsStore, commuteModeResponse);
+      });
+      cy.viewport('macbook-16');
+    });
+
+    it('shows only the allowed transport options', () => {
+      cy.dataCy(selectorButtonToggleTransport).should('have.length', 2);
+      cy.dataCy(selectorButtonToggleTransport)
+        .filter(`[data-value="${TransportType.vacation}"]`)
+        .should('exist');
+      cy.dataCy(selectorButtonToggleTransport)
+        .filter(`[data-value="${TransportType.none}"]`)
+        .should('exist');
+      cy.dataCy(selectorButtonToggleTransport)
+        .filter(`[data-value="${TransportType.bike}"]`)
+        .should('not.exist');
+    });
+  });
+
+  context('trip mode with vacation available in commute modes', () => {
+    beforeEach(() => {
+      setActivePinia(createPinia());
+      cy.fixture('apiGetCommuteMode').then((commuteModeResponse) => {
+        cy.mount(RouteInputTransportType, {
+          props: {
+            modelValue: TransportType.bike,
+          },
+        });
+        cy.setupTripsStoreWithCommuteModes(useTripsStore, commuteModeResponse);
+      });
+      cy.viewport('macbook-16');
+    });
+
+    it('does not show vacation as a selectable transport option', () => {
+      cy.dataCy(selectorButtonToggleTransport)
+        .filter(`[data-value="${TransportType.vacation}"]`)
+        .should('not.exist');
+    });
+  });
 });
 
 function coreTests() {

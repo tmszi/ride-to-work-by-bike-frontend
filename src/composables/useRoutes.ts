@@ -46,6 +46,8 @@ export const useRoutes = () => {
         return `svguse:${customSVGIconsFilePath}#lucide-home`;
       case TransportType.none:
         return `svguse:${customSVGIconsFilePath}#lucide-ban`;
+      case TransportType.vacation:
+        return `svguse:${customSVGIconsFilePath}#lucide-tree-palm`;
       default:
         return `svguse:${customSVGIconsFilePath}#question-mark`;
     }
@@ -73,6 +75,8 @@ export const useRoutes = () => {
         return i18n.global.t('routes.transport.home');
       case TransportType.none:
         return i18n.global.t('routes.transport.none');
+      case TransportType.vacation:
+        return i18n.global.t('routes.transport.vacation');
       default:
         return i18n.global.t('routes.transport.unknown');
     }
@@ -206,6 +210,27 @@ export const useRoutes = () => {
       dateLoggingEnd.value,
       routes,
     );
+  };
+
+  /**
+   * Returns an array of RouteDay objects for each day vacation can be
+   * marked on - tomorrow through the end of the competition phase, ordered
+   * chronologically ascending.
+   * @param {RouteItem[]} routes - Array of logged routes.
+   * @return {RouteDay[]} - The array representing days with routes.
+   */
+  const getVacationLoggableDaysWithRoutes = (
+    routes: RouteItem[],
+  ): RouteDay[] => {
+    if (!dateCompetitionPhaseTo.value) {
+      return [];
+    }
+    const dateToday = new Date();
+    return createDaysArrayWithRoutes(
+      dateToday,
+      dateCompetitionPhaseTo.value,
+      routes,
+    ).reverse();
   };
 
   /**
@@ -376,6 +401,7 @@ export const useRoutes = () => {
     isEntryEnabled,
     isResultsEnabled,
     getLoggableDaysWithRoutes,
+    getVacationLoggableDaysWithRoutes,
     getUnloggableDaysWithRoutes,
     getCompetitionDaysWithRoutes,
     createDaysArrayWithRoutes,

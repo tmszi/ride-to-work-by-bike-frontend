@@ -129,6 +129,8 @@ export default defineComponent({
     const { action, distance, file, transportType, isShownDistance } =
       useLogRoutes(routes);
 
+    const isVacationMode = computed((): boolean => tripsStore.getVacationMode);
+
     const onUpdateAction = (actionNew: RouteInputType): void => {
       /**
        * If action is changed to `copy-yesterday`, check if the day before
@@ -224,8 +226,11 @@ export default defineComponent({
     const onUpdateTransportType = (transportTypeNew: TransportType): void => {
       // compare new transport type with the transport type from the store
       const dirty = transportTypeNew !== routeStateDefault.value?.transport;
-      // if transport type is change to TransportType.none, set distance to 0
-      if (transportTypeNew === TransportType.none) {
+      // if transport type is changed to a distance-less type, set distance to 0
+      if (
+        transportTypeNew === TransportType.none ||
+        transportTypeNew === TransportType.vacation
+      ) {
         const { defaultDistanceZero } = rideToWorkByBikeConfig;
         emit('update:route', {
           ...props.route,
@@ -284,6 +289,7 @@ export default defineComponent({
 
     return {
       action,
+      isVacationMode,
       borderRadius,
       borderColor,
       defaultDistanceZero,
@@ -376,6 +382,7 @@ export default defineComponent({
         <route-input-transport-type
           horizontal
           :modelValue="transportType"
+          :isVacationMode="isVacationMode"
           @update:modelValue="onUpdateTransportType"
           class="q-mt-sm"
           data-cy="section-transport"

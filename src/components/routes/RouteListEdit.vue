@@ -16,7 +16,7 @@
  */
 
 // libraries
-import { Notify, Screen } from 'quasar';
+import { colors, Notify, Screen } from 'quasar';
 import { computed, defineComponent, inject, ref, watch } from 'vue';
 import type { QForm } from 'quasar';
 
@@ -55,10 +55,19 @@ export default defineComponent({
       return tripsStore.getIsLoading;
     });
 
+    const { getPaletteColor } = colors;
+    const primary = getPaletteColor('primary');
+
+    const isVacationMode = computed<boolean>({
+      get: (): boolean => tripsStore.getVacationMode,
+      set: (value: boolean): void => tripsStore.setVacationMode(value),
+    });
+
     // route composables
     const {
       isEntryEnabled,
       getLoggableDaysWithRoutes,
+      getVacationLoggableDaysWithRoutes,
       formatDate,
       formatDateName,
     } = useRoutes();
@@ -69,15 +78,79 @@ export default defineComponent({
     // get route items from store
     const routeItems = computed<RouteItem[]>(() => tripsStore.getRouteItems);
 
-    const days = ref<RouteDay[]>(getLoggableDaysWithRoutes(routeItems.value));
-    // update current days when route items change in store
-    watch(routeItems, () => {
-      days.value = getLoggableDaysWithRoutes(routeItems.value);
+    /**
+     * Returns the day range for the current mode - trip mode shows the
+     * backdating logging window, vacation mode shows today through the end
+     * of the competition (see `getVacationLoggableDaysWithRoutes`).
+     * @return {RouteDay[]}
+     */
+    const getDaysForMode = (): RouteDay[] =>
+      isVacationMode.value
+        ? getVacationLoggableDaysWithRoutes(routeItems.value)
+        : getLoggableDaysWithRoutes(routeItems.value);
+
+    const days = ref<RouteDay[]>(getDaysForMode());
+    // update current days when route items or vacation mode change
+    watch([routeItems, isVacationMode], () => {
+      days.value = getDaysForMode();
     });
 
     const isLargeScreen = computed((): boolean => {
       return Screen.gt.sm;
     });
+
+    /**
+     * Returns transport type of a given logged route or `null` if no route
+     * @param {string} routeId - Id of the route to look up.
+     * @return {TransportType | null}
+     */
+    const getStoredTransport = (routeId: string) => {
+      const storedRoute = tripsStore.getRouteItems.find(
+        (route) => route.id === routeId,
+      );
+      return storedRoute ? storedRoute.transport : null;
+    };
+
+    /**
+     * Handles route transport type update for a direction.
+     * In vacation mode, it syncs selection to the other direction of the same
+     * day. Computes the dirty trip counter to manage save button state.
+     * @param {RouteDay} day - Updated day.
+     * @param {TransportDirection} direction - Updated direction.
+     * @param {RouteItem} updatedRoute - New value.
+     * @return {void}
+     */
+    const onUpdateRoute = (
+      day: RouteDay,
+      direction: TransportDirection,
+      updatedRoute: RouteItem,
+    ): void => {
+      if (direction === TransportDirection.toWork) {
+        day.toWork = updatedRoute;
+      } else {
+        day.fromWork = updatedRoute;
+      }
+      if (!isVacationMode.value) return;
+      // sync directions in vacation mode
+      const otherRoute =
+        direction === TransportDirection.toWork ? day.fromWork : day.toWork;
+      if (otherRoute.transport === updatedRoute.transport) return;
+      // check dirty state for the other direction (distance is not relevant)
+      const isOtherRouteDirty =
+        updatedRoute.transport !== getStoredTransport(otherRoute.id);
+      const mirroredRoute: RouteItem = {
+        ...otherRoute,
+        transport: updatedRoute.transport,
+        distance: updatedRoute.distance,
+        dirty: isOtherRouteDirty,
+      };
+      // update the other direction
+      if (direction === TransportDirection.toWork) {
+        day.fromWork = mirroredRoute;
+      } else {
+        day.toWork = mirroredRoute;
+      }
+    };
 
     /**
      * Get all route items that are dirty
@@ -159,8 +232,11 @@ export default defineComponent({
       isLargeScreen,
       isLoadingTrips,
       onSave,
+      onUpdateRoute,
+      primary,
       routeItemsDirty,
       TransportDirection,
+      isVacationMode,
       formRef,
     };
   },
@@ -170,6 +246,28 @@ export default defineComponent({
 <template>
   <div>
     <q-form ref="formRef" data-cy="route-list-edit">
+      <!-- Vacation mode toggle -->
+      <div
+        class="row q-mb-md sticky-top bg-white q-py-sm"
+        style="position: sticky; top: 0; z-index: 1"
+        data-cy="vacation-mode-toggle-wrapper"
+      >
+        <q-btn-toggle
+          v-model="isVacationMode"
+          no-caps
+          rounded
+          unelevated
+          toggle-color="primary"
+          color="white"
+          text-color="primary"
+          :style="{ border: `1px solid ${primary}` }"
+          :options="[
+            { label: $t('routes.labelTripMode'), value: false },
+            { label: $t('routes.vacation.modeToggle'), value: true },
+          ]"
+          data-cy="vacation-mode-toggle"
+        />
+      </div>
       <!-- First save routes button on the large screen -->
       <div
         v-if="isLargeScreen"
@@ -219,7 +317,9 @@ export default defineComponent({
                 data-cy="route-list-item"
                 :data-direction="TransportDirection.toWork"
                 :data-id="day.toWork?.id"
-                @update:route="day.toWork = $event"
+                @update:route="
+                  onUpdateRoute(day, TransportDirection.toWork, $event)
+                "
               />
             </div>
             <!-- Item: Route from work -->
@@ -231,7 +331,9 @@ export default defineComponent({
                 data-cy="route-list-item"
                 :data-direction="TransportDirection.fromWork"
                 :data-id="day.fromWork?.id"
-                @update:route="day.fromWork = $event"
+                @update:route="
+                  onUpdateRoute(day, TransportDirection.fromWork, $event)
+                "
               />
             </div>
           </div>
