@@ -100,17 +100,21 @@ jobs:
       #     wait-on: ${{ env.dev_server_url }}
       #     command: yarn test:e2e:ci:edge
 
-      # - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
-      #   uses: cypress-io/github-action@v7.4.0
-      #   # env:
-      #   #   DEBUG: "cypress:*"
-      #   #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
-      #   with:
-      #     install: false
-      #     browser: firefox
-      #     wait-on-timeout: ${{ env.timeout }}
-      #     wait-on: ${{ env.dev_server_url }}
-      #     command: yarn test:component:ci:firefox
+      - name: Run Cypress component test on Mozilla Firefox/OS ${{ matrix.os }}
+        uses: cypress-io/github-action@v7.4.0
+        env:
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        # env:
+        #   DEBUG: "cypress:*"
+        #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
+        with:
+          install: false
+          browser: firefox
+          wait-on-timeout: ${{ env.timeout }}
+          wait-on: ${{ env.dev_server_url }}
+          command: yarn test:component:ci:firefox --parallel --record
 
       # - name: Run Cypress component test on Google Chrome/OS ${{ matrix.os }}
       #   uses: cypress-io/github-action@v7.4.0
