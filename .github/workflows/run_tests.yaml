@@ -16,7 +16,7 @@ jobs:
 
     concurrency:
       group:
-        ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.name }}-${{ matrix.os }}-${{ matrix.containers }}
+        ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.name }}-${{ matrix.os }}
       cancel-in-progress: true
 
     # Skip tests for Mend Renovate PRs
@@ -25,7 +25,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        containers: [1, 2, 3, 4, 5]
       fail-fast: false
     timeout-minutes: 720
 
@@ -62,10 +61,6 @@ jobs:
 
       - name: Run Cypress e2e test on Mozilla Firefox/OS ${{ matrix.os }}
         uses: cypress-io/github-action@v7.4.0
-        env:
-          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         # env:
         #   DEBUG: "cypress:*"
         #   CYPRESS_INTERNAL_BROWSER_CONNECT_TIMEOUT: ${{ env.browser_connect_timeout }}
@@ -74,7 +69,7 @@ jobs:
           browser: firefox
           wait-on-timeout: ${{ env.timeout }}
           wait-on: ${{ env.dev_server_url }}
-          command: yarn test:e2e:ci:firefox --parallel --record
+          command: yarn test:e2e:ci:firefox
 
       # - name: Run Cypress e2e test on Google Chrome/OS ${{ matrix.os }}
       #   uses: cypress-io/github-action@v7.4.0
