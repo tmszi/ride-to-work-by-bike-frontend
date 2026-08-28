@@ -27,9 +27,13 @@
  */
 
 // libraries
-import { defineComponent } from 'vue';
+import { Notify } from 'quasar';
+import { computed, defineComponent, watch } from 'vue';
 import { i18n } from '../boot/i18n';
 import { rideToWorkByBikeConfig } from '../boot/global_vars';
+
+import { useLoginStore } from 'src/stores/login';
+import { getLoggedUserNotifyMessageConf } from '../utils/notify';
 
 // set global i18n object (for test purposes)
 if (window.Cypress) {
@@ -42,6 +46,32 @@ export default defineComponent({
     const imageMask = `url(${new URL('../assets/svg/image-mask.svg', import.meta.url).href})`;
     const imageUrl = rideToWorkByBikeConfig.urlLoginRegisterBackgroundImage;
 
+    const loginStore = useLoginStore();
+    if (loginStore.getShowLoggedUserNotifyMessage) {
+      const loggedUser = loginStore.getUser;
+      let user;
+      if (loggedUser.first_name && loggedUser.last_name) {
+        user = `${loggedUser.first_name} ${loggedUser.last_name}, ${loggedUser.email}`;
+      } else {
+        user = loggedUser.email;
+      }
+      const message = computed(() =>
+        i18n.global.t('login.showLoggedUserNotifyMessage', {
+          user: user,
+        }),
+      );
+      const dismissMessage = Notify.create(
+        getLoggedUserNotifyMessageConf(message),
+      );
+      watch(
+        () => loginStore.getRestoreLoggedUser,
+        () => {
+          if (!loginStore.getRestoreLoggedUser) {
+            dismissMessage();
+          }
+        },
+      );
+    }
     return {
       imageMask,
       imageUrl,
