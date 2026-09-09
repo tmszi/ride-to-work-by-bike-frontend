@@ -396,6 +396,26 @@ apiMessageError = "Company challenge deletion failed."
 apiMessageErrorWithMessage = "Company challenge deletion failed. Error: {error}"
 apiMessageSuccess = "Company challenge was successfully deleted."
 
+[uploadAvatar]
+apiMessageError = "Photo upload failed."
+apiMessageErrorWithMessage = "Photo upload failed. Error: {error}"
+apiMessageSuccess = "Photo was successfully uploaded."
+
+[replaceAvatar]
+apiMessageError = "Photo replacement failed."
+apiMessageErrorWithMessage = "Photo replacement failed. Error: {error}"
+apiMessageSuccess = "Photo was successfully replaced."
+
+[deleteAvatar]
+apiMessageError = "Photo removal failed."
+apiMessageErrorWithMessage = "Photo removal failed. Error: {error}"
+apiMessageSuccess = "Photo was successfully removed."
+
+[getAvatar]
+apiMessageError = "Could not load photo."
+apiMessageErrorWithMessage = "Could not load photo. Error: {error}"
+apiMessageSuccess = "Photo was successfully loaded."
+
 [moveCoordinatorMember]
 apiMessageError = "Failed to move team member."
 apiMessageErrorWithMessage = "Failed to move team member. Error: {error}"
@@ -1009,6 +1029,13 @@ titleUpdateGender = "Edit performance category"
 titleUpdateNickname = "Edit nickname"
 titleUpdatePhone = "Edit phone number"
 titleUpdateTeam = "Change team"
+buttonUploadPhoto = "Upload new photo"
+buttonRemovePhoto = "Remove"
+titleUpdatePhoto = "Update profile photo"
+titleDialogRemovePhoto = "Remove profile photo"
+labelRemovePhotoDescription = "Your profile photo will be removed. Do you want to continue?"
+messagePhotoInvalidFormat = "Invalid file format. Allowed formats: {formats}"
+messagePhotoTooLarge = "File is too large. Maximum size is {size}."
 
 [putRegisterChallenge]
 apiMessageError = "Error updating profile."

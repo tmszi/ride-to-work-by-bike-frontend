@@ -5,6 +5,7 @@ import { getGenderLabel } from '../../../src/utils/get_gender_label';
 import {
   interceptOrganizationsApi,
   systemTimeChallengeActive,
+  httpNoContentSuccessfullStatus,
 } from '../support/commonTests';
 import { OrganizationType } from '../../../src/components/types/Organization';
 import { TeamMemberStatus } from '../../../src/components/enums/TeamMember';
@@ -47,6 +48,9 @@ const selectorTeam = 'profile-details-team';
 // variables
 const password = '123456a';
 const genderFemaleKey = 'global.woman';
+const avatarDetailUrl = 'https://example.com/avatar-detail/';
+const avatarUrl = 'https://example.com/new-avatar-raw.jpg';
+const exampleDomainUrl = 'https://example.com/*';
 
 describe('Profile page', () => {
   beforeEach(() => {
@@ -132,6 +136,30 @@ describe('Profile page', () => {
           });
         },
       );
+      // intercept avatar bootstrap load (login) with an existing avatar
+      cy.fixture('apiGetAvatarList.json').then((avatarList) => {
+        cy.interceptAvatarApi({
+          config: config,
+          i18n: defLocale,
+          requestType: 'GET',
+          interceptAlias: 'getAvatar',
+          body: avatarList,
+        });
+      });
+      cy.fixture('apiGetAvatarRenderPrimary.json').then((avatarRender) => {
+        cy.interceptAvatarApi({
+          config: config,
+          i18n: defLocale,
+          requestType: 'GET',
+          interceptUrlType: 'renderPrimary',
+          interceptAlias: 'getAvatarRender',
+          body: avatarRender,
+        });
+      });
+      // stub avatar image
+      cy.intercept('GET', 'https://dpnk-test.s3.amazonaws.com/**', {
+        fixture: 'route.jpg',
+      });
       cy.clock(new Date(systemTimeChallengeActive), ['Date']);
     });
   });
@@ -245,6 +273,152 @@ describe('Profile page', () => {
           });
         },
       );
+    });
+  });
+
+  context('change photo', () => {
+    beforeEach(() => {
+      cy.clock(new Date(systemTimeChallengeActive), ['Date']).then(() => {
+        // go to login page
+        cy.visit('#' + routesConf['login']['children']['fullPath']);
+        // login
+        cy.fillAndSubmitLoginForm();
+        // wait for homepage to load
+        cy.dataCy('index-title').should('be.visible');
+        // go to profile page
+        cy.visit('#' + routesConf['profile']['children']['fullPath']);
+        cy.viewport('macbook-16');
+        // alias i18n
+        cy.window().should('have.property', 'i18n');
+        cy.window().then((win) => {
+          cy.wrap(win.i18n).as('i18n');
+        });
+      });
+    });
+
+    it('allows to replace photo and shows it in profile and drawer', () => {
+      cy.get('@config').then((config) => {
+        cy.wait('@getAvatar');
+        cy.wait('@getAvatarRender');
+        const avatarId = 22;
+        // intercept avatar replace
+        cy.interceptAvatarApi({
+          config: config,
+          i18n: defLocale,
+          requestType: 'PUT',
+          interceptAlias: 'putAvatar',
+          avatarId: avatarId,
+          body: {
+            message: 'Successfully uploaded a new avatar.',
+            data: {
+              id: avatarId,
+              avatar_url: avatarDetailUrl,
+              avatar: avatarUrl,
+              primary: true,
+            },
+          },
+        });
+        // intercept refetch with new avatar
+        cy.fixture('apiGetAvatarList.json').then((avatarList) => {
+          cy.interceptAvatarApi({
+            config: config,
+            i18n: defLocale,
+            requestType: 'GET',
+            interceptAlias: 'getAvatarAfterReplace',
+            body: avatarList,
+          });
+        });
+        cy.interceptAvatarApi({
+          config: config,
+          i18n: defLocale,
+          requestType: 'GET',
+          interceptUrlType: 'renderPrimary',
+          interceptAlias: 'getAvatarRenderAfterReplace',
+          body: { image_url: avatarUrl },
+        });
+        // stub photo
+        cy.intercept('GET', exampleDomainUrl, {
+          fixture: 'route.jpg',
+        });
+        // upload new photo
+        cy.dataCy('profile-avatar-edit-button').click();
+        cy.dataCy('profile-avatar-input-file').selectFile(
+          'test/cypress/fixtures/route.jpg',
+          { force: true },
+        );
+        cy.dataCy('profile-avatar-dialog-save').click();
+        cy.wait('@putAvatar');
+        cy.wait('@getAvatarAfterReplace');
+        cy.wait('@getAvatarRenderAfterReplace');
+        // profile page shows new photo
+        cy.dataCy('profile-avatar-img')
+          .find('img')
+          .invoke('attr', 'src')
+          .should('eq', avatarUrl);
+        // drawer shows new photo
+        cy.dataCy(selectorQDrawer).within(() => {
+          cy.dataCy('avatar-image')
+            .find('img')
+            .invoke('attr', 'src')
+            .should('eq', avatarUrl);
+        });
+      });
+    });
+
+    it('allows to delete photo and shows placeholder instead', () => {
+      cy.get('@config').then((config) => {
+        cy.wait('@getAvatar');
+        cy.wait('@getAvatarRender');
+        const avatarId = 22;
+        cy.fixture('apiGetAvatarRenderPrimary').then(
+          (apiGetAvatarRenderPrimary) => {
+            // profile page shows current photo
+            cy.dataCy('profile-avatar-img')
+              .find('img')
+              .invoke('attr', 'src')
+              .should('eq', apiGetAvatarRenderPrimary['image_url']);
+          },
+        );
+        // intercept avatar removal
+        cy.interceptAvatarApi({
+          config: config,
+          i18n: defLocale,
+          requestType: 'DELETE',
+          interceptAlias: 'deleteAvatar',
+          avatarId: avatarId,
+          body: {},
+          statusCode: httpNoContentSuccessfullStatus,
+        });
+        // intercept refetch without avatar
+        cy.fixture('apiGetAvatarDefault.json').then((defaultAvatar) => {
+          cy.interceptAvatarApi({
+            config: config,
+            i18n: defLocale,
+            requestType: 'GET',
+            interceptAlias: 'getAvatarAfterDelete',
+            body: defaultAvatar,
+          });
+        });
+        // delete photo
+        cy.dataCy('profile-avatar-remove-button').click();
+        cy.dataCy('profile-avatar-dialog-remove-confirm').click();
+        cy.wait('@deleteAvatar');
+        cy.wait('@getAvatarAfterDelete');
+        // profile page shows fallback image
+        cy.fixture('apiGetAvatarDefault').then((apiGetAvatarDefault) => {
+          cy.dataCy('profile-avatar-img')
+            .find('img')
+            .invoke('attr', 'src')
+            .should('eq', apiGetAvatarDefault['default_avatar']['src']);
+          // drawer shows fallback image
+          cy.dataCy(selectorQDrawer).within(() => {
+            cy.dataCy('avatar-image')
+              .find('img')
+              .invoke('attr', 'src')
+              .should('eq', apiGetAvatarDefault['default_avatar']['src']);
+          });
+        });
+      });
     });
   });
 

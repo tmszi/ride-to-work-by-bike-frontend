@@ -68,6 +68,7 @@ export interface ConfigGlobal {
   checkRegisterChallengeStatusIntervalSeconds: number;
   checkRegisterChallengeStatusMaxRepetitions: number;
   tripMaxFileUploadSizeMegabytes: number;
+  profileAvatarMaxFileSizeMegabytes: number;
   feedRefreshCachedPostsIntervalHours: number;
   apiFeedMaxOffersNumber: number;
   apiFeedMaxPrizesNumber: number;
@@ -107,6 +108,8 @@ export interface ConfigGlobal {
   urlApiMyTeam: string;
   urlApiMyOrganizationAdmin: string;
   urlApiPayuCreateOrder: string;
+  urlApiAvatar: string;
+  urlApiAvatarRenderPrimary: string;
   urlAppDataPrivacyPolicy: string;
   urlAppDataTermsOfService: string;
   urlApiRefresh: string;
@@ -167,6 +170,8 @@ export interface ConfigGlobal {
   matomoAnalyticsEnableRegisterChallengeTrackingEvent: string;
   urlLogRouteCalendarNumberVideo: string;
   urlLogRouteListNumberVideo: string;
+  profileAvatarRenderSize: number;
+  profileAvatarImageAcceptedFileFormats: string;
 }
 
 export interface ConfigAppVersion {

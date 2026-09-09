@@ -391,6 +391,26 @@ apiMessageError = "Smazání firemní výzvy selhalo."
 apiMessageErrorWithMessage = "Smazání firemní výzvy selhalo. Chyba: {error}"
 apiMessageSuccess = "Firemní výzva byla úspěšně smazána."
 
+[uploadAvatar]
+apiMessageError = "Nahrání fotky se nezdařilo."
+apiMessageErrorWithMessage = "Nahrání fotky se nezdařilo. Chyba: {error}"
+apiMessageSuccess = "Fotka byla úspěšně nahrána."
+
+[replaceAvatar]
+apiMessageError = "Změna fotky se nezdařila."
+apiMessageErrorWithMessage = "Změna fotky se nezdařila. Chyba: {error}"
+apiMessageSuccess = "Fotka byla úspěšně změněna."
+
+[deleteAvatar]
+apiMessageError = "Odebrání fotky se nezdařilo."
+apiMessageErrorWithMessage = "Odebrání fotky se nezdařilo. Chyba: {error}"
+apiMessageSuccess = "Fotka byla úspěšně odebrána."
+
+[getAvatar]
+apiMessageError = "Fotku se nepodařilo načíst."
+apiMessageErrorWithMessage = "Fotku se nepodařilo načíst. Chyba: {error}"
+apiMessageSuccess = "Fotka byla úspěšně načtena."
+
 [updateCompetition]
 apiMessageError = "Aktualizace firemní výzvy selhala."
 apiMessageErrorWithMessage = "Aktualizace firemní výzvy selhala. Chyba: {error}"
@@ -1010,6 +1030,13 @@ titleUpdateGender = "Upravit výkonnostní kategorii"
 titleUpdateNickname = "Upravit přezdívku"
 titleUpdatePhone = "Upravit telefonní číslo"
 titleUpdateTeam = "Změnit tým"
+buttonUploadPhoto = "Nahrát novou fotku"
+buttonRemovePhoto = "Odebrat"
+titleUpdatePhoto = "Upravit profilovou fotku"
+titleDialogRemovePhoto = "Odebrat profilovou fotku"
+labelRemovePhotoDescription = "Vaše profilová fotka bude odebrána. Chcete pokračovat?"
+messagePhotoInvalidFormat = "Neplatný formát souboru. Povolené formáty: {formats}"
+messagePhotoTooLarge = "Soubor je příliš velký. Maximální velikost je {size}."
 
 [putRegisterChallenge]
 apiMessageError = "Chyba při aktualizaci profilu."

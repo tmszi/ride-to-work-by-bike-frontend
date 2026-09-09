@@ -43,3 +43,19 @@ Cypress.Commands.add(
     });
   },
 );
+
+/**
+ * Set avatar value in avatar store
+ * @param {function} useAvatarStore - `useAvatarStore` function to initialize avatar store
+ * @param {number | null} id - avatar ID (or `null` for default/fallback state)
+ * @param {string | null} url - avatar image URL to display
+ */
+Cypress.Commands.add('setAvatarStoreState', (useAvatarStore, id, url) => {
+  cy.wrap(useAvatarStore()).then((avatarStore) => {
+    const storedId = computed(() => avatarStore.getId);
+    avatarStore.setAvatar(id, url);
+    cy.wrap(storedId).should((currentStoredId) => {
+      expect(currentStoredId.value).to.equal(id);
+    });
+  });
+});
