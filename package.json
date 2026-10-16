@@ -105,10 +105,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
-    "@quasar/app-vite": "^2.0.0",
-    "@quasar/quasar-app-extension-qcalendar": "^4.1.2",
-    "@quasar/quasar-app-extension-testing": "^2.0.4",
-    "@quasar/quasar-app-extension-testing-e2e-cypress": "^6.2.1",
+    "@quasar/app-vite": "^3.0.0",
+    "@quasar/quasar-app-extension-qcalendar": "^5.3.1",
+    "@quasar/quasar-app-extension-testing-e2e-cypress": "^7.0.0",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
@@ -120,6 +119,7 @@
     "cypress-multi-reporters": "^2.0.0",
     "cypress-parallel": "^0.15.0",
     "cypress-terminal-report": "^7.0.4",
+    "cypress-vite": "^1.10.2",
     "eslint": "^9.33.0",
     "eslint-plugin-cypress": "^4.2.1",
     "eslint-plugin-vue": "^10.4.0",
@@ -129,7 +129,6 @@
     "prettier": "3",
     "typescript": "^5.0.0",
     "vite-plugin-checker": "^0.10.2",
-    "vite-plugin-top-level-await": "^1.4.4",
     "vue-tsc": "^3.0.6"
   },
   "engines": {

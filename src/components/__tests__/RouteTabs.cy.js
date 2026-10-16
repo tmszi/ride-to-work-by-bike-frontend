@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia';
-import RouteTabs from 'components/routes/RouteTabs.vue';
+import RouteTabs from '@/components/routes/RouteTabs.vue';
 import { i18n } from '../../boot/i18n';
-import { routesConf } from 'src/router/routes_conf';
+import { routesConf } from '@/router/routes_conf';
 import { useChallengeStore } from '../../../src/stores/challenge';
 import { useRegisterChallengeStore } from '../../../src/stores/registerChallenge';
 import { useTripsStore } from '../../../src/stores/trips';
@@ -32,6 +32,7 @@ describe('<RouteTabs>', () => {
 
   context('desktop', () => {
     beforeEach(() => {
+      cy.viewport('macbook-16');
       cy.mount(RouteTabs, {
         props: {},
       });
@@ -45,7 +46,6 @@ describe('<RouteTabs>', () => {
       cy.setupTripsStoreWithCommuteModes(useTripsStore);
       // setup store with register challenge team approval status
       cy.setupRegisterChallengeTeamApprovalStatus(useRegisterChallengeStore);
-      cy.viewport('macbook-16');
     });
 
     coreTests();

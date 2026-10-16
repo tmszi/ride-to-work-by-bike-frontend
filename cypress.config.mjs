@@ -1,12 +1,10 @@
 import * as fs from 'fs';
-import { injectQuasarDevServerConfig } from '@quasar/quasar-app-extension-testing-e2e-cypress/cct-dev-server';
+import { quasarComponentTestingConfig } from '@quasar/quasar-app-extension-testing-e2e-cypress/cct-dev-server';
 import { defineConfig } from 'cypress';
-import path from 'path';
 import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin';
-
-const { getAppConfig } = require(
-  path.join(__dirname, 'src/utils/get_app_conf'),
-);
+import installLogsPrinter from 'cypress-terminal-report/src/installLogsPrinter';
+import vitePreprocessor from 'cypress-vite';
+import { getAppConfig } from './src/utils/get_app_conf.js';
 
 export default defineConfig({
   fixturesFolder: 'test/cypress/fixtures',
@@ -15,9 +13,18 @@ export default defineConfig({
   video: true,
   requestTimeout: 12000,
   e2e: {
-    setupNodeEvents(on, config) {
+    async setupNodeEvents(on, config) {
+      // fixes default value for the NODE_ENV variable to prevent crash
+      // with the `process is not defined` message
+      if (process.env.NODE_ENV === undefined) {
+        process.env.NODE_ENV = 'test';
+      }
+      // build e2e specs with app's Vite config
+      const { getTestingConfig } = await import('@quasar/app-vite/testing');
+      const viteConfig = await getTestingConfig();
+      on('file:preprocessor', vitePreprocessor(viteConfig));
       addMatchImageSnapshotPlugin(on, config);
-      require('cypress-terminal-report/src/installLogsPrinter')(on, {
+      installLogsPrinter(on, {
         printLogsToConsole: 'onFail',
         includeSuccessfulHookLogs: false,
         printLogsToFile: 'onFail',
@@ -43,7 +50,7 @@ export default defineConfig({
   component: {
     setupNodeEvents(on, config) {
       addMatchImageSnapshotPlugin(on, config);
-      require('cypress-terminal-report/src/installLogsPrinter')(on, {
+      installLogsPrinter(on, {
         printLogsToConsole: 'onFail',
         includeSuccessfulHookLogs: false,
         printLogsToFile: 'onFail',
@@ -61,7 +68,9 @@ export default defineConfig({
     supportFile: 'test/cypress/support/component.js',
     specPattern: 'src/**/*.cy.{js,jsx,ts,tsx}',
     indexHtmlFile: 'test/cypress/support/component-index.html',
-    devServer: injectQuasarDevServerConfig(),
+    ...quasarComponentTestingConfig(),
+    // restore Cypress default, the extension's '' value breaks cy.intercept
+    devServerPublicPathRoute: '/__cypress/src',
     defaultCommandTimeout: 60000,
     excludeSpecPattern: ['*/*/**/RoutesMap.cy.js'],
   },

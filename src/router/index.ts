@@ -8,10 +8,10 @@ import {
   type RouteLocationNormalized,
   type NavigationGuardNext,
 } from 'vue-router';
-import { useChallengeStore } from 'src/stores/challenge';
-import { useLoginStore, emptyUser } from 'src/stores/login';
-import { useRegisterStore } from 'src/stores/register';
-import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
+import { useChallengeStore } from '@/stores/challenge';
+import { useLoginStore, emptyUser } from '@/stores/login';
+import { useRegisterStore } from '@/stores/register';
+import { useRegisterChallengeStore } from '@/stores/registerChallenge';
 import routes from './routes';
 import { routesConf } from './routes_conf';
 import { PhaseType } from '../components/types/Challenge';
@@ -142,9 +142,9 @@ function redirect({
 
 export default route(function (/* { store, ssrContext } */) {
   const logger = inject('vuejs3-logger') as Logger | null;
-  const createHistory = process.env.SERVER
+  const createHistory = import.meta.env.QUASAR_SERVER
     ? createMemoryHistory
-    : process.env.VUE_ROUTER_MODE === 'history'
+    : import.meta.env.QUASAR_VUE_ROUTER_MODE === 'history'
       ? createWebHistory
       : createWebHashHistory;
 
@@ -155,7 +155,7 @@ export default route(function (/* { store, ssrContext } */) {
     // Leave this as is and make changes in quasar.conf.js instead!
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
-    history: createHistory(process.env.VUE_ROUTER_BASE),
+    history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE),
   });
 
   // turn off auth check if in Cypress tests (except for register tests)

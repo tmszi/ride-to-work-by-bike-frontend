@@ -23,7 +23,7 @@
 
 // libraries
 import { colors, date } from 'quasar';
-import { QCalendarMonth, today } from '@quasar/quasar-ui-qcalendar';
+import { QCalendarMonth } from '@quasar/quasar-ui-qcalendar';
 import { defineComponent, computed, ref, watch } from 'vue';
 import { i18n } from '../../boot/i18n';
 
@@ -48,6 +48,10 @@ import { useTripsStore } from '../../stores/trips';
 // types
 import type { Timestamp } from '@quasar/quasar-ui-qcalendar';
 import type { RouteDay } from '../types/Route';
+import type { Composer } from 'vue-i18n';
+
+// correctly type the global i18n object
+const globalI18n = i18n.global as unknown as Composer;
 
 export default defineComponent({
   name: 'RoutesCalendar',
@@ -58,9 +62,9 @@ export default defineComponent({
   },
   setup() {
     const calendar = ref<typeof QCalendarMonth | null>(null);
-    const selectedDate = ref<string>(today());
+    const selectedDate = ref<string | null>(null);
     const locale = computed((): string => {
-      return i18n.global.locale;
+      return globalI18n.locale.value;
     });
 
     const { apiDateFormat } = rideToWorkByBikeConfig;
@@ -129,10 +133,7 @@ export default defineComponent({
 
     // Compute month name and year for title
     const monthNameAndYear = computed((): string => {
-      if (!selectedDate.value) {
-        return '';
-      }
-      const date = new Date(selectedDate.value);
+      const date = new Date();
       const month = date.toLocaleString(locale.value, { month: 'long' });
       const year = date.toLocaleString(locale.value, { year: 'numeric' });
       return `${month} ${year}`;

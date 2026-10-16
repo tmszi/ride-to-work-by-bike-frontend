@@ -23,7 +23,7 @@ installLogsCollector();
 // Quasar styles
 import 'quasar/src/css/index.sass'; // Or 'quasar/dist/quasar.prod.css' if no CSS preprocessor is installed
 // Change this if you have a different entrypoint for the main scss.
-import '../../../src/css/app.scss'; // Or 'src/css/app.css' if no CSS preprocessor is installed
+import '../../../src/css/app.scss'; // Or '@/css/app.css' if no CSS preprocessor is installed
 
 // ICON SETS
 // If you use multiple or different icon-sets then the default, be sure to import them here.
@@ -53,14 +53,12 @@ import { mount, VueTestUtils } from 'cypress/vue';
 const { config } = VueTestUtils;
 
 // Example to import i18n from boot and use as plugin
-// import { i18n } from 'src/boot/i18n';
+// import { i18n } from '@/boot/i18n';
 
 // You can modify the global config here for all tests or pass in the configuration per test
 // For example use the actual i18n instance or mock it
 // config.global.plugins.push(i18n);
-config.global.mocks = {
-  $t: () => '',
-};
+// We do not mock `$t` since it now overrides global translate function
 
 // Overwrite the transition and transition-group stubs which are stubbed by test-utils by default.
 // We do want transitions to show when doing visual testing :)

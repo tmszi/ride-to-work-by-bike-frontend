@@ -36,17 +36,16 @@ import LanguageSwitcher from '../global/LanguageSwitcher.vue';
 import { useSocialLinks } from '../../composables/useSocialLinks';
 
 // config
-import { rideToWorkByBikeConfig } from 'src/boot/global_vars';
-import { routesConf } from 'src/router/routes_conf';
+import { rideToWorkByBikeConfig } from '@/boot/global_vars';
+import { routesConf } from '@/router/routes_conf';
 
 // types
 import { ConfigAppVersion } from '../types/Config';
 import { Logger } from '../types/Logger';
 
 // Deployed app version
-const rideToWorkByBikeDeployedAppVersion: ConfigAppVersion = JSON.parse(
-  process.env.RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION,
-);
+const rideToWorkByBikeDeployedAppVersion: ConfigAppVersion = import.meta.env
+  .RIDE_TO_WORK_BY_BIKE_DEPLOYED_VERSION;
 
 let deployedAppVersionFixture;
 if (window.Cypress)
@@ -178,7 +177,7 @@ export default defineComponent({
               <!-- Logo -->
               <a :href="logoLinkUrl" target="_blank" data-cy="footer-logo-link">
                 <q-img
-                  src="~assets/svg/logo.svg"
+                  src="~@/assets/svg/logo.svg"
                   width="142px"
                   height="40px"
                   data-cy="footer-logo"
@@ -203,7 +202,7 @@ export default defineComponent({
                   data-cy="footer-auto-mat-logo-link"
                 >
                   <q-img
-                    src="~assets/svg/logo-automat.svg"
+                    src="~@/assets/svg/logo-automat.svg"
                     width="74px"
                     height="28px"
                     class="q-mb-xs"

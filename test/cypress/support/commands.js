@@ -29,6 +29,26 @@
 import { registerCommands } from '@quasar/quasar-app-extension-testing-e2e-cypress';
 registerCommands();
 
+// QSelect now puts `role=listbox` on `.q-menu`. This breaks the test extension
+// (v7.0.0). We need to extend its `.q-menu:has([role=listbox])` selector
+Cypress.Commands.overwrite('withinSelectMenu', (originalFn, fnOrOptions) => {
+  const {
+    dataCy,
+    persistent = false,
+    selector = '.q-menu',
+    fn,
+  } = typeof fnOrOptions === 'function' ? { fn: fnOrOptions } : fnOrOptions;
+
+  const base = dataCy ? `[data-cy="${dataCy}"]` : selector;
+  const portalSelector = `${base}[role=listbox], ${base}:has([role=listbox])`;
+
+  return cy.withinPortal(portalSelector, fn).then(($el) => {
+    if (!persistent) {
+      cy.wrap($el).should('not.exist');
+    }
+  });
+});
+
 // Import modular command files
 import './commands/coordinator_commands';
 import './commands/register_challenge_commands';
@@ -81,7 +101,7 @@ Cypress.Commands.add(
   'testLanguageStringsInContext',
   (translationStrings, translationContext, i18n) => {
     // store original locale
-    const originalLocale = i18n.global.locale;
+    const originalLocale = i18n.global.locale.value;
 
     const translationKeyList = translationStrings.map(
       (item) => `${translationContext}.${item}`,
@@ -89,7 +109,7 @@ Cypress.Commands.add(
 
     translationKeyList.forEach((translationKey) => {
       // set global locale to English
-      i18n.global.locale = 'en';
+      i18n.global.locale.value = 'en';
       const defaultEnglishString = i18n.global.t(
         translationKey,
         {},
@@ -101,7 +121,7 @@ Cypress.Commands.add(
         .filter((locale) => locale !== 'en')
         .forEach((locale) => {
           // set to the tested locale
-          i18n.global.locale = locale;
+          i18n.global.locale.value = locale;
 
           const translatedString = i18n.global.t(
             translationKey,
@@ -117,7 +137,7 @@ Cypress.Commands.add(
     });
 
     // restore original locale
-    i18n.global.locale = originalLocale;
+    i18n.global.locale.value = originalLocale;
   },
 );
 

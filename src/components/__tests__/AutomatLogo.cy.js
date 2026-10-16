@@ -1,8 +1,8 @@
-import AutomatLogo from 'components/global/AutomatLogo.vue';
+import AutomatLogo from '@/components/global/AutomatLogo.vue';
 import { i18n } from '../../boot/i18n';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
-import { defaultLocale } from 'src/i18n/def_locale';
-import { getApiBaseUrlWithLang } from 'src/utils/get_api_base_url_with_lang';
+import { defaultLocale } from '@/i18n/def_locale';
+import { getApiBaseUrlWithLang } from '@/utils/get_api_base_url_with_lang';
 
 import {
   failOnStatusCode,
@@ -82,8 +82,8 @@ function coreTests() {
 
   it('has correct link to AutoMat website - en lang (localized URL link)', () => {
     const enLangCode = 'en';
-    const defLocale = i18n.global.locale;
-    i18n.global.locale = enLangCode;
+    const defLocale = i18n.global.locale.value;
+    i18n.global.locale.value = enLangCode;
 
     cy.dataCy(selectorAutomatLogoButton)
       .should(
@@ -112,7 +112,7 @@ function coreTests() {
           }
           expect(resp.status).to.eq(httpSuccessfullStatus);
         });
-        i18n.global.locale = defLocale;
+        i18n.global.locale.value = defLocale;
       });
   });
 

@@ -26,7 +26,6 @@ describe('Component Boilerplate function', function () {
       'fileExists',
       `${componentsDir}/${componentOutputDir}/${componentName}.vue`,
     ).then((exists) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(exists).to.be.true;
     });
   });
@@ -37,7 +36,6 @@ describe('Component Boilerplate function', function () {
       'fileExists',
       `${componentsDir}/__tests__/${componentName}.cy.js`,
     ).then((exists) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(exists).to.be.true;
     });
   });

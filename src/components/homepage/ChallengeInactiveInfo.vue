@@ -19,7 +19,7 @@ import { defineComponent } from 'vue';
 
 import { useRouter } from 'vue-router';
 
-import ShowCurrentDatetime from 'components/debug/ShowCurrentDatetime.vue';
+import ShowCurrentDatetime from '@/components/debug/ShowCurrentDatetime.vue';
 import { routesConf } from '../../router/routes_conf';
 import { useChallengeStore } from '../../stores/challenge';
 import { i18n } from '../../boot/i18n';
@@ -29,6 +29,12 @@ import { Logger } from '../types/Logger';
 
 // config
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
+
+// types
+import type { Composer } from 'vue-i18n';
+
+// correctly type the global i18n object
+const globalI18n = i18n.global as unknown as Composer;
 
 export default defineComponent({
   name: 'ChallengeInactiveInfo',
@@ -110,7 +116,7 @@ export default defineComponent({
     // If locale lang is changed, we need reload this campaign description field value,
     // beacuse description field value is localized on the bakend DB side
     watch(
-      () => i18n.global.locale,
+      () => globalI18n.locale.value,
       () => {
         logger?.info(
           'Locale lang is changed, reload this campaign description field value.',

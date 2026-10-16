@@ -1,5 +1,5 @@
 import { colors } from 'quasar';
-import BannerAppButtons from 'components/login/BannerAppButtons.vue';
+import BannerAppButtons from '@/components/login/BannerAppButtons.vue';
 import { i18n } from '../../boot/i18n';
 
 import {
@@ -10,9 +10,7 @@ import {
   userAgentHeader,
 } from '../../../test/cypress/support/commonTests';
 
-const rideToWorkByBikeConfig = JSON.parse(
-  process.env.RIDE_TO_WORK_BY_BIKE_CONFIG,
-);
+const rideToWorkByBikeConfig = import.meta.env.RIDE_TO_WORK_BY_BIKE_CONFIG;
 const urlAppStore = rideToWorkByBikeConfig.urlAppStore;
 const urlGooglePlay = rideToWorkByBikeConfig.urlGooglePlay;
 

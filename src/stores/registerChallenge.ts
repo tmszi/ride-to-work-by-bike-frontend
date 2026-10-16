@@ -6,20 +6,20 @@ import { defineStore } from 'pinia';
 import { Notify } from 'quasar';
 
 // adapters
-import { payuAdapter } from 'src/adapters/payuAdapter';
-import { subsidiaryAdapter } from 'src/adapters/subsidiaryAdapter';
-import { registerCoordinatorAdapter } from 'src/adapters/registerCoordinatorAdapter';
+import { payuAdapter } from '@/adapters/payuAdapter';
+import { subsidiaryAdapter } from '@/adapters/subsidiaryAdapter';
+import { registerCoordinatorAdapter } from '@/adapters/registerCoordinatorAdapter';
 import { registerChallengeAdapter } from '../adapters/registerChallengeAdapter';
 
 // composables
-import { useApiGetRegisterChallenge } from 'src/composables/useApiGetRegisterChallenge';
-import { useApiGetSubsidiaries } from 'src/composables/useApiGetSubsidiaries';
-import { useApiGetOrganizations } from 'src/composables/useApiGetOrganizations';
-import { useApiGetTeams } from 'src/composables/useApiGetTeams';
-import { useApiGetAgeGroups } from 'src/composables/useApiGetAgeGroups';
-import { useApiGetOccupations } from 'src/composables/useApiGetOccupations';
-import { useApiGetMerchandise } from 'src/composables/useApiGetMerchandise';
-import { useApiGetFilteredMerchandise } from 'src/composables/useApiGetFilteredMerchandise';
+import { useApiGetRegisterChallenge } from '@/composables/useApiGetRegisterChallenge';
+import { useApiGetSubsidiaries } from '@/composables/useApiGetSubsidiaries';
+import { useApiGetOrganizations } from '@/composables/useApiGetOrganizations';
+import { useApiGetTeams } from '@/composables/useApiGetTeams';
+import { useApiGetAgeGroups } from '@/composables/useApiGetAgeGroups';
+import { useApiGetOccupations } from '@/composables/useApiGetOccupations';
+import { useApiGetMerchandise } from '@/composables/useApiGetMerchandise';
+import { useApiGetFilteredMerchandise } from '@/composables/useApiGetFilteredMerchandise';
 import { useApiPostRegisterChallenge } from '../composables/useApiPostRegisterChallenge';
 import { useApiGetIpAddress } from '../composables/useApiGetIpAddress';
 import { useApiPostPayuCreateOrder } from '../composables/useApiPostPayuCreateOrder';
@@ -43,7 +43,7 @@ import {
   StepVisitState,
 } from '../components/enums/RegisterChallenge';
 import { PaymentCategory } from '../components/types/ApiPayu';
-import { TeamMemberStatus } from 'src/components/enums/TeamMember';
+import { TeamMemberStatus } from '@/components/enums/TeamMember';
 
 // stores
 import { useChallengeStore } from './challenge';
@@ -80,16 +80,20 @@ import type {
   ThirdPartyVoucher,
   ToApiPayloadStoreState,
 } from '../components/types/ApiRegistration';
+import type { Composer } from 'vue-i18n';
 
 // utils
-import { defaultLocale } from 'src/i18n/def_locale';
-import { deepObjectWithSimplePropsCopy } from 'src/utils';
-import { isVoucherWithoutReward } from 'src/utils/voucher_validation';
+import { defaultLocale } from '@/i18n/def_locale';
+import { deepObjectWithSimplePropsCopy } from '@/utils';
+import { isVoucherWithoutReward } from '@/utils/voucher_validation';
 import {
   emptyFormPersonalDetails,
   emptyFormRegisterCoordinator,
   getRegisterChallengeEmptyPersistentState,
-} from 'src/utils/get_register_challenge_empty_state';
+} from '@/utils/get_register_challenge_empty_state';
+
+// correctly type the global i18n object
+const globalI18n = i18n.global as unknown as Composer;
 
 /**
  * Store for the register challenge page.
@@ -1222,7 +1226,7 @@ export const useRegisterChallengeStore = defineStore('registerChallenge', {
           `PayU transaction initiated flag set to ${this.isPayuTransactionInitiated}.`,
         );
         // localize the URI
-        const redirectUriLocalized = `${response.redirectUri}&lang=${i18n.global.locale}`;
+        const redirectUriLocalized = `${response.redirectUri}&lang=${globalI18n.locale.value}`;
         window.location.href = redirectUriLocalized;
       } else {
         Notify.create({

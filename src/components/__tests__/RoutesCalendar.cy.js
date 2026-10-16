@@ -1,10 +1,10 @@
 import { createPinia, setActivePinia } from 'pinia';
 import { date } from 'quasar';
-import RoutesCalendar from 'components/routes/RoutesCalendar.vue';
+import RoutesCalendar from '@/components/routes/RoutesCalendar.vue';
 import { i18n } from '../../boot/i18n';
-import { useTripsStore } from 'src/stores/trips';
-import { useChallengeStore } from 'src/stores/challenge';
-import { useRegisterChallengeStore } from 'src/stores/registerChallenge';
+import { useTripsStore } from '@/stores/trips';
+import { useChallengeStore } from '@/stores/challenge';
+import { useRegisterChallengeStore } from '@/stores/registerChallenge';
 import { rideToWorkByBikeConfig } from '../../boot/global_vars';
 import { systemTimeLastDayOfCompetitionMay } from '../../../test/cypress/support/commonTests';
 
@@ -348,7 +348,7 @@ function coreTests() {
 
   it('renders top title with month and year', () => {
     cy.get('@now').then((now) => {
-      const locale = i18n.global.locale;
+      const locale = i18n.global.locale.value;
       const month = now.toLocaleString(locale, { month: 'long' });
       const year = now.toLocaleString(locale, { year: 'numeric' });
       const title = `${month} ${year}`;
