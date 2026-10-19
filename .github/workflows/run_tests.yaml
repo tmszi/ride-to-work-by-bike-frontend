@@ -20,7 +20,7 @@ jobs:
       cancel-in-progress: true
 
     # Skip tests for Mend Renovate PRs
-    if: github.actor != 'renovate[bot]'
+    # if: github.actor != 'renovate[bot]'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
